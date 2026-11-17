@@ -1,0 +1,62 @@
+[
+  {
+    "opt": 1,
+    "lang": "index",
+    "before": [
+      "도보 약 13분 · 직선거리 801 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "도보 약 13분 · 직선거리 860 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "위치 확인 필요좌표가 없어 이동시간을 계산할 수 없어요."
+    ],
+    "after": [
+      "도보 약 5분 · 직선거리 291 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "도보 약 13분 · 직선거리 860 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "위치 확인 필요좌표가 없어 이동시간을 계산할 수 없어요."
+    ],
+    "changed": true
+  },
+  {
+    "opt": 1,
+    "lang": "english",
+    "before": [
+      "About 13 min on foot · 801 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "About 13 min on foot · 860 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "Location neededTravel time needs coordinates for both stops."
+    ],
+    "after": [
+      "About 5 min on foot · 291 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "About 13 min on foot · 860 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "Location neededTravel time needs coordinates for both stops."
+    ],
+    "changed": true
+  },
+  {
+    "opt": 2,
+    "lang": "index",
+    "before": [
+      "도보 약 13분 · 직선거리 801 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "도보 약 13분 · 직선거리 860 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "위치 확인 필요좌표가 없어 이동시간을 계산할 수 없어요."
+    ],
+    "after": [
+      "도보 약 5분 · 직선거리 291 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "도보 약 13분 · 직선거리 860 m좌표 기반 추정 · 시속 4 km 기준. 실제 길·횡단보도·경사는 반영하지 않아요.",
+      "위치 확인 필요좌표가 없어 이동시간을 계산할 수 없어요."
+    ],
+    "changed": true
+  },
+  {
+    "opt": 2,
+    "lang": "english",
+    "before": [
+      "About 13 min on foot · 801 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "About 13 min on foot · 860 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "Location neededTravel time needs coordinates for both stops."
+    ],
+    "after": [
+      "About 5 min on foot · 291 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "About 13 min on foot · 860 m straight-lineCoordinate estimate at 4 km/h. Streets, crossings and hills are not included.",
+      "Location neededTravel time needs coordinates for both stops."
+    ],
+    "changed": true
+  }
+]

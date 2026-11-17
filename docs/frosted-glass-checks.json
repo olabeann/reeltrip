@@ -1,0 +1,162 @@
+[
+  {
+    "lang": "index",
+    "o": 1,
+    "r": "home",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 1,
+    "r": "results",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 1,
+    "r": "planner",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "home",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "results",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "planner",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "guide",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "request",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "quote",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "index",
+    "o": 2,
+    "r": "booking",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 1,
+    "r": "home",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 1,
+    "r": "results",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 1,
+    "r": "planner",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "home",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "results",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "planner",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "guide",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "request",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "quote",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "lang": "english",
+    "o": 2,
+    "r": "booking",
+    "clipped": [],
+    "overflow": false,
+    "width": 320
+  }
+]

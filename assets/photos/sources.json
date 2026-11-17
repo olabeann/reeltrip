@@ -1,0 +1,42 @@
+[
+  {
+    "key": "park",
+    "title": "서울숲",
+    "author": "CHO woohyuck",
+    "date": "2022-05-21",
+    "source": "https://commons.wikimedia.org/wiki/File:Seoul_Forest_in_May_2022_(1).jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "changes": "원본 또는 Wikimedia 제공 축소본 사용. 화면에서 CSS로 비율에 맞게 잘라 표시. 사진 보정 없음. CC BY-SA 사진의 표시용 변경에도 같은 라이선스 적용."
+  },
+  {
+    "key": "cafe",
+    "title": "성수동 카페 외관",
+    "author": "CartoonChess",
+    "date": "2023-04-09",
+    "source": "https://commons.wikimedia.org/wiki/File:Cafe_storefront_in_Seongsu-dong.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "changes": "원본 또는 Wikimedia 제공 축소본 사용. 화면에서 CSS로 비율에 맞게 잘라 표시. 사진 보정 없음. CC BY-SA 사진의 표시용 변경에도 같은 라이선스 적용."
+  },
+  {
+    "key": "shop",
+    "title": "성수동 카메라 상점",
+    "author": "Sgroey",
+    "date": "2024-08-21",
+    "source": "https://commons.wikimedia.org/wiki/File:Camera_shop_seongsu_seoul.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "changes": "원본 또는 Wikimedia 제공 축소본 사용. 화면에서 CSS로 비율에 맞게 잘라 표시. 사진 보정 없음. CC BY-SA 사진의 표시용 변경에도 같은 라이선스 적용."
+  },
+  {
+    "key": "food",
+    "title": "광장시장 전과 먹거리",
+    "author": "Pfc. Bo Park, 2ID PAO, US Army",
+    "date": "2008-07-10",
+    "source": "https://commons.wikimedia.org/wiki/File:Korean_pancakes_and_pan-fried_foods_at_Gwangjang_Market.jpg",
+    "license": "Public domain (US federal government work)",
+    "license_url": "https://commons.wikimedia.org/wiki/Template:PD-USGov-Military-Army",
+    "changes": "원본 또는 Wikimedia 제공 축소본 사용. 화면에서 CSS로 비율에 맞게 잘라 표시. 사진 보정 없음. CC BY-SA 사진의 표시용 변경에도 같은 라이선스 적용."
+  }
+]

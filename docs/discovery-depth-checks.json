@@ -1,0 +1,162 @@
+{
+  "checks": [
+    {
+      "o": 1,
+      "r": "home",
+      "w": 320,
+      "clipped": [],
+      "overflow": false,
+      "pins": 0,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "results",
+      "w": 320,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "planner",
+      "w": 320,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "home",
+      "w": 320,
+      "clipped": [],
+      "overflow": false,
+      "pins": 0,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "results",
+      "w": 320,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "planner",
+      "w": 320,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "home",
+      "w": 390,
+      "clipped": [],
+      "overflow": false,
+      "pins": 0,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "results",
+      "w": 390,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "planner",
+      "w": 390,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "home",
+      "w": 390,
+      "clipped": [],
+      "overflow": false,
+      "pins": 0,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "results",
+      "w": 390,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "planner",
+      "w": 390,
+      "clipped": [],
+      "overflow": false,
+      "pins": 3,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "home",
+      "w": 430,
+      "clipped": [],
+      "overflow": false,
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "results",
+      "w": 430,
+      "clipped": [],
+      "overflow": false,
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "planner",
+      "w": 430,
+      "clipped": [],
+      "overflow": false,
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "home",
+      "w": 430,
+      "clipped": [],
+      "overflow": false,
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "results",
+      "w": 430,
+      "clipped": [],
+      "overflow": false,
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "planner",
+      "w": 430,
+      "clipped": [],
+      "overflow": false,
+      "width": 430
+    }
+  ],
+  "reorderBothOptions": true,
+  "selectionUpdates": true
+}

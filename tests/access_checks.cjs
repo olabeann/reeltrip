@@ -1,0 +1,9 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync(__dirname+'/../assets/access.js','utf8');
+function setup(saved,admin=false){const handlers={},writes=[];const ctx={document:{documentElement:{lang:'ko'},body:{dataset:{surface:admin?'admin':''}},addEventListener(k,f){handlers[k]=f}},window:{dispatchEvent(){}},Event:class{},location:{hash:''},localStorage:{getItem(){return JSON.stringify(saved)},setItem(k,v){writes.push(JSON.parse(v))}}};vm.createContext(ctx);vm.runInContext(source,ctx);return {api:ctx.window.ReelAccess,handlers,ctx,writes};}
+for(const profile of ['customer','pending','suspended']){const {api}=setup({profile,mode:'guide'});assert.equal(api.mode(),'customer');assert(api.allowed('customer'));assert(!api.allowed('guide'));assert(!api.allowed('admin'));assert(!api.controls().includes('data-access-mode'));}
+const x=setup({profile:'guide',mode:'customer'});assert(x.api.allowed('customer'));x.handlers.click({target:{closest(){return {dataset:{accessMode:'guide'}}}}});assert.equal(x.api.mode(),'guide');assert(x.api.allowed('guide'));assert(!x.api.allowed('customer'));assert.equal(x.ctx.location.hash,'guide-desk');assert.equal(x.writes.at(-1).profile,'guide');
+x.handlers.change({target:{id:'demo-access-profile',value:'suspended'}});assert.equal(x.api.mode(),'customer');assert.equal(x.ctx.location.hash,'home');assert(!x.api.allowed('guide'));
+const admin=setup(null,true).api;assert(admin.allowed('admin'));assert(!admin.allowed('customer'));assert(!admin.allowed('guide'));assert.equal(admin.home(),'admin');
+assert.equal(setup({profile:'invalid',mode:'guide'}).api.mode(),'customer');
+console.log('PASS: customer/pending/suspended permissions, approved-guide mode switch, revocation fallback, admin surface separation, invalid saved profile. Prototype only; server authorization not tested.');

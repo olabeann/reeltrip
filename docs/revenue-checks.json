@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-17",
+  "pricingCases": 4,
+  "pricingCasesPassed": true,
+  "browserVerified": [
+    "Option 1 Korean and English pass comparison",
+    "Option 2 Korean and English fee calculator",
+    "Korean quote submission",
+    "320px calculator no horizontal overflow"
+  ],
+  "actualBilling": false
+}

@@ -1,0 +1,637 @@
+{
+  "date": "2026-11-17",
+  "checks": [
+    {
+      "o": 1,
+      "r": "home",
+      "clipped": [],
+      "overflow": false,
+      "route": "home",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "results",
+      "clipped": [],
+      "overflow": false,
+      "route": "results",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "manual",
+      "clipped": [],
+      "overflow": false,
+      "route": "manual",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "board",
+      "clipped": [],
+      "overflow": false,
+      "route": "board",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "planner",
+      "clipped": [],
+      "overflow": false,
+      "route": "planner",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "share",
+      "clipped": [],
+      "overflow": false,
+      "route": "share",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "trips",
+      "clipped": [],
+      "overflow": false,
+      "route": "trips",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "account",
+      "clipped": [],
+      "overflow": false,
+      "route": "account",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "support",
+      "clipped": [],
+      "overflow": false,
+      "route": "support",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "policies",
+      "clipped": [],
+      "overflow": false,
+      "route": "policies",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "home",
+      "clipped": [],
+      "overflow": false,
+      "route": "home",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "results",
+      "clipped": [],
+      "overflow": false,
+      "route": "results",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "manual",
+      "clipped": [],
+      "overflow": false,
+      "route": "manual",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "board",
+      "clipped": [],
+      "overflow": false,
+      "route": "board",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "planner",
+      "clipped": [],
+      "overflow": false,
+      "route": "planner",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "share",
+      "clipped": [],
+      "overflow": false,
+      "route": "share",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "trips",
+      "clipped": [],
+      "overflow": false,
+      "route": "trips",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "account",
+      "clipped": [],
+      "overflow": false,
+      "route": "account",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "support",
+      "clipped": [],
+      "overflow": false,
+      "route": "support",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "policies",
+      "clipped": [],
+      "overflow": false,
+      "route": "policies",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "guides",
+      "clipped": [],
+      "overflow": false,
+      "route": "guides",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "guide",
+      "clipped": [],
+      "overflow": false,
+      "route": "guide",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "request",
+      "clipped": [],
+      "overflow": false,
+      "route": "request",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "quote",
+      "clipped": [],
+      "overflow": false,
+      "route": "quote",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "route": "checkout",
+      "width": 320
+    },
+    {
+      "o": 2,
+      "r": "booking",
+      "clipped": [],
+      "overflow": false,
+      "route": "booking",
+      "width": 320
+    },
+    {
+      "o": 1,
+      "r": "home",
+      "clipped": [],
+      "overflow": false,
+      "route": "home",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "results",
+      "clipped": [],
+      "overflow": false,
+      "route": "results",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "manual",
+      "clipped": [],
+      "overflow": false,
+      "route": "manual",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "board",
+      "clipped": [],
+      "overflow": false,
+      "route": "board",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "planner",
+      "clipped": [],
+      "overflow": false,
+      "route": "planner",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "share",
+      "clipped": [],
+      "overflow": false,
+      "route": "share",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "trips",
+      "clipped": [],
+      "overflow": false,
+      "route": "trips",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "account",
+      "clipped": [],
+      "overflow": false,
+      "route": "account",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "support",
+      "clipped": [],
+      "overflow": false,
+      "route": "support",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "policies",
+      "clipped": [],
+      "overflow": false,
+      "route": "policies",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "home",
+      "clipped": [],
+      "overflow": false,
+      "route": "home",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "results",
+      "clipped": [],
+      "overflow": false,
+      "route": "results",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "manual",
+      "clipped": [],
+      "overflow": false,
+      "route": "manual",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "board",
+      "clipped": [],
+      "overflow": false,
+      "route": "board",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "planner",
+      "clipped": [],
+      "overflow": false,
+      "route": "planner",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "share",
+      "clipped": [],
+      "overflow": false,
+      "route": "share",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "trips",
+      "clipped": [],
+      "overflow": false,
+      "route": "trips",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "account",
+      "clipped": [],
+      "overflow": false,
+      "route": "account",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "support",
+      "clipped": [],
+      "overflow": false,
+      "route": "support",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "policies",
+      "clipped": [],
+      "overflow": false,
+      "route": "policies",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "guides",
+      "clipped": [],
+      "overflow": false,
+      "route": "guides",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "guide",
+      "clipped": [],
+      "overflow": false,
+      "route": "guide",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "request",
+      "clipped": [],
+      "overflow": false,
+      "route": "request",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "quote",
+      "clipped": [],
+      "overflow": false,
+      "route": "quote",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "route": "checkout",
+      "width": 390
+    },
+    {
+      "o": 2,
+      "r": "booking",
+      "clipped": [],
+      "overflow": false,
+      "route": "booking",
+      "width": 390
+    },
+    {
+      "o": 1,
+      "r": "home",
+      "clipped": [],
+      "overflow": false,
+      "route": "home",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "results",
+      "clipped": [],
+      "overflow": false,
+      "route": "results",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "manual",
+      "clipped": [],
+      "overflow": false,
+      "route": "manual",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "board",
+      "clipped": [],
+      "overflow": false,
+      "route": "board",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "planner",
+      "clipped": [],
+      "overflow": false,
+      "route": "planner",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "share",
+      "clipped": [],
+      "overflow": false,
+      "route": "share",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "trips",
+      "clipped": [],
+      "overflow": false,
+      "route": "trips",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "account",
+      "clipped": [],
+      "overflow": false,
+      "route": "account",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "support",
+      "clipped": [],
+      "overflow": false,
+      "route": "support",
+      "width": 430
+    },
+    {
+      "o": 1,
+      "r": "policies",
+      "clipped": [],
+      "overflow": false,
+      "route": "policies",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "home",
+      "clipped": [],
+      "overflow": false,
+      "route": "home",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "results",
+      "clipped": [],
+      "overflow": false,
+      "route": "results",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "manual",
+      "clipped": [],
+      "overflow": false,
+      "route": "manual",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "board",
+      "clipped": [],
+      "overflow": false,
+      "route": "board",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "planner",
+      "clipped": [],
+      "overflow": false,
+      "route": "planner",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "share",
+      "clipped": [],
+      "overflow": false,
+      "route": "share",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "trips",
+      "clipped": [],
+      "overflow": false,
+      "route": "trips",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "account",
+      "clipped": [],
+      "overflow": false,
+      "route": "account",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "support",
+      "clipped": [],
+      "overflow": false,
+      "route": "support",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "policies",
+      "clipped": [],
+      "overflow": false,
+      "route": "policies",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "guides",
+      "clipped": [],
+      "overflow": false,
+      "route": "guides",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "guide",
+      "clipped": [],
+      "overflow": false,
+      "route": "guide",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "request",
+      "clipped": [],
+      "overflow": false,
+      "route": "request",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "quote",
+      "clipped": [],
+      "overflow": false,
+      "route": "quote",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "route": "checkout",
+      "width": 430
+    },
+    {
+      "o": 2,
+      "r": "booking",
+      "clipped": [],
+      "overflow": false,
+      "route": "booking",
+      "width": 430
+    }
+  ],
+  "scope": "Rendered customer screens; deliberately hidden screen-reader labels, overflowing photo-pin badges and horizontal carousels excluded from clipping measurements.",
+  "additional": {
+    "oneGuestRequestThroughBooking": true,
+    "cancellationFormAt320": true,
+    "longUnbrokenPlaceNameAt320": true,
+    "toastDoesNotOverlapActions": true
+  },
+  "note": "Editorial review and browser checks, not a test with recruited foreign travelers."
+}
