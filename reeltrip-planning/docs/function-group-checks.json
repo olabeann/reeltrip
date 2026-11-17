@@ -1,0 +1,523 @@
+{
+  "checks": [
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "request",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "quote",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "booking",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "request",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "quote",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "booking",
+      "clipped": [],
+      "overflow": false,
+      "width": 320
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 1,
+      "lang": "english",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "request",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "quote",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "route": "booking",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "results",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "board",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "share",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "trips",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "account",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "support",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "request",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "quote",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "checkout",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "route": "booking",
+      "clipped": [],
+      "overflow": false,
+      "width": 390
+    }
+  ],
+  "requestSubmitAndWithdraw": true,
+  "shareActionsRetained": [
+    "copy",
+    "download-trip",
+    "print"
+  ],
+  "accountToSupportAndLocalSubmit": true
+}

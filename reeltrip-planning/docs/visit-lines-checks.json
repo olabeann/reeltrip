@@ -1,0 +1,35 @@
+{
+  "version": "1.8",
+  "option1": {
+    "before": [
+      "forest:shop",
+      "shop:cafe"
+    ],
+    "after": [
+      "shop:forest",
+      "forest:cafe"
+    ],
+    "pins": [
+      "shop:1",
+      "forest:2",
+      "cafe:3"
+    ]
+  },
+  "option2": {
+    "before": [
+      "forest:cafe",
+      "cafe:shop"
+    ],
+    "after": [
+      "cafe:forest",
+      "forest:shop"
+    ],
+    "pins": [
+      "cafe:1",
+      "forest:2",
+      "shop:3"
+    ],
+    "persistedAfterReload": true
+  },
+  "mode": "static review map; visit-order lines, not navigation routes"
+}

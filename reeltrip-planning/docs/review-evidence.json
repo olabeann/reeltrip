@@ -1,0 +1,26 @@
+[
+  {
+    "id": "F01",
+    "observed": "Fresh board contains out-of-area place",
+    "board": [
+      "n-seoul-tower"
+    ],
+    "areas": [
+      "용산"
+    ]
+  },
+  {
+    "id": "F02",
+    "observed": "Completed booking blocks new request"
+  },
+  {
+    "id": "F03",
+    "observed": "Submitting after cancellation removes previous booking object"
+  },
+  {
+    "id": "F04",
+    "observed": "Unknown place receives synthetic coordinates while verified remains true",
+    "lat": 37.552125000000004,
+    "lng": 127.04884440000001
+  }
+]

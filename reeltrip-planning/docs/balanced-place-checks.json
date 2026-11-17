@@ -1,0 +1,66 @@
+[
+  {
+    "width": 320,
+    "option": 1,
+    "language": "index",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "option": 1,
+    "language": "english",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "option": 2,
+    "language": "index",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "option": 2,
+    "language": "english",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "option": 1,
+    "language": "index",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "option": 1,
+    "language": "english",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "option": 2,
+    "language": "index",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "option": 2,
+    "language": "english",
+    "cards": 3,
+    "clipped": [],
+    "overflow": false
+  }
+]

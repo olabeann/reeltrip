@@ -1,0 +1,57 @@
+{
+  "sizes": [
+    {
+      "o": 1,
+      "lang": "english",
+      "dialogOverflow": false,
+      "links": [
+        "https://www.google.com/maps/search/?api=1&query=Seoul%20Forest%20273%20Ttukseom-ro%2C%20Seongdong-gu%2C%20Seoul",
+        "https://www.google.com/search?q=site%3Aklook.com%20Seoul%20Forest%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Atrip.com%20Seoul%20Forest%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Acreatrip.com%20Seoul%20Forest%20Seoul%20booking"
+      ],
+      "overflow": false
+    },
+    {
+      "o": 1,
+      "lang": "index",
+      "dialogOverflow": false,
+      "links": [
+        "https://www.google.com/maps/search/?api=1&query=%EC%84%9C%EC%9A%B8%EC%88%B2%20%EC%84%9C%EC%9A%B8%20%EC%84%B1%EB%8F%99%EA%B5%AC%20%EB%9A%9D%EC%84%AC%EB%A1%9C%20273",
+        "https://www.google.com/search?q=site%3Aklook.com%20%EC%84%9C%EC%9A%B8%EC%88%B2%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Atrip.com%20%EC%84%9C%EC%9A%B8%EC%88%B2%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Acreatrip.com%20%EC%84%9C%EC%9A%B8%EC%88%B2%20Seoul%20booking"
+      ],
+      "overflow": false
+    },
+    {
+      "o": 2,
+      "lang": "english",
+      "dialogOverflow": false,
+      "links": [
+        "https://www.google.com/maps/search/?api=1&query=Seoul%20Forest%20273%20Ttukseom-ro%2C%20Seongdong-gu%2C%20Seoul",
+        "https://www.google.com/search?q=site%3Aklook.com%20Seoul%20Forest%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Atrip.com%20Seoul%20Forest%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Acreatrip.com%20Seoul%20Forest%20Seoul%20booking"
+      ],
+      "overflow": false
+    },
+    {
+      "o": 2,
+      "lang": "index",
+      "dialogOverflow": false,
+      "links": [
+        "https://www.google.com/maps/search/?api=1&query=%EC%84%9C%EC%9A%B8%EC%88%B2%20%EC%84%9C%EC%9A%B8%20%EC%84%B1%EB%8F%99%EA%B5%AC%20%EB%9A%9D%EC%84%AC%EB%A1%9C%20273",
+        "https://www.google.com/search?q=site%3Aklook.com%20%EC%84%9C%EC%9A%B8%EC%88%B2%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Atrip.com%20%EC%84%9C%EC%9A%B8%EC%88%B2%20Seoul%20booking",
+        "https://www.google.com/search?q=site%3Acreatrip.com%20%EC%84%9C%EC%9A%B8%EC%88%B2%20Seoul%20booking"
+      ],
+      "overflow": false
+    }
+  ],
+  "saveEditDelete": true,
+  "httpsValidation": true,
+  "englishRecordTime": "16:30",
+  "koreanSaveOnPlanner": true,
+  "realBookingMade": false
+}

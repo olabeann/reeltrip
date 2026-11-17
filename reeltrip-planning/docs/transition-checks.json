@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-17",
+  "activeOption": 2,
+  "restoredFilesVerified": 154,
+  "archiveExtractAndHashCheck": "passed",
+  "option1UnchangedAfterRegeneration": true,
+  "javascriptSyntax": "passed",
+  "staticChecks": "docs/static-checks.json",
+  "mapAdapterChecks": "passed (no live map)",
+  "seedAndSavedDataChecks": "passed (Korean and English)",
+  "browserVisualChecks": "not run; app interaction logic unchanged except selecting option 2"
+}

@@ -1,0 +1,717 @@
+{
+  "checks": [
+    {
+      "width": 320,
+      "o": 1,
+      "l": "index",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "index",
+      "r": "board",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "index",
+      "r": "planner",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "index",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "index",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "index",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "english",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "english",
+      "r": "board",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "english",
+      "r": "planner",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "english",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "english",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 1,
+      "l": "english",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "board",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "planner",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "guides",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "guide",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "request",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "quote",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "checkout",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "index",
+      "r": "booking",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "board",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "planner",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "guides",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "guide",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "request",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "quote",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "checkout",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "o": 2,
+      "l": "english",
+      "r": "booking",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "index",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "index",
+      "r": "board",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "index",
+      "r": "planner",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "index",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "index",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "index",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "english",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "english",
+      "r": "board",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "english",
+      "r": "planner",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "english",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "english",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 1,
+      "l": "english",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "board",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "planner",
+      "bottomPadding": "230px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "guides",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "guide",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "request",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "quote",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "checkout",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "index",
+      "r": "booking",
+      "bottomPadding": "190px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "home",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "board",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "planner",
+      "bottomPadding": "250px",
+      "clipped": [
+        "1",
+        "2",
+        "3"
+      ],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "share",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "trips",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "account",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "guides",
+      "bottomPadding": "108px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "guide",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "request",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "quote",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "checkout",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "o": 2,
+      "l": "english",
+      "r": "booking",
+      "bottomPadding": "250px",
+      "clipped": [],
+      "overflow": false
+    }
+  ],
+  "note": "Numeric 1/2/3 overflow detections are intentionally floating map pin badges; badge text width and viewport containment checked separately. No action button text clipping or page horizontal overflow."
+}

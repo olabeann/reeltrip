@@ -1,0 +1,394 @@
+{
+  "screens": [
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "home",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "results",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "board",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "planner",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "share",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "trips",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "account",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "index",
+      "route": "support",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "home",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "results",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "board",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "planner",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "share",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "trips",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "account",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 1,
+      "lang": "english",
+      "route": "support",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "home",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "results",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "board",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "planner",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "share",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "trips",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "account",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "support",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "guides",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "guide",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "request",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "quote",
+      "emptyBookings": false,
+      "heading": false,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "checkout",
+      "emptyBookings": false,
+      "heading": false,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "index",
+      "route": "booking",
+      "emptyBookings": false,
+      "heading": false,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "home",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "results",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "board",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "planner",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "share",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "trips",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "account",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "support",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "guides",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "guide",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "request",
+      "emptyBookings": false,
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "quote",
+      "emptyBookings": false,
+      "heading": false,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "checkout",
+      "emptyBookings": false,
+      "heading": false,
+      "overflow": false
+    },
+    {
+      "opt": 2,
+      "lang": "english",
+      "route": "booking",
+      "emptyBookings": false,
+      "heading": false,
+      "overflow": false
+    }
+  ],
+  "bookingReloadChecks": [
+    {
+      "lang": "index",
+      "route": "quote",
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "lang": "index",
+      "route": "checkout",
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "lang": "index",
+      "route": "booking",
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "lang": "english",
+      "route": "quote",
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "lang": "english",
+      "route": "checkout",
+      "heading": true,
+      "overflow": false
+    },
+    {
+      "lang": "english",
+      "route": "booking",
+      "heading": true,
+      "overflow": false
+    }
+  ]
+}

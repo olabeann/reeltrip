@@ -1,0 +1,1179 @@
+{
+  "version": "2.27",
+  "created": "2026-11-16",
+  "updated": "2026-11-17",
+  "language": "ko",
+  "platform": "모바일 앱 검토용 HTML 시제품",
+  "entry": "index.html",
+  "files": [
+    {
+      "path": ".nojekyll",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 1219,
+      "sha256": "ba18d1257c6c57b2059c54ae86e7548fb30f74ef22524789ebd3d245bf54f734"
+    },
+    {
+      "path": "DEVELOPER_OVERVIEW.md",
+      "bytes": 7662,
+      "sha256": "8dcd3f42860d9a298349aa9abf90f28fdae453a44fa50c4bc5f9610931446919"
+    },
+    {
+      "path": "README.txt",
+      "bytes": 883,
+      "sha256": "858b12fc587756a4de673fd723a9e1a93c1ed832421ff53f40fb56b249d15a82"
+    },
+    {
+      "path": "admin/english.html",
+      "bytes": 1783,
+      "sha256": "575137ac56e8ac9b9081c38a64db1bbf20a115eb5a9b901d1270721daf6d6b38"
+    },
+    {
+      "path": "admin/index.html",
+      "bytes": 1754,
+      "sha256": "ae07c794a4493c644cbbfd782068f83125e46c1466cca42b7bd812088525136e"
+    },
+    {
+      "path": "app/app.en.webmanifest",
+      "bytes": 536,
+      "sha256": "b361a6119a26720c21908472a675f6eb6bebd1044101ecd280edd6b0c946c928"
+    },
+    {
+      "path": "app/app.webmanifest",
+      "bytes": 534,
+      "sha256": "81848a4eaaa43dd27b72dff57a5f4842269c602b7d01ddd70af8e44e03a515e6"
+    },
+    {
+      "path": "app/english.html",
+      "bytes": 1790,
+      "sha256": "7ccaf7bea1e9e3d2d9d143e346263d16a66f6e4c30e04eccd01d79581786bad2"
+    },
+    {
+      "path": "app/index.html",
+      "bytes": 1798,
+      "sha256": "65dcbb1dd7dac5a081e02b330363d41f60175d61d5f537590ab65c76f1de9e56"
+    },
+    {
+      "path": "assets/access.css",
+      "bytes": 1808,
+      "sha256": "fd60bfaeb7d7b928581fa7ddd6fd13edb3dd571fdc16f64e3a428e724d36d770"
+    },
+    {
+      "path": "assets/access.js",
+      "bytes": 3869,
+      "sha256": "98ab7165ec8a13d48cf6b6298a852c1b377192daf2f2ffb3d84c612497012441"
+    },
+    {
+      "path": "assets/action-first.css",
+      "bytes": 22556,
+      "sha256": "478e394a237599c6d84e7e2fa683417729dfc1439cc099b19283293da35292b8"
+    },
+    {
+      "path": "assets/app.css",
+      "bytes": 30528,
+      "sha256": "8e95b025d8a03e0dfa75b801ab124eca172a9d69d09d6b7dfbfee8c1d3152d19"
+    },
+    {
+      "path": "assets/app.en.js",
+      "bytes": 97567,
+      "sha256": "a39c7cc30a6d37d297730f30e5091d63ac4935299ad6caa55146e6443d4ea917"
+    },
+    {
+      "path": "assets/app.js",
+      "bytes": 101223,
+      "sha256": "028284f1064399e943a455b97583aba5a16e594688e609eadc5fcdbacc77a3a4"
+    },
+    {
+      "path": "assets/base.css",
+      "bytes": 193,
+      "sha256": "e87a2910db84c29ef3ba2ebad1517b9c49c6aaa2719c7bb46ee70007f5cb6c4b"
+    },
+    {
+      "path": "assets/booking-tools.css",
+      "bytes": 8670,
+      "sha256": "e067b5567ae7981c78f1eab12ad15d6a4caddce7f0ddda9756d4271e71baf97b"
+    },
+    {
+      "path": "assets/booking-tools.js",
+      "bytes": 11975,
+      "sha256": "0cdbb9b614c0e8987889657aeb351e2ab5a824151232741d61e3b26d7e00ffb4"
+    },
+    {
+      "path": "assets/brand/app-icon/apple-touch-icon-180.png",
+      "bytes": 19782,
+      "sha256": "c1343bbf7691d58cf0402912f9c6ecace1be2f85d1e971a47a60bcb3d18ad73f"
+    },
+    {
+      "path": "assets/brand/app-icon/favicon-32.png",
+      "bytes": 1758,
+      "sha256": "aef79944f33ef39f736668238dbd0b9bbeb4ba2e0751411b0be8705b7f24c640"
+    },
+    {
+      "path": "assets/brand/app-icon/icon-192.png",
+      "bytes": 21899,
+      "sha256": "a712b8e303a2359f773b0bb50938815c0795902aace24398d8d1027b4cb40afe"
+    },
+    {
+      "path": "assets/brand/app-icon/icon-512.png",
+      "bytes": 118112,
+      "sha256": "bd87118a58731c9e9ea16b6df28c9de2b30f5dfcdda7de6c65b9a6200825909d"
+    },
+    {
+      "path": "assets/brand/app-icon/reeltrip-app-icon-1024.png",
+      "bytes": 958233,
+      "sha256": "266ecf11f65f4c3c0efa26ef0f4c38cd5d3799bd0019a7e6676522066883863f"
+    },
+    {
+      "path": "assets/brand/app-icon/reeltrip-app-icon-512.png",
+      "bytes": 263098,
+      "sha256": "b379cf555514ed5166c980ee92f684ce552fbdb27128cc1b5357d3e51dd55d00"
+    },
+    {
+      "path": "assets/brand/app-icon/reeltrip-app-icon-original.png",
+      "bytes": 1359816,
+      "sha256": "4fb2fb7634663c6425c8614537a207baa5b60d672ad1cb9f2c6feaec8399a45f"
+    },
+    {
+      "path": "assets/brand/app-icon/reeltrip-app-icon-solid-1024.png",
+      "bytes": 897150,
+      "sha256": "f0c1efde0def3df940f07df7c13b0ab3362b9dc46f494341688a9d765144ec94"
+    },
+    {
+      "path": "assets/brand/app-icon/reeltrip-white-app-icons.zip",
+      "bytes": 732181,
+      "sha256": "bf62c7c414a881aa17faa56b95347806fa18cfab763f349b58e97c83143ba5cc"
+    },
+    {
+      "path": "assets/brand/app-icon/white/README.txt",
+      "bytes": 1362,
+      "sha256": "cb74597bf5bd685a766aa63fc8bdc2cd114899c92132d81168c00cfe3491a92b"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/play-store-512.png",
+      "bytes": 120798,
+      "sha256": "efdd64a55ed8f2e5685cfbce06ca4f824e9319819cf4c3761192ff27b8d4bdbf"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "bytes": 266,
+      "sha256": "54bfca84aff26c5677f81b73caf664f9f287acd72c1f1fb8d59c00d155eb5e9c"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-hdpi/ic_launcher.png",
+      "bytes": 4419,
+      "sha256": "6222a4aa8ed8056f16800cc3735b86a69e6acdc9c01fbca7aa93c9be786ac154"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "bytes": 11865,
+      "sha256": "86a985518c6754fe3039d43ffaf419984c8953329627be5f3cd88d3463b8c663"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-mdpi/ic_launcher.png",
+      "bytes": 2389,
+      "sha256": "1ce7b44fe0e60df2cdb98b8c554c75dc37924caef07dce15a3f4ad6b812ce8a2"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "bytes": 6084,
+      "sha256": "25e3f14fe76861c91d2e68b069e4c8c058214791d2886cd3c0ae5c3c4bbb77ca"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-xhdpi/ic_launcher.png",
+      "bytes": 7146,
+      "sha256": "23000c4ec075bd4d737c1b62a5f0b20909f430dd4bcd77f8663a951418a8540d"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "bytes": 18607,
+      "sha256": "e75bf693ecd4389106150ad2059eadd7174336de683ca7dc4bec8c329b7f26f1"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-xxhdpi/ic_launcher.png",
+      "bytes": 13648,
+      "sha256": "7709327e5c213596878f0c20bc057ee4f121d6c78696d49e4b1f0d7d501da38e"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "bytes": 38085,
+      "sha256": "17f3cc40ff65b43c58769da2a926f6eff48a73a81371be9dddb2c6dbc9bc2e31"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "bytes": 22039,
+      "sha256": "3b4c451b77e073d46b024c22ae4925ed5a3cb3922336205d9704111e0f726186"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "bytes": 60637,
+      "sha256": "42ca4c74e9937599629494987c6f8d32d8d2022d812af324c343905d8ef0021e"
+    },
+    {
+      "path": "assets/brand/app-icon/white/android/res/values/reeltrip_icon_colors.xml",
+      "bytes": 115,
+      "sha256": "8a18aded191717b569fc5acf270f757cafc4e742c1bddd83049b3d76ed458fc7"
+    },
+    {
+      "path": "assets/brand/app-icon/white/ios/AppIcon.appiconset/Contents.json",
+      "bytes": 208,
+      "sha256": "323e64351567ffcc82e409c6ef1064640d69c3eb46f29401cd454d2e09d2f5c6"
+    },
+    {
+      "path": "assets/brand/app-icon/white/ios/AppIcon.appiconset/reeltrip-1024.png",
+      "bytes": 433128,
+      "sha256": "4267dd78912ed031ce86724dd3220b7abc39485387528ecf62fad2fe56787bb2"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en-charcoal-preview.png",
+      "bytes": 155111,
+      "sha256": "c6e99233f49fd90c2c1350994aa3350dc5395b8728ce1c86154ab3fe81455afc"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en-charcoal-transparent.png",
+      "bytes": 151373,
+      "sha256": "e6db9d10b096024cead1992f5c78a3fa97fe1dc5be8933bf002db1b425a8b663"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en-fugaz-one-preview.png",
+      "bytes": 154825,
+      "sha256": "fb4e3ac36a114954d7c9750456133f9eb4238f6e9e2a890abc5378e62f674da4"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en-fugaz-one-transparent.png",
+      "bytes": 151185,
+      "sha256": "056fcb67eb3c9207376fb4675ef89916bd1a27126bd899191168d4e2a5b22241"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en-fugaz-one.png",
+      "bytes": 151185,
+      "sha256": "056fcb67eb3c9207376fb4675ef89916bd1a27126bd899191168d4e2a5b22241"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en-jakarta.png",
+      "bytes": 144445,
+      "sha256": "e9a5bb81bc3af7b8523f42ad987631b38de621501a1ecfa1a9064ecb8e41181e"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-en.png",
+      "bytes": 154203,
+      "sha256": "afcf8e65cbde1c1c8b6cab9ded15096b87891aa3838a4ed9d4cceaaeb0950eef"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-black-italic-preview.png",
+      "bytes": 146559,
+      "sha256": "b3f58a1f8a131eb3de0dcb11d88908616e529c4d92e26e7447d5fb51870518d8"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-black-italic-transparent.png",
+      "bytes": 137134,
+      "sha256": "ce4a8c59f472a41fdf1452513d0cd60aceab4bc4c0daa808a7138da1b1825145"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-bold-italic-preview.png",
+      "bytes": 143976,
+      "sha256": "42182dff9ae2fa24794071ad02dfa8cea03d8be88f29cee5afd961fb43ca5148"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-bold-italic-transparent.png",
+      "bytes": 136918,
+      "sha256": "b06275353830e5ce790c2c40dbf505678df1cd083bd3adde3944388a50525289"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-charcoal-preview.png",
+      "bytes": 146518,
+      "sha256": "a1ec6f74c6918070bd1dc0552c8603e6a01dbfbbf7a142f66530986c9d3abcf6"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-charcoal-transparent.png",
+      "bytes": 137547,
+      "sha256": "d2e05b8213568815ff264bc05b35de6c1806bf2d36072628d53c85e4bf910e51"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-italic-preview.png",
+      "bytes": 146552,
+      "sha256": "9972999c7e87135679e2d5c3e4bda260ee469a7bebd3d2f515b6856d33962fdc"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-italic.png",
+      "bytes": 137771,
+      "sha256": "a7b44e5314e463cc69dcdcd2d293b4d6ff8d04fc9aa47faa335ea128a2edbecb"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko-pretendard.png",
+      "bytes": 128842,
+      "sha256": "709cf83ce18beefbac9fa1c8a157b67cecdf60baa15b53b9f5c97a014a13b97e"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-ko.png",
+      "bytes": 137609,
+      "sha256": "40ea7db28dcf53e2354fe8d64db0bc1f1faebc206c990fcc9e3916f09f6d1253"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-soft-glass.png",
+      "bytes": 869102,
+      "sha256": "9eb151c1e54ee24af6c7b532ed9218b487443000bc9effcf0e03176902d3caa9"
+    },
+    {
+      "path": "assets/brand/reeltrip-logo-transparent.png",
+      "bytes": 981826,
+      "sha256": "c9e5f898fd84e72d2c9d0afca5bb56de32bcfb182edf341f586687a25c4deeea"
+    },
+    {
+      "path": "assets/brand/reeltrip-symbol-glass-v4.png",
+      "bytes": 1676791,
+      "sha256": "a1b54cc14812cd02264c3078596bf9709d4bd9a23d4d18ffbda429d809210ff1"
+    },
+    {
+      "path": "assets/brand/reeltrip-symbol-link-flat-v3.png",
+      "bytes": 1013370,
+      "sha256": "77c571b7341c4c5d27327c84684bbf585b48b7385793b20b83313fca91fcd07c"
+    },
+    {
+      "path": "assets/brand/reeltrip-symbol-link-v2.png",
+      "bytes": 1223197,
+      "sha256": "b1e6ccbe5118c87998600e4e9cadfb61547bf1b469c4ed489cb7af5cc30313fc"
+    },
+    {
+      "path": "assets/brand/reeltrip-symbol-v1.png",
+      "bytes": 775252,
+      "sha256": "9e5f01c8aa4f66efb016beeef985c873c95a7ef0c8295a96e6ea7e345e944c87"
+    },
+    {
+      "path": "assets/brand/reeltrip-wordmarks-modern-preview.png",
+      "bytes": 279202,
+      "sha256": "9b76dcfc34641923835884fa5b2925a513a44a8eee2fb10ef194880e015caef3"
+    },
+    {
+      "path": "assets/brand/reeltrip-wordmarks-preview.png",
+      "bytes": 293351,
+      "sha256": "371da7b8f928a72eca5b90d00d9e4a6e9e4cda849733f9a5a35983609fc9cb83"
+    },
+    {
+      "path": "assets/brand.css",
+      "bytes": 1970,
+      "sha256": "90d3a9d02fda18ff095ecbc7d13abd5c90edb8659a84570189aa89e1c9b6a012"
+    },
+    {
+      "path": "assets/catalog.en.js",
+      "bytes": 5585,
+      "sha256": "ca2de4d17db0685d4a9d4808c08b6b1733ad10624c0d45f75b473472ce5717ba"
+    },
+    {
+      "path": "assets/catalog.js",
+      "bytes": 24602,
+      "sha256": "760fbf20ede45b367d9ead6f041a4135be3d414b54a15d5656acda81f8407c24"
+    },
+    {
+      "path": "assets/docs.css",
+      "bytes": 8981,
+      "sha256": "4308693347a4a86a8edc89734b417cb23c541d552c239316359b1aaee1ce234d"
+    },
+    {
+      "path": "assets/english.css",
+      "bytes": 5112,
+      "sha256": "fb5304ea1dc53803d67e56e423d8f8c654283a32a079fa9049a08c22f0956f5f"
+    },
+    {
+      "path": "assets/google-map.en.js",
+      "bytes": 3994,
+      "sha256": "17b1bb1c8681bab60b23d4724857cbd8b6fbbcfd42d73f635457a4e70d4d22e1"
+    },
+    {
+      "path": "assets/google-map.js",
+      "bytes": 4154,
+      "sha256": "a03b57bedc9257e2631dc3611bdafa9b2718cba371afb3aeff6114d139f8b875"
+    },
+    {
+      "path": "assets/ia.svg",
+      "bytes": 8913,
+      "sha256": "fab12e44a3e52bae2747d6d96192684edcd71e8ff9b0b0e7e083ec80e3934ac6"
+    },
+    {
+      "path": "assets/liquid-glass.css",
+      "bytes": 17846,
+      "sha256": "628d5e9c618b64572621878ba5f7eba945e583f99c5f0a7c5bbe3024841c5ebf"
+    },
+    {
+      "path": "assets/maps-config.js",
+      "bytes": 347,
+      "sha256": "a3db76f76ed3dddf1fff3baa2c4af23bc7d5b5d88cb16d1b0ec01848ee6b7bd4"
+    },
+    {
+      "path": "assets/photos/cafe.jpg",
+      "bytes": 3967429,
+      "sha256": "c6f713bb8a6fe844c45aa9a8ac289faf7ba7a2de2363ab92f87dcf71e17fa4db"
+    },
+    {
+      "path": "assets/photos/food.jpg",
+      "bytes": 181309,
+      "sha256": "7473223c56182f13482f3aba1fe553a2554cedba6105bed5754c3996f4eaee96"
+    },
+    {
+      "path": "assets/photos/google-seongsu-review.png",
+      "bytes": 75929,
+      "sha256": "acd4d0024535394f7de2d6b40558d02a64820a5172d599b99b4871f59eb486d8"
+    },
+    {
+      "path": "assets/photos/park.jpg",
+      "bytes": 446790,
+      "sha256": "c162e4e332472c9c4c5c383ea0ec427fbc743dbc9d7e9bd5683002706bbf572c"
+    },
+    {
+      "path": "assets/photos/shop.jpg",
+      "bytes": 151175,
+      "sha256": "cad58dce2ea564e2121e62360026f426b1a72f3936eb4841bd15febc494e022c"
+    },
+    {
+      "path": "assets/photos/sources.json",
+      "bytes": 2185,
+      "sha256": "79776fbcf38aae958cf1057a36c160346f907fd837fe2d3d3462df000fefd602"
+    },
+    {
+      "path": "assets/revenue.js",
+      "bytes": 5576,
+      "sha256": "eafdc9ea80f485330acd175df845b319ef3de3bcd86d0700657af4fc866f5364"
+    },
+    {
+      "path": "assets/soft-glass.css",
+      "bytes": 19345,
+      "sha256": "20a1d0c9fec9c57f62154f3207d4339d356449b39e253ecc7dfa925c7cfd8192"
+    },
+    {
+      "path": "build_docs.py",
+      "bytes": 7943,
+      "sha256": "b41f66d042df7fb9d7a0c81947c0cd32c9a639fed81a71a76c2b89d43c147c3e"
+    },
+    {
+      "path": "docs/balanced-place-card.jpg",
+      "bytes": 31161,
+      "sha256": "b5a724f0555b82a3b246216eb3893d9bdd74abe1420b8be4d0ac60346b0963ca"
+    },
+    {
+      "path": "docs/balanced-place-checks.json",
+      "bytes": 1018,
+      "sha256": "bbc318374255f638c2157a8e687d02f767b4ff3be5f7d103d6c6cfd9d5f5d049"
+    },
+    {
+      "path": "docs/booking-actions-checks.json",
+      "bytes": 642,
+      "sha256": "bb2aa70c6f136688f4342f146f0e70bccb635ab741d9588fdb15a8cb9d0767b0"
+    },
+    {
+      "path": "docs/booking-actions-clean.jpg",
+      "bytes": 32453,
+      "sha256": "33ce9ab9c75a1d1306267c10e8d411ed6211d1505299de16865906dcbaaeb3e8"
+    },
+    {
+      "path": "docs/booking-provider-choice.jpg",
+      "bytes": 28474,
+      "sha256": "785c087c1e73261a4419dcd6c1d1158755bc0d061b71cc27bd5eb5276c90fbbb"
+    },
+    {
+      "path": "docs/concise-copy-checks.json",
+      "bytes": 7536,
+      "sha256": "8e6b7aa761a98858fd5ce17fdc7c6088f8a37c12da218ec2600c440a0883d790"
+    },
+    {
+      "path": "docs/concise-place-screen.jpg",
+      "bytes": 31793,
+      "sha256": "7bec36c7dcdc76db9703a8929f23a9cce82253b24078c852d61b87854efc3c06"
+    },
+    {
+      "path": "docs/coordinate-time-checks.json",
+      "bytes": 3306,
+      "sha256": "fd0ac191454b66e1b008eef99babfd1bbadf1aa47582c678b04a2f04b5044f82"
+    },
+    {
+      "path": "docs/coordinate-walking-time.jpg",
+      "bytes": 33785,
+      "sha256": "978d00293f55535a27881d63fa5d6ab5348738a58cbb19b01680a6a8f1bb43a3"
+    },
+    {
+      "path": "docs/depth-booking.jpg",
+      "bytes": 34951,
+      "sha256": "090aae2c57c31ba8896779599cf449a7c39308ce52c9aea7b5dd6c896144cf42"
+    },
+    {
+      "path": "docs/depth-checks.json",
+      "bytes": 529,
+      "sha256": "0724f26bc23507b61a32e56c4cf363d6f25f23614b4cc1c00b7ec4da399d70f9"
+    },
+    {
+      "path": "docs/depth-guide.jpg",
+      "bytes": 37046,
+      "sha256": "1f916861f68d72f13470330046b1d60976a5cdf3e7779b54f5263c716d116c36"
+    },
+    {
+      "path": "docs/depth-home.jpg",
+      "bytes": 33159,
+      "sha256": "f5c65734fbaafd51f18ebfbcbfe0a9c51eb208f25b739d509c28a2f3597fac94"
+    },
+    {
+      "path": "docs/depth-planner.jpg",
+      "bytes": 27029,
+      "sha256": "84628e5fed84184bca22e43de9d3380490480135219e4d6ce1f7156dc5f11df5"
+    },
+    {
+      "path": "docs/depth-quote.jpg",
+      "bytes": 30996,
+      "sha256": "eef77a5c35adec55fe438c86b29540fdcbf3d3c14c696cba92af7f19768beb87"
+    },
+    {
+      "path": "docs/depth-results.jpg",
+      "bytes": 44880,
+      "sha256": "888dc1c7cfc43a30c73414ad182cac88bad61abf847fa8122a2bbea76d2ca10c"
+    },
+    {
+      "path": "docs/design-guide.html",
+      "bytes": 1143,
+      "sha256": "58878c4f6e7f0c42cf3f8b2fcbd2af9bed0f5ff0e068f161037eabb899b70846"
+    },
+    {
+      "path": "docs/developer-handoff.html",
+      "bytes": 13379,
+      "sha256": "cca130a848d417af5af280191cb788078830a0f9d5c2130003c186734694277b"
+    },
+    {
+      "path": "docs/discovery-depth-checks.json",
+      "bytes": 2604,
+      "sha256": "80f849774aec90d0b8d70da89ae4f7fffff47bd3f1b8b2dd328194fcf3c57fe0"
+    },
+    {
+      "path": "docs/english-booking.jpg",
+      "bytes": 38014,
+      "sha256": "a2b172f84300d9b988ef885c9d0d39b20c4766402800cf4b047f1483635ca89f"
+    },
+    {
+      "path": "docs/english-checks.json",
+      "bytes": 4144,
+      "sha256": "970bc9c697eaf7dbcb49dd4fa45520a5ee4703d91092496c43413c7dc7bbf6a2"
+    },
+    {
+      "path": "docs/english-copy-checks.json",
+      "bytes": 11281,
+      "sha256": "efa91787710de82074069fb98ab6c9466d1e3957ccaf35fd58b1b82339f2e792"
+    },
+    {
+      "path": "docs/english-copy-review.jpg",
+      "bytes": 37534,
+      "sha256": "ea94d0412630d7fb41fad822d394c26a5c8cfa1378b7fdbe914e054e1fb64c81"
+    },
+    {
+      "path": "docs/english-home.jpg",
+      "bytes": 38437,
+      "sha256": "8294f1e0d5a2c19bf8428800bef6d5fa370399d58b4660b4d0e479ee9fef497c"
+    },
+    {
+      "path": "docs/example-coordinate-time.jpg",
+      "bytes": 29635,
+      "sha256": "231564d29b11d3b761fe804a3857d789ac4ea2b5532f347223156f466fabcb0c"
+    },
+    {
+      "path": "docs/external-booking-checks.json",
+      "bytes": 2507,
+      "sha256": "88ede02e90891cb36ca6a57f273320e8698f9ac8c9f51354f782e703f1c89c0a"
+    },
+    {
+      "path": "docs/external-booking-options.jpg",
+      "bytes": 34763,
+      "sha256": "8cff8a9c591bc0be669bda12066f220d27fc86371dbd03f0d5b2eace970b45ea"
+    },
+    {
+      "path": "docs/external-booking-spec.md",
+      "bytes": 2861,
+      "sha256": "a3ae540670923ede389fe5ec02454a2f7e6742e82965579d92193d799969d8e2"
+    },
+    {
+      "path": "docs/frosted-glass-checks.json",
+      "bytes": 2422,
+      "sha256": "a429b27bea715204552f4d476336aa5521a190a6962312171c44c1f652ddca5d"
+    },
+    {
+      "path": "docs/frosted-glass-home.jpg",
+      "bytes": 39752,
+      "sha256": "283c9a41974253d4f09c1d806aeffce045bd14bcd8db770e820761926c1c0567"
+    },
+    {
+      "path": "docs/frosted-glass-quote.jpg",
+      "bytes": 40143,
+      "sha256": "86769ab9de2ee4f95d541101c825b647443b30bb458d2a22aa13641ec5fbf8f2"
+    },
+    {
+      "path": "docs/function-group-checks.json",
+      "bytes": 9212,
+      "sha256": "133e5baf8a06da0cbe2447b014009dd7719ec71efd1e3c9829eaafc4d1ab2141"
+    },
+    {
+      "path": "docs/function-groups-account.jpg",
+      "bytes": 29162,
+      "sha256": "66b28438de5d5b41525af0083a3d2b8eee34b6abb16ecafd1eac08f1ad84e734"
+    },
+    {
+      "path": "docs/glass-home.jpg",
+      "bytes": 39860,
+      "sha256": "8efc79932b67c9d45672694e7ca6a382ec3113c1a5c258c0fbbe59b06bb762bd"
+    },
+    {
+      "path": "docs/glass-planner.jpg",
+      "bytes": 41039,
+      "sha256": "0066b4dbc668a2d6de8d84f5d225238d017d56056631b410ea37a674468ced62"
+    },
+    {
+      "path": "docs/google-maps-setup.html",
+      "bytes": 5130,
+      "sha256": "5ff0584761988baa19c9bfc45a6f08705914e921a9f5474e6fc2cbc3e8badaef"
+    },
+    {
+      "path": "docs/google-review-app.jpg",
+      "bytes": 46429,
+      "sha256": "0ee8e2b8a0dd95d9f71d31a046230187894e875cd9b3fc9f3c157e0ab7b1fbf1"
+    },
+    {
+      "path": "docs/home-photos.jpg",
+      "bytes": 67591,
+      "sha256": "c675b4ab780559c328101452eae55047d60d2f512c0c4b9a5d39db41cbb25a42"
+    },
+    {
+      "path": "docs/ia.html",
+      "bytes": 3697,
+      "sha256": "f31c28803811be9460696b4e94915771afb04036711461bcb242ccec0013134e"
+    },
+    {
+      "path": "docs/layout-guide-spacing.jpg",
+      "bytes": 43907,
+      "sha256": "4f582542f8d4f7391eeb0f9e8a4286b1a5d90fec02945115835dd7e2ef15a450"
+    },
+    {
+      "path": "docs/layout-spacing-checks.json",
+      "bytes": 12888,
+      "sha256": "bdd8ba89b435f94cac09d2b0bc025a4216d0069e6a958f81105fcf538cd07ea1"
+    },
+    {
+      "path": "docs/leg-directions-button.jpg",
+      "bytes": 35834,
+      "sha256": "4ee18bd37373b85b370be61b9d1d8c6513015bf4f99e140192c8941606a3a37e"
+    },
+    {
+      "path": "docs/legal.html",
+      "bytes": 919,
+      "sha256": "80bd126b352847933eb0daf265d51ed932163ceedd93d7402b1466f3ff43c605"
+    },
+    {
+      "path": "docs/light-booking-button.jpg",
+      "bytes": 34308,
+      "sha256": "2cc18c05d27fec51e305e6fbe7cafa4b6fe397a95049aadc1ae57d4266ebbeea"
+    },
+    {
+      "path": "docs/map-app.jpg",
+      "bytes": 56479,
+      "sha256": "ae16a7cecbe6c863b24446b752b1e11b02ac532ed1a21603106952e826fd368c"
+    },
+    {
+      "path": "docs/map-guide-request.jpg",
+      "bytes": 12626,
+      "sha256": "4f3378635a56f99e563e1c6e86068409a5f9b3698fbe97348a46c944a3e43f33"
+    },
+    {
+      "path": "docs/map-planning.html",
+      "bytes": 8268,
+      "sha256": "c311eebfb2ebd6ad4f4d249ea27da5e182787e3d298cefb8eddb3b267cd2767b"
+    },
+    {
+      "path": "docs/map-results.jpg",
+      "bytes": 34390,
+      "sha256": "41bc66204de41905ee9d5ea461d86e6fbf69bf03d2fde1134659844865523d82"
+    },
+    {
+      "path": "docs/mobile-app.html",
+      "bytes": 7968,
+      "sha256": "ea8bd2268f1945b402b9963ce51a5d7e5ec6a164577926db3a699ac51b602fcf"
+    },
+    {
+      "path": "docs/overview-readability.jpg",
+      "bytes": 34720,
+      "sha256": "2c007ae122fe8f2b2147d17c93d202cb58e50377e1cb47023fcea66415b4bd4b"
+    },
+    {
+      "path": "docs/photo-credits.html",
+      "bytes": 3547,
+      "sha256": "5c20004cf32b7aa70416f07da7fd9173a38cf08c1fff25793e699a6465d7756a"
+    },
+    {
+      "path": "docs/place-card-sections.jpg",
+      "bytes": 29056,
+      "sha256": "127263a5505954944b5a2dfe84583f30afa3d8cad5bd6e6199cd0f6625e23d75"
+    },
+    {
+      "path": "docs/place-overflow-menu.jpg",
+      "bytes": 33644,
+      "sha256": "80a2eabdaac1b88b7fd552f59718372ad2e117bbd4f9b0b9ba227c0c342cb30d"
+    },
+    {
+      "path": "docs/plan.html",
+      "bytes": 2069,
+      "sha256": "c3028ed33dc7fe501279732463341b8412cc59671ffd980b65d6aa896bc49494"
+    },
+    {
+      "path": "docs/planner-photos.jpg",
+      "bytes": 74285,
+      "sha256": "4a72e488362dc0f2e3019c9d39467c8aaf2bf4df1549888cdea0d81e41abbcf8"
+    },
+    {
+      "path": "docs/policies.html",
+      "bytes": 1706,
+      "sha256": "b4f7ae6c8af23fa969075f790ae8930f41c65d775022fce1ce81bc3ba2be79f4"
+    },
+    {
+      "path": "docs/product.html",
+      "bytes": 38468,
+      "sha256": "8694c8d3d980cd233c55ff4a6e7fa16954ca7c59f66e24376a3fb7ea1890241d"
+    },
+    {
+      "path": "docs/project-direction.html",
+      "bytes": 779,
+      "sha256": "e0f2dd1748330bdc05d26654ada700f2a13c7903b003acfd9c0704dbf1015b35"
+    },
+    {
+      "path": "docs/qa.html",
+      "bytes": 1282,
+      "sha256": "dd32a6506b9e5f78d75b1275c6cfc3891834d1bde7b94e234311e5d44342c6fa"
+    },
+    {
+      "path": "docs/restored-coordinate-time.jpg",
+      "bytes": 29103,
+      "sha256": "985a6fa3c4328c9720cf56ebf6f5c726aebd0f840f17fafdd3ec817bc6089af5"
+    },
+    {
+      "path": "docs/revenue-checks.json",
+      "bytes": 309,
+      "sha256": "e88397f552569c142cba2cf1ca26601a3dc35e4ee9e440f330435ecd5bacef67"
+    },
+    {
+      "path": "docs/revenue-guide.png",
+      "bytes": 40639,
+      "sha256": "4c664ad625957fd4eb338eddd3de9bd655b49714ab3a7dfb998e609689a56ef5"
+    },
+    {
+      "path": "docs/revenue-pass.png",
+      "bytes": 28706,
+      "sha256": "2c137c5a76a1d7415278666f93a7bd8b9142882180c3d3a2390aa43762f9bf81"
+    },
+    {
+      "path": "docs/revenue-policy.html",
+      "bytes": 15779,
+      "sha256": "d949031ee4fb3377c24565b1ed8a7e3b12b686944f3f1a9b4af1b45290697932"
+    },
+    {
+      "path": "docs/review-evidence.json",
+      "bytes": 533,
+      "sha256": "447014e7b9e0f8dedee3ae625f07efbdfa71775698545e1b8dcdda3a1e389075"
+    },
+    {
+      "path": "docs/screen-spec.json",
+      "bytes": 24718,
+      "sha256": "88973b6bd4e1b2bb20aeb7cf4496ee013a590f718c428807c9ad736d897b7f84"
+    },
+    {
+      "path": "docs/screens.html",
+      "bytes": 7329,
+      "sha256": "75e0e4f81d81a5bb3daf028d120e3675b1cf78ccea83f999da7544696d90ad3e"
+    },
+    {
+      "path": "docs/share-simplified.jpg",
+      "bytes": 35541,
+      "sha256": "8e15ddfaabefdca0ca8a3feb55c9cccaf90a8f89247acc6726961aa179e36ed7"
+    },
+    {
+      "path": "docs/specification.html",
+      "bytes": 22680,
+      "sha256": "fb704d55094173470721f95c489dddfaf82a7ced35c029389dfb6101d3cac91e"
+    },
+    {
+      "path": "docs/static-checks.json",
+      "bytes": 124,
+      "sha256": "184617c9e105e197a757196d942e9d81f1614854c5120ed860c5ccaa11d89106"
+    },
+    {
+      "path": "docs/technical.html",
+      "bytes": 1643,
+      "sha256": "29aa7b1e769789570240ebaecd28a36d19439be51af73a79e3353d826253cb59"
+    },
+    {
+      "path": "docs/tower-added-card.jpg",
+      "bytes": 33377,
+      "sha256": "84d3cc9615dfd6a4cad25e8df52c67de4f9d4c902620feca1f052a41fd9e4c79"
+    },
+    {
+      "path": "docs/tower-booking-offers.jpg",
+      "bytes": 28804,
+      "sha256": "70211be987b225c3e45c001893fde789321a8c4261fa9ce72138c8706ac5d9dc"
+    },
+    {
+      "path": "docs/tower-default-after-reload.jpg",
+      "bytes": 32892,
+      "sha256": "413c8b3a5af94be76ea97e11264349ab9b901dccbcc616c6d0917b9b3546b71d"
+    },
+    {
+      "path": "docs/tower-default-checks.json",
+      "bytes": 678,
+      "sha256": "c3580067df2e23b67df536a0a21b5ea28945bf02086a48fdb87bf6485bae48db"
+    },
+    {
+      "path": "docs/transition-checks.json",
+      "bytes": 444,
+      "sha256": "4f147028b351d679feb0b5bdbed8bf95b0040473a1034cb9c9cd7cd4e604d45a"
+    },
+    {
+      "path": "docs/ui-polish-checks.json",
+      "bytes": 849,
+      "sha256": "645841ee1b5295defdd4dc666e80f018c7918ef519dd05512173f36c778a4de2"
+    },
+    {
+      "path": "docs/ui-polish-home.jpg",
+      "bytes": 40239,
+      "sha256": "bd2d09b058fc4bb3721a51b2d07df3c79122587457aeb5293b88dd89ee07bca5"
+    },
+    {
+      "path": "docs/ui-polish-planner.jpg",
+      "bytes": 42799,
+      "sha256": "c6d9bf4e95ba22054e36223c061382b58cfaf6979cd6ae566d3bc79bdd409f5f"
+    },
+    {
+      "path": "docs/ux-writing.html",
+      "bytes": 9382,
+      "sha256": "41a8bc62af35d18b5916f64835d2b94f0d549eb72d463aeea044b92de88a90ef"
+    },
+    {
+      "path": "docs/visit-lines-app.jpg",
+      "bytes": 42312,
+      "sha256": "737e3e58de54999cc7f952174e7a1a49b5d7c47a73d17f3304c64cb961d102ac"
+    },
+    {
+      "path": "docs/visit-lines-checks.json",
+      "bytes": 557,
+      "sha256": "d6fd085f49460bbfac09844c155422b0d7f8ffc1079df4000c8759e6c3fafb5f"
+    },
+    {
+      "path": "frontend/README.txt",
+      "bytes": 1570,
+      "sha256": "b41919c3aa2b67d7e5b94b008d4d7419a060e38b2a455a7b0388d2e3e7bc76e7"
+    },
+    {
+      "path": "frontend/admin/admin-bookings.html",
+      "bytes": 416,
+      "sha256": "1c14634b9f304be87c0e0fb586530059fe39e5c2ea60e5d97544d3ac0dcd3ea1"
+    },
+    {
+      "path": "frontend/admin/admin-guides.html",
+      "bytes": 416,
+      "sha256": "93162f102b56f0cf0e9eb592892ac5d7a3a2b71cfd1a5481c1e457d83ab180c5"
+    },
+    {
+      "path": "frontend/admin/admin-places.html",
+      "bytes": 410,
+      "sha256": "1ae73251701137cfdc7cc7b5c0c6459891293a1d1fc196531f9303b17901d5d3"
+    },
+    {
+      "path": "frontend/admin/admin-support.html",
+      "bytes": 438,
+      "sha256": "50a16b850a5a8a8863ba1f4d510b39d563801ef48fc51e9d5774c1ba4a21e1b6"
+    },
+    {
+      "path": "frontend/admin/admin.html",
+      "bytes": 394,
+      "sha256": "8df8ed3539b0f3730998a4536726ea58158cd29a757d0c1e5b1b4f0435c3d502"
+    },
+    {
+      "path": "frontend/admin/index.html",
+      "bytes": 2447,
+      "sha256": "12901caed27b2a7f278512ae0bd23429e0988648d2caca36e0541511f0173173"
+    },
+    {
+      "path": "frontend/customer/account.html",
+      "bytes": 408,
+      "sha256": "bf70c3e5ff9b0f920ded428f92dc384ecb82149f9ed34f9400b8d5d34d43dcbc"
+    },
+    {
+      "path": "frontend/customer/board.html",
+      "bytes": 412,
+      "sha256": "ebcc193bcbdbd2ba216c77beb02281082124bcbd4e2ce26d2e110d48338c35e3"
+    },
+    {
+      "path": "frontend/customer/booking.html",
+      "bytes": 416,
+      "sha256": "2f27930343d4dcbdda2c890235095513fb6130f593b1c4ad3cb2ba157bee98ee"
+    },
+    {
+      "path": "frontend/customer/cancel.html",
+      "bytes": 414,
+      "sha256": "9b3ed14f4a53550bda2f22394d44bd86ffbe404ae8b32c8ae56be3ccc8f36f39"
+    },
+    {
+      "path": "frontend/customer/chat.html",
+      "bytes": 390,
+      "sha256": "b58477f3e714eb911474dec41e3a43a76d92fa04d291dbe51ee56aecf1860c12"
+    },
+    {
+      "path": "frontend/customer/checkout.html",
+      "bytes": 420,
+      "sha256": "57d20cff5e590cd1ec4e590f50caff7ea419347b36f47b4809e5f31e530ff845"
+    },
+    {
+      "path": "frontend/customer/guide.html",
+      "bytes": 410,
+      "sha256": "2a4f10394fa90508e7b7653afba8995795accbb36aab70ff58fa07542c85644f"
+    },
+    {
+      "path": "frontend/customer/guides.html",
+      "bytes": 386,
+      "sha256": "42d2664809e660f55cbce2111f8339eaec4587192138fdba5a1ad215d0e03b5c"
+    },
+    {
+      "path": "frontend/customer/home.html",
+      "bytes": 390,
+      "sha256": "f806735b521b86917ef56e01b8c5c23b3837fa3cdaf7602b2d459134ac6a25b2"
+    },
+    {
+      "path": "frontend/customer/index.html",
+      "bytes": 7870,
+      "sha256": "d75546f193cbd2d690b2840ef9e2f7e8d19559474853733e702d14dcb1f002e8"
+    },
+    {
+      "path": "frontend/customer/manual.html",
+      "bytes": 394,
+      "sha256": "8914ad281df63ec54e25ac64667f25e63f49ab6bd2611125c324cf06354b90b1"
+    },
+    {
+      "path": "frontend/customer/notifications.html",
+      "bytes": 380,
+      "sha256": "6a4016975de6da51adb238f34ae8207170bbf7ae602fa817e7f7e00c5e841838"
+    },
+    {
+      "path": "frontend/customer/planner.html",
+      "bytes": 422,
+      "sha256": "dd3ece858730f260753c0e4b786c2fafbe148962b28b7266f8a915aea0c6be2f"
+    },
+    {
+      "path": "frontend/customer/policies.html",
+      "bytes": 418,
+      "sha256": "965e8b9eabcd7fc06e948b38a31358a9552968bc4fa3c38786d48361f5c93b01"
+    },
+    {
+      "path": "frontend/customer/processing.html",
+      "bytes": 402,
+      "sha256": "8e153389b0fdc927a145fc279e49b8ffa42105fab9dafbbf4b5d54b4a04a9c75"
+    },
+    {
+      "path": "frontend/customer/quote.html",
+      "bytes": 398,
+      "sha256": "a37ce443542139edc5cada5bb1931de19e988b8e7540411bbad04c2b2e8a4946"
+    },
+    {
+      "path": "frontend/customer/request.html",
+      "bytes": 402,
+      "sha256": "50958e2de21039c5a5aac0eab833a9babe6505df7c875aa74d5b52bd236bfd77"
+    },
+    {
+      "path": "frontend/customer/requested.html",
+      "bytes": 420,
+      "sha256": "e50d6fca12e5fd6490d5a9a5021038adfa2f904dada8a0897f4c184517e27de5"
+    },
+    {
+      "path": "frontend/customer/results.html",
+      "bytes": 430,
+      "sha256": "9799ef9572996c78b154f66d35614ff4bfe32f44c58d0c0c42da1fd2102a0cf3"
+    },
+    {
+      "path": "frontend/customer/review.html",
+      "bytes": 394,
+      "sha256": "9ec424f81887f1040aafffe82b56c9e749309b5e41cc7ba8dbe036d928822576"
+    },
+    {
+      "path": "frontend/customer/settings.html",
+      "bytes": 370,
+      "sha256": "fa1e498c1570a0dbebaaff10f9963ad8cfc9e0f357d2ad1b3efc5cab57fdc4a8"
+    },
+    {
+      "path": "frontend/customer/share.html",
+      "bytes": 398,
+      "sha256": "796333b9134721237ff1b8cd67544abd55185e506c7a7a52d5b2ae6fb5626f90"
+    },
+    {
+      "path": "frontend/customer/support.html",
+      "bytes": 394,
+      "sha256": "c299c9727f7187040a4d0353fd9c9d787864cb4bbddd6af11651c4cc6d0d6759"
+    },
+    {
+      "path": "frontend/customer/trips.html",
+      "bytes": 412,
+      "sha256": "beba292c82f9a1d26be21f492f80f5d882bd9cc943912a577a32a99191e2bd23"
+    },
+    {
+      "path": "frontend/directory.css",
+      "bytes": 933,
+      "sha256": "5092ee3ed24b02d51c3f7495098ca9a645b4a14118cce59d0fdf04eb2fbd7ed8"
+    },
+    {
+      "path": "frontend/guide/guide-calendar.html",
+      "bytes": 416,
+      "sha256": "717a6eeb50bc0305b09fe82ea104bdc0fd5d9ca407cd8c9e62a91143795d2ab7"
+    },
+    {
+      "path": "frontend/guide/guide-desk.html",
+      "bytes": 400,
+      "sha256": "575a580b63383f5e284e2d2f61f6a8757585fe164bced9b9ed20de9482d6df44"
+    },
+    {
+      "path": "frontend/guide/guide-earnings.html",
+      "bytes": 416,
+      "sha256": "58a3f8f355d87b8327f284ca6f82f5d0797f43ab340f281e0d4999cf5aacfd93"
+    },
+    {
+      "path": "frontend/guide/guide-fee.html",
+      "bytes": 406,
+      "sha256": "17da396cb135134f7070d21e2deff8996bd68a3bc58a3e5f1a08165e05b5365a"
+    },
+    {
+      "path": "frontend/guide/guide-quote.html",
+      "bytes": 426,
+      "sha256": "2d265ffbbc832d239b0ae06bd4f3ba06d1f9a728e0cca78b35d0ed9115548078"
+    },
+    {
+      "path": "frontend/guide/index.html",
+      "bytes": 2595,
+      "sha256": "ba44b433d18a131d74af9c9e330eb7c6ad5e236f36fd449762f65c2025ad2a19"
+    },
+    {
+      "path": "frontend/index.html",
+      "bytes": 2186,
+      "sha256": "863f601d09b22b8a41d8b888011e842e40be3c2132bccc84e6e21f688c83ba04"
+    },
+    {
+      "path": "i18n/action-first-translations.json",
+      "bytes": 14285,
+      "sha256": "8db7bb667efd969421c54970efb475a06c7d98b394f129e12821af1b59354fa7"
+    },
+    {
+      "path": "i18n/build_english.py",
+      "bytes": 16539,
+      "sha256": "d003baba7d91220ea663732f75b14da7dd2330c16af3612f9068aedd9a4cfd1d"
+    },
+    {
+      "path": "i18n/en-translations.txt",
+      "bytes": 25377,
+      "sha256": "1da19c203418c39fa87c5e60cdf04b69eea995262cfc9963444ffa8610d8e0c9"
+    },
+    {
+      "path": "i18n/ko-source.json",
+      "bytes": 29783,
+      "sha256": "61a44ce2ae9efcc8aad04d84074655dfebfaf4bd42e92c32bada720b6685ecf3"
+    },
+    {
+      "path": "index.html",
+      "bytes": 938,
+      "sha256": "e8ce31fb3e2b71640691f263e76e15c6a033ab52ee3a86d2fff3a8f43b39b489"
+    },
+    {
+      "path": "screenshots/booking-desktop.jpg",
+      "bytes": 45740,
+      "sha256": "82cbf16d1079f0d7083122d7788a67a5ee5ec5bc9da7b1a1dda22f80a13eb68a"
+    },
+    {
+      "path": "screenshots/booking-mobile.jpg",
+      "bytes": 30573,
+      "sha256": "be716c4b3cf2b2e01aad4f71aa71e58915b300925e46b6c433afe3c648bd6d03"
+    },
+    {
+      "path": "screenshots/home-desktop.jpg",
+      "bytes": 48518,
+      "sha256": "026fae95f04db33be4fb9c3c262a6433269002cdc02b40d6e5ae999c6f83646d"
+    },
+    {
+      "path": "screenshots/home-mobile.jpg",
+      "bytes": 33412,
+      "sha256": "e6e9c86d615f1d334386e6fbdd391be384a908feaa321f8ec013d2513b19852c"
+    },
+    {
+      "path": "screenshots/quote-desktop.jpg",
+      "bytes": 42839,
+      "sha256": "7f2a5c7e431bb4e204a82aadaac04f897937001d1448321ed67471bf099dbcfa"
+    },
+    {
+      "path": "screenshots/quote-mobile.jpg",
+      "bytes": 28837,
+      "sha256": "1bd165aa1115e6563a8a6f15f426b7d612b8c55cce6bedfe681fc11ada1047c5"
+    },
+    {
+      "path": "screenshots/review-hub.jpg",
+      "bytes": 81663,
+      "sha256": "77167e383f37520ac43e648d8a01e4936d056fff3cdf7e3fd6b19722ced3fe5a"
+    },
+    {
+      "path": "scripts/build_frontend_index.py",
+      "bytes": 7261,
+      "sha256": "0602ec1e942cf25e60ba4c52e1329dd5c4d32ab0fd1b223cd6e36f9e54b92a61"
+    },
+    {
+      "path": "scripts/publish-pages.sh",
+      "bytes": 308,
+      "sha256": "74087e4c248ed878da072653e393339f1ed8d0cd9ecc12d0908a983aab0c4fb6"
+    },
+    {
+      "path": "tests/access_checks.cjs",
+      "bytes": 1890,
+      "sha256": "94eef57614c7061f9ee9c0ec9485637cf4725b95194fa4e8abaf5769fd268ac3"
+    },
+    {
+      "path": "tests/google_map_checks.js",
+      "bytes": 1871,
+      "sha256": "6f53a853fb638b8e2085a4215150593781fd8233b46ca7ae34563e22f9c35d1a"
+    },
+    {
+      "path": "tests/navigation_checks.cjs",
+      "bytes": 9855,
+      "sha256": "0ca810d21e15860c07fdd51517c81af4f7230dc6b92eb4f3fcd2db6432449560"
+    },
+    {
+      "path": "tests/startup_checks.cjs",
+      "bytes": 2056,
+      "sha256": "136c6e7ec503a7ad51c7cdeb34b7034587a400e3f6f0461e6405cfbac8bafe70"
+    },
+    {
+      "path": "tests/static_checks.py",
+      "bytes": 2190,
+      "sha256": "2f426f1a209c760cb151de44fe26811298ce83f520888eeb78528c3f9276fccb"
+    },
+    {
+      "path": "tests/tower_seed_checks.cjs",
+      "bytes": 1503,
+      "sha256": "12ba054392430ac1565df00063f5f1b4e156dfff299cec152a2e62e67fb49822"
+    }
+  ],
+  "audience": "한국을 방문하는 외국인 여행객 · 한국어 검토 원문",
+  "design": "파스텔 카테고리 · 둥근 장소 카드 · 이미지 타임라인",
+  "googleMapsStatus": "Static real Google Maps screenshot with interactive review photo pins. Live SDK remains available when API key configured.",
+  "languages": [
+    "ko",
+    "en"
+  ],
+  "englishEntry": "docs/english-preview.html",
+  "activeOption": 2,
+  "decision": "Final option 2 selected; option 1 archived",
+  "archive": {
+    "path": "../archives/reeltrip-before-option-2-2026-11-17.zip",
+    "sha256": "54cdbbbfe10950f42f337c95c107d6b3db1333b35bffe4fa204dcb7948738245"
+  },
+  "surfaces": {
+    "mobile": "app/index.html",
+    "operations": "admin/index.html",
+    "handoff": "docs/developer-handoff.html"
+  },
+  "service": {
+    "name": "Reeltrip",
+    "screens": 33,
+    "entry": "app/index.html"
+  }
+}
