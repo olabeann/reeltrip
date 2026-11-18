@@ -8,7 +8,7 @@ const profiles={customer:['customer'],pending:['customer'],guide:['customer','gu
 let session={profile:'customer',mode:'customer'};
 try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&profiles[saved.profile])session={profile:saved.profile,mode:saved.mode==='guide'&&profiles[saved.profile].includes('guide')?'guide':'customer'};}catch{}
 function persist(){try{localStorage.setItem(key,JSON.stringify(session));}catch{}}
-function allowed(role,route){if(admin)return role==='admin';if(role==='customer'&&['account','support','policies','notifications','settings'].includes(route))return true;return profiles[session.profile].includes(role)&&role===session.mode;}
+function allowed(role,route){if(admin)return role==='admin';if(role==='customer'&&['account','support','policies','notifications','settings','signup','signup-email'].includes(route))return true;return profiles[session.profile].includes(role)&&role===session.mode;}
 function home(){return admin?'admin':session.mode==='guide'?'guide-desk':'home';}
 function controls(){if(admin)return '<div class="modebar">'+t('운영 웹 · 시연용 운영자','Operations web · Demo operator')+'</div>';
 return '<div class="modebar"><span>'+ (session.mode==='guide'?t('메이트 모드','Mate mode'):t('여행자 모드','Traveler mode'))+'</span>'+(profiles[session.profile].includes('guide')?'<button class="textbtn" data-access-mode="'+(session.mode==='guide'?'customer':'guide')+'">'+(session.mode==='guide'?t('여행자로 전환','Switch to traveler'):t('메이트로 전환','Switch to mate'))+'</button>':'')+'</div>';}

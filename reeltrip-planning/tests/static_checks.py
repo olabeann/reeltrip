@@ -28,7 +28,7 @@ for file in ['assets/app.js','assets/catalog.js','assets/google-map.js','assets/
  p=subprocess.run(['node','--check',str(ROOT/file)],text=True,capture_output=True)
  if p.returncode:fail.append(p.stderr)
 counts={}
-for n,expected in [(2,33)]:
+for n,expected in [(2,35)]:
  data=json.loads((ROOT/'docs/screen-spec.json').read_text());counts['app']=len(data)
  if len(data)!=expected:fail.append(f'Option {n} screen count {len(data)} != {expected}')
  if len({s['route'] for s in data})!=len(data):fail.append(f'Option {n} duplicate route')

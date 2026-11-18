@@ -2,9 +2,9 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const root=__dirname+'/../';
 function setup(lang,mode='customer',admin=false){
- const ctx={URLSearchParams,Event:class{},location:{search:'?tools=1',hash:'#home'},document:{documentElement:{lang},body:{dataset:{surface:admin?'admin':''},classList:{add(){}}},addEventListener(){}},window:{addEventListener(){},dispatchEvent(){}},localStorage:{getItem(k){return k==='reeltrip-prototype-access-v1'?JSON.stringify({profile:'guide',mode}):null},setItem(){}},setTimeout,clearTimeout};
+ const ctx={sessionStorage:{getItem:()=>"yes"},URLSearchParams,Event:class{},location:{search:'?tools=1',hash:'#home'},document:{documentElement:{lang},body:{dataset:{surface:admin?'admin':''},classList:{add(){}}},addEventListener(){}},window:{addEventListener(){},dispatchEvent(){}},localStorage:{getItem(k){return k==='reeltrip-prototype-access-v1'?JSON.stringify({profile:'guide',mode}):null},setItem(){}},setTimeout,clearTimeout};
  vm.createContext(ctx);
- for(const file of ['assets/access.js',`assets/catalog${lang==='en'?'.en':''}.js`])vm.runInContext(fs.readFileSync(root+file,'utf8'),ctx);
+ for(const file of ['assets/nickname-bases.js','assets/signup-copy.js','assets/access.js',`assets/catalog${lang==='en'?'.en':''}.js`])vm.runInContext(fs.readFileSync(root+file,'utf8'),ctx);
  const code=fs.readFileSync(root+`assets/app${lang==='en'?'.en':''}.js`,'utf8').split('window.ReelBookingTools.init(')[0];
  vm.runInContext(code+'globalThis.nav={layout,account,settingsPage,normalizeNickname,nicknameProblem,home,trips,guideDesk,state,libraryIds,proposals,makeQuote,quoteValid,requestBooking,confirmMateFee,guides,setGuidesTab(value){guidesTab=value},notificationItems,notificationBell,notifications,markNotificationsRead};})();',ctx);return ctx;
 }
@@ -73,19 +73,21 @@ for(const lang of ['ko','en']){
  assert(payingMate.nav.confirmMateFee('success'));assert.equal(cashBooking.status,'confirmed');assert.equal(cashBooking.feeStatus,'paid');
  const paidAt=cashBooking.feePaidAt;assert(!payingMate.nav.confirmMateFee('success'));assert.equal(cashBooking.feePaidAt,paidAt);
  cashBooking.status='cancelled';cashBooking.feeStatus='void';assert(!payingMate.nav.confirmMateFee('success'));
+ const demoTrip=c.nav.trips();
+ assert(demoTrip.includes('href="#request"') && demoTrip.includes('13:00') && demoTrip.includes('13:57') && demoTrip.includes('14:54'));
  const entry=c.nav.home();
  assert(entry.includes('import-subtext'));
 
  assert(entry.includes('id="extract-form"')&&entry.includes('id="video-url"'));
- for(const target of ['manual','guides'])assert(entry.includes(`href="#${target}"`));
- assert(entry.includes('data-action="sample"')&&!entry.includes('extract-demo-note'));
+ for(const target of ['manual','guides'])assert(!entry.includes(`href="#${target}"`));
+ assert((entry.match(/data-action="save-restaurant"/g)||[]).length===4&&!entry.includes('extract-demo-note'));
  c.nav.state.saved=true;assert(c.nav.home().includes('class="resume-action" href="#planner"'));
  c.nav.state.request={status:'requested',guide:'Mina',date:'2026-12-01',party:2};
  assert(c.nav.home().includes('class="resume-action" href="#requested"'));
- c.nav.state.request.status='quoted';assert(c.nav.home().includes('class="resume-action" href="#quote"'));
+ c.nav.state.request.status='quoted';assert(c.nav.home().includes('class="resume-action" href="#requested"'));
  c.nav.state.booking={status:'confirmed',guide:'Mina',date:'2026-12-01',party:2};
  assert(c.nav.home().includes('class="resume-action" href="#booking"'));
- const trips=c.nav.trips();assert(trips.includes('href="#planner"'));assert(!trips.includes('href="#booking"'));assert(trips.includes('data-saved-bookings'));c.nav.setGuidesTab('requests');assert(c.nav.guides().includes('href="#requested"'));assert(c.nav.guides().includes('request-inbox-card'));assert(!c.nav.guides().includes('href="#planner"'));c.nav.setGuidesTab('discover');
+ const trips=c.nav.trips();assert(trips.includes('href="#manual?from=trips"'));assert(trips.includes('href="#planner"'));assert(trips.includes('href="#booking"'));assert(trips.includes('data-saved-bookings'));c.nav.setGuidesTab('requests');assert(c.nav.guides().includes('href="#requested"'));assert(c.nav.guides().includes('request-inbox-card'));assert(!c.nav.guides().includes('href="#planner"'));c.nav.setGuidesTab('discover');
  c.nav.state.request=null;c.nav.state.booking=null;
 
  for(const route of ['home','board','guides','trips','account']){
@@ -107,7 +109,7 @@ for(const lang of ['ko','en']){
  for(const route of ['account','support','policies','settings'])assert(g.window.ReelAccess.allowed('customer',route));
  assert(!g.window.ReelAccess.allowed('customer','checkout'));
  g.location.hash='#guide-desk';assert(g.nav.layout('content').includes('href="#account"'));assert(!g.nav.layout('content').includes('<header'));
- g.location.hash='#account';const my=g.nav.layout(g.nav.account());assert(my.includes('href="#settings"'));assert(my.includes('aria-current="page"'));g.location.hash='#settings';const settings=g.nav.layout(g.nav.settingsPage());assert(settings.includes('data-access-mode="customer"'));assert(settings.includes((lang==='en'?'index':'english')+'.html?tools=1#settings'));assert(settings.includes('data-action="reset"'));assert(settings.includes('href="#support"'));assert(settings.includes('class="app-back" href="#account"'));
+ g.location.hash='#account';const my=g.nav.layout(g.nav.account());assert(my.includes('href="#settings"'));assert(my.includes('aria-current="page"'));g.location.hash='#settings';const settings=g.nav.layout(g.nav.settingsPage());assert(settings.includes('data-access-mode="customer"'));assert(settings.includes('english.html?lang=en#settings') && settings.includes('index.html?lang=ja#settings'));assert(settings.includes('data-action="reset"'));assert(settings.includes('href="#support"'));assert(settings.includes('class="app-back" href="#account"'));
  const a=setup(lang,'customer',true);a.location.hash='#admin';const h=a.nav.layout('admin');assert(h.includes('class="topbar"'));assert(h.includes('brand-lockup'));assert(!h.includes('class="mobiletabs"'));assert(!a.window.ReelAccess.allowed('customer','account'));
 }
 console.log('PASS: KO/EN main tabs without top bars; home logo; shared My preferences; guide mode escape path; detail back links; separate admin header.');

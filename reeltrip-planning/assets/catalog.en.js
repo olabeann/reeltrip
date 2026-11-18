@@ -196,6 +196,18 @@ window.REEL_SCREENS = [
     "name": "Matching fee payment",
     "role": "guide",
     "both": true
+  },
+  {
+    "route": "signup",
+    "name": "Sign up",
+    "role": "customer",
+    "both": true
+  },
+  {
+    "route": "signup-email",
+    "name": "Sign up with email",
+    "role": "customer",
+    "both": true
   }
 ];
 window.REEL_PLACES = [
