@@ -1,8 +1,8 @@
 {
-  "htmlFiles": 63,
-  "localLinksChecked": 512,
+  "htmlFiles": 64,
+  "localLinksChecked": 524,
   "screenCounts": {
-    "app": 35
+    "app": 36
   },
   "failures": [],
   "passed": true

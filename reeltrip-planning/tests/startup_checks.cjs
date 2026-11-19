@@ -1,7 +1,7 @@
 // Execute complete entry scripts, including init/render, to catch startup failures.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
-for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(const mode of ['customer','guide'])for(const requested of ['home','results','guide','request','planner','checkout','booking','chat','board','trips','guides','account','settings','notifications','guide-desk','guide-fee','signup','signup-email']){
+for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(const mode of ['customer','guide'])for(const requested of ['home','results','guide','request','planner','checkout','booking','messages','chat','board','trips','guides','account','settings','notifications','guide-desk','guide-fee','signup','signup-email','manual','processing','share','requested','quote','cancel','review','support','policies','guide-quote','guide-calendar','guide-earnings']){
  const route=mode==='guide'&&requested==='home'?'guide-desk':requested;
  const app={innerHTML:''},values=new Map(),handlers={};values.set('reeltrip-prototype-access-v1',JSON.stringify({profile:'guide',mode}));
  if(stored)values.set('reeltrip-demo-'+lang+'-map-v2-option-2',JSON.stringify({places:[],board:[],request:{id:'RQ-OLD',status:'booked',date:'2026-12-01',party:2,time:'10:00',stops:[],must:[]},booking:{id:'BK-OLD',guide:'Mina',status:'confirmed',date:'2026-12-01',time:'10:00',amount:240000,party:2,plan:'A walk',policyVersion:'DRAFT-2026-11-16'}}));
@@ -18,7 +18,9 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
  for(const file of scripts)vm.runInContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
  assert(app.innerHTML.includes('<main'),`${lang}/${mode}/${route}: blank startup`);
  if(!stored){
-  const actionRoute={board:'manual',trips:'planner'}[route];
+  const actionRoute=null;
+  if(route==='trips'){assert(app.innerHTML.includes('href="#signup"'));assert(!app.innerHTML.includes('class="day-tabs"'));assert(!app.innerHTML.includes('href="#planner"'));}
+  if(route==='board'){assert(app.innerHTML.includes('href="#signup"'));assert(!app.innerHTML.includes('href="#manual"'));}
   if(route==='account'){
    assert(app.innerHTML.includes('class="guest-account-join" href="#signup"'));
    assert(!app.innerHTML.includes('class="guest-account-row" href="#policies"'));
@@ -32,7 +34,7 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
    assert(app.innerHTML.includes('href="#'+route+'">'+ctx.window.ReelSignupCopy.keepBrowsing[['ko','en','zh-CN','ja'].indexOf(lang)]));
    ctx.location.hash='#'+route; handlersForWindow.hashchange();
   }
-  const gated=!['home','board','trips','account','guides','results','guide','signup','signup-email'].includes(route);
+  const gated=!['messages','chat','home','board','trips','account','guides','results','guide','signup','signup-email','policies'].includes(route);
   assert.equal(app.innerHTML.includes(ctx.window.ReelSignupCopy.needMember[['ko','en','zh-CN','ja'].indexOf(lang)]),gated,'guest route '+route);
   assert(!app.innerHTML.includes('class="reviewtools"'));
  }
@@ -56,7 +58,8 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
   assert(!app.innerHTML.includes('class="guest-invite"'));
   if(mode==='customer'){
    ctx.location.hash='#manual';handlersForWindow.hashchange();
-   assert(app.innerHTML.includes('id="manual-form"'));
+   assert(app.innerHTML.includes('id="place-search-form"'));
+   assert(!app.innerHTML.includes('id="manual-form"'));
   }
  }
  if(route==='signup-email'){

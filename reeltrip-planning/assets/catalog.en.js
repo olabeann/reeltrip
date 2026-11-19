@@ -111,7 +111,7 @@ window.REEL_SCREENS = [
     "route": "chat",
     "name": "Message your mate",
     "role": "customer",
-    "both": false
+    "both": true
   },
   {
     "route": "cancel",
@@ -206,6 +206,12 @@ window.REEL_SCREENS = [
   {
     "route": "signup-email",
     "name": "Sign up with email",
+    "role": "customer",
+    "both": true
+  },
+  {
+    "route": "messages",
+    "name": "Conversations",
     "role": "customer",
     "both": true
   }

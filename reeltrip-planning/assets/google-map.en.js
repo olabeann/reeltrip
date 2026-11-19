@@ -37,7 +37,7 @@
       map=new Map(host,{mapId:window.REEL_MAPS_CONFIG.mapId||'DEMO_MAP_ID',center:pts[0]?{lat:pts[0].lat,lng:pts[0].lng}:{lat:37.544625,lng:127.039844},zoom:15,disableDefaultUI:false,mapTypeControl:false,streetViewControl:false,fullscreenControl:false,gestureHandling:'cooperative'});
       const bounds=new google.maps.LatLngBounds();
       pts.forEach(p=>{
-        const button=document.createElement('button');button.type='button';button.className='google-photo-pin'+(p.id===selected?' active':'');button.setAttribute('aria-label',p.name+' selected');
+        const button=document.createElement('button');button.type='button';button.className='google-photo-pin'+(p.source?' numbered-pin':'')+(p.id===selected?' active':'');button.setAttribute('aria-label',p.name+' selected');
         if(['park','cafe','shop','food'].includes(p.photo)){const img=document.createElement('img');img.src='../assets/photos/'+p.photo+'.jpg';img.alt='';button.append(img);}
         const n=document.createElement('b');n.textContent=String(places.indexOf(p)+1);button.append(n);
         const marker=new AdvancedMarkerElement({map,position:{lat:p.lat,lng:p.lng},content:button,title:p.name,zIndex:p.id===selected?10:1});
@@ -47,5 +47,5 @@
       // No straight line pretending to be a walking route. Routes require real route data.
     }catch(error){if(!cancelled&&host.isConnected)status(host,'The map could not load. Check your connection and refresh, or use the list below.');}
   }
-  window.ReelGoogleMap={mount,valid};
+  window.ReelGoogleMap={mount,valid,load};
 })();

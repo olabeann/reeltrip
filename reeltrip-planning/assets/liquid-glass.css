@@ -32,6 +32,28 @@ body{background:radial-gradient(ellipse 330px 420px at 110% 350px,#a8efde80,tran
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.bottomaction,.mobiletabs{background:#edf8fd}.card,.place,.route-stop{background:#f8fcff}.journey-facts{background:#d8f2f5}.import-card form{background:#b8e8f1}}
 @media(prefers-reduced-transparency:reduce){.card,.place,.route-stop,.bottomaction,.mobiletabs,.topbar{background:#f4fbff;backdrop-filter:none;-webkit-backdrop-filter:none}.import-card form,.journey-facts{background:#d2f1f6;backdrop-filter:none;-webkit-backdrop-filter:none}.journey-price{background:#fff}}
 @media print{body{background:#fff}.card,.place,.journey-summary,.journey-facts{box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}}
+/* Video discovery: calm blue/mint progress and distinct stage states. */
+.extraction-card{padding:28px 22px;border-radius:28px;background:radial-gradient(ellipse at 100% 0,#d8f7eea6,transparent 60%),linear-gradient(145deg,#fffffff5,#f4fbfff0)}
+.extraction-visual{display:grid;place-items:center;width:64px;height:64px;margin-bottom:22px;border:1px solid #ffffff;border-radius:22px;background:linear-gradient(145deg,#d9f3ff,#d9f7ed);color:#087bb3;box-shadow:inset 0 1px 0 white,0 6px 16px #2479a412}
+.extraction-visual svg{width:40px;height:40px}
+.extraction-card .eyebrow{color:#0873b3;font-size:12px;font-weight:700;margin-bottom:10px}
+.extraction-card h1{margin:0;font-size:25px;line-height:1.45;letter-spacing:-.6px;word-break:keep-all;overflow-wrap:anywhere}
+.extraction-progress{height:5px;overflow:hidden;border-radius:99px;margin:24px 0 20px;background:#dceef5}
+.extraction-progress span{display:block;width:42%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#32bcae,#098be0);animation:extraction-scan 1.8s ease-in-out infinite}
+.extraction-stages{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:6px}
+.extraction-stages li{display:flex;align-items:center;gap:12px;min-height:48px;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.5;color:#526d83}
+.extraction-stages .is-active{background:#e4f4fc;color:#14618c;font-weight:650}
+.extraction-stage-icon{display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;box-sizing:border-box;border-radius:50%;font-size:12px;font-weight:700}
+.is-complete .extraction-stage-icon{background:#d9f3e9;color:#16765d}
+.is-active .extraction-stage-icon{border:2px solid #b9deef;border-top-color:#087fbd;animation:extraction-spin 1s linear infinite}
+.is-pending .extraction-stage-icon{border:1px solid #b8ceda;color:#617c8e;background:#f4f9fc}
+.extraction-note{margin:0;padding:14px 15px;border-radius:14px;background:#eaf4f8;color:#526d83;font-size:13px;line-height:1.8}
+.extraction-actions{margin-top:20px}.extraction-actions .btn{min-height:44px}.extraction-actions .btn:only-child{width:100%;justify-content:center}
+.extraction-card.is-failed .extraction-note{margin-top:20px}
+@keyframes extraction-scan{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+@keyframes extraction-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.extraction-progress span,.is-active .extraction-stage-icon{animation:none}.extraction-progress span{width:100%}}
+@media(max-width:360px){.extraction-card{padding:24px 18px}.extraction-card h1{font-size:23px}}
 /* Day overview: date → key facts → ordered stops → travel-time note. */
 .overview-day{padding:20px;background:linear-gradient(135deg,#fffffff2,#f1fcfbd9)}
 .overview-head{gap:8px;margin-bottom:17px;align-items:center}
@@ -66,7 +88,15 @@ body{background:radial-gradient(ellipse 330px 420px at 110% 350px,#a8efde80,tran
 .place .place-management .buttons{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px}
 .place .place-management .textbtn{flex:1 1 120px;width:auto;padding:10px;min-height:43px;text-align:center;background:#e9f2f7;font-size:13px;line-height:1.5}
 .place .place-management .textbtn[data-action=remove]{flex:0 0 auto;min-width:44px;background:transparent;color:#617887;font-weight:500;box-shadow:none}
-.place>input[type=checkbox]{grid-column:1;grid-row:1;z-index:2;margin:6px;width:22px;height:22px;box-shadow:0 0 0 4px #ffffffed;border-radius:4px}
+/* A quiet photo overlay with a full 44px touch target. */
+.place>input[type=checkbox]{appearance:none;-webkit-appearance:none;position:absolute;top:16px;left:16px;z-index:2;display:block;box-sizing:border-box;margin:0;padding:0;width:44px;height:44px;min-height:44px;border:0;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer;outline:none}
+.place>input[type=checkbox]::before{content:"";position:absolute;inset:8px;box-sizing:border-box;border:1.5px solid #6c92a8;border-radius:50%;background:#f4fbfff2;box-shadow:0 2px 6px #17365324}
+.place>input[type=checkbox]:checked::before{border-color:#ffffffeb;background:linear-gradient(145deg,#169cce,#0873b3)}
+.place>input[type=checkbox]:checked::after{content:"";position:absolute;top:15px;left:19px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.place>input[type=checkbox]:focus-visible::before{outline:2px solid #075e97;outline-offset:3px}
+@media(hover:hover){.place>input[type=checkbox]:hover::before{border-color:#0873b3;box-shadow:0 0 0 3px #d4f1ffb3}}
+@media(max-width:360px){.place>input[type=checkbox]{top:13px;left:13px}}
+@media(forced-colors:active){.place>input[type=checkbox]::before{background:Canvas;border-color:ButtonText}.place>input[type=checkbox]:checked::before{background:Highlight;border-color:Highlight;forced-color-adjust:none}.place>input[type=checkbox]:checked::after{border-color:HighlightText;forced-color-adjust:none}}
 .place:has(>input)>.place-thumb{grid-row:1/5}
 html[lang=en] .place{grid-template-columns:76px minmax(0,1fr)}
 html[lang=en] .place>.place-thumb,html[lang=en] .place:not(:has(>input))>.place-thumb{grid-column:1;grid-row:1/5;width:76px;height:104px}
