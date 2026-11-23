@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-23",
+  "scope": "Prototype local transitions; no live authentication, payment, messaging or third-party booking transactions.",
+  "automated": {
+    "screens": 36,
+    "states": 144,
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "stateCases": 288,
+    "internalDestinationChecks": 1670,
+    "targetedTransitionChecks": 22,
+    "result": "passed"
+  },
+  "browserJourneys": [
+    "Quoted request → withdraw → closed proposals",
+    "Checkout → booking pending → My account → settings → mate mode → fee confirmation → earnings",
+    "Mate chat send → traveler mode → unread message → chat → confirmed booking → cancellation requested",
+    "Home video form → processing → results → saved places → two-day trip creation",
+    "Admin cancellation requested → cancelled",
+    "Admin empty support → dashboard; open ticket → resolved",
+    "Mate review → needs information → approved"
+  ],
+  "fixes": [
+    "Allow request withdrawal after proposals arrive; show closed proposal validity accurately.",
+    "Advance preview processing when analysis is started by the user, preserving static initial processing previews.",
+    "Replace inaccessible customer-support link in admin empty state with the operations dashboard.",
+    "Distinguish selected and unselected proposals after booking.",
+    "Synchronize request status when admin confirms booking cancellation."
+  ],
+  "regressions": [
+    "static",
+    "startup",
+    "navigation",
+    "access",
+    "google map guards",
+    "tower seed",
+    "state previews",
+    "state panel",
+    "inline IA",
+    "matching routes",
+    "chat",
+    "transitions"
+  ],
+  "screenshot": "/private/tmp/reeltrip-transition-verified.jpg"
+}

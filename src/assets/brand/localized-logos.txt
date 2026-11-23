@@ -1,0 +1,12 @@
+Localized Reeltrip logo assets — 2026-11-23
+
+Created with the built-in image_gen tool using reeltrip-logo-ko-charcoal-transparent.png as the edit reference. Original generated PNGs copied without post-processing; transparency preserved.
+
+Chinese: reeltrip-logo-zh-CN-charcoal-transparent.png (1873 × 840)
+Japanese: reeltrip-logo-ja-charcoal-transparent.png (2172 × 724)
+
+Prompt direction for both: preserve the blue/cyan glossy map pin and white chain emblem; replace Korean lettering with the existing localized brand name; bold charcoal forward-italic sans-serif wordmark; single horizontal lockup; transparent background; no extra text.
+Chinese exact text: 映旅
+Japanese exact text: リールトリップ (preserve small ッ and handakuten in プ).
+
+Consumed by src/assets/verification-email.js and signupBrandLogo in src/assets/app.js.

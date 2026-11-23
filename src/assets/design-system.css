@@ -1,0 +1,447 @@
+@import url("field-icons.css?v=20261123-audit-7");
+/* Reference-inspired blue / red / neutral palette. Semantic colors below reuse this scale. */
+:root{
+ --rt-blue-50:#F0F5FF;
+ --rt-blue-100:#E2ECFF;
+ --rt-blue-200:#BDD2FF;
+ --rt-blue-400:#6692ED;
+ --rt-blue-500:#2864DC;
+ --rt-blue-600:#2154BC;
+ --rt-blue-800:#173B84;
+ --rt-red-50:#FFF1F2;
+ --rt-red-100:#FFE0E2;
+ --rt-red-200:#FFB8BC;
+ --rt-red-400:#FF777D;
+ --rt-red-500:#FF474B;
+ --rt-red-600:#D92D34;
+ --rt-red-800:#96212A;
+ --rt-gray-0:#FFFFFF;
+ --rt-gray-50:#F6F7F8;
+ --rt-gray-100:#ECEEF0;
+ --rt-gray-200:#DDE0E3;
+ --rt-gray-400:#A6ABAE;
+ --rt-gray-500:#7B8188;
+ --rt-gray-600:#626970;
+ --rt-gray-800:#343A40;
+ --rt-gray-900:#20252B;
+}
+/* Reeltrip shared component contract. Load after screen styles. */
+:root{
+ --rt-primary:var(--rt-blue-500);--rt-primary-hover:var(--rt-blue-600);--rt-ink:var(--rt-gray-900);--rt-muted:var(--rt-gray-600);
+ --rt-surface:var(--rt-gray-0);--rt-subtle:var(--rt-gray-50);--rt-border:var(--rt-gray-200);--rt-danger:var(--rt-red-600);--rt-danger-bg:var(--rt-red-50);
+ --rt-radius-control:14px;--rt-radius-card:20px;--rt-radius-dialog:24px;
+ --rt-space-1:4px;--rt-space-2:8px;--rt-space-3:12px;--rt-space-4:16px;--rt-space-5:24px;--rt-space-6:32px;
+ --rt-shadow:0 8px 24px color-mix(in srgb, var(--rt-blue-800) 5.10%, transparent);--rt-focus:0 0 0 3px var(--rt-gray-0),0 0 0 6px var(--rt-blue-500);
+}
+:is(#app,#dialog,.ds-preview) .btn{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;
+ padding:12px 18px;border:1px solid transparent;border-radius:var(--rt-radius-control);
+ background:var(--rt-primary);color:var(--rt-gray-0);font-family:inherit;font-size:14px;font-weight:600;line-height:1.5;
+ box-shadow:none;text-shadow:none;text-decoration:none;white-space:normal;overflow-wrap:anywhere;cursor:pointer;
+ transition:background-color .15s,transform .15s;
+}
+:is(#app,#dialog,.ds-preview) .btn.secondary{background:var(--rt-subtle);border-color:transparent;color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) .btn.light{background:var(--rt-surface);border-color:var(--rt-border);color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .btn.danger{background:var(--rt-danger);color:var(--rt-surface);border-color:transparent}
+:is(#app,#dialog,.ds-preview) .btn.small{min-height:44px;padding:8px 12px;font-size:13px}
+:is(#app,#dialog,.ds-preview) .textbtn{min-height:44px;padding:8px;color:var(--rt-primary);background:transparent;border:0;font-size:14px}
+:is(#app,#dialog,.ds-preview) :is(.iconbtn,.trip-header-icon){display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border-radius:var(--rt-radius-control);color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) .btn:not(:disabled):not([aria-disabled=true]):hover{filter:brightness(.95)}
+:is(#app,#dialog,.ds-preview) .btn:not(:disabled):not([aria-disabled=true]):active{transform:translateY(1px)}
+:is(#app,#dialog,.ds-preview) .btn:is(:disabled,[aria-disabled=true],[aria-busy=true]){opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+:is(#app,#dialog,.ds-preview) :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--rt-primary);outline-offset:3px}
+:is(#app,.ds-preview) :is(.card,.place,.stop-card,.overview-day){border-radius:var(--rt-radius-card);box-shadow:var(--rt-shadow)}
+:is(#app,.ds-preview) .card.pad{padding:20px}
+#dialog,.ds-dialog{background:var(--rt-surface);color:var(--rt-ink);border:0;border-radius:var(--rt-radius-dialog);padding:24px;box-shadow:0 24px 80px color-mix(in srgb, var(--rt-blue-800) 20.00%, transparent);width:calc(100% - 32px);max-width:440px;max-height:calc(100dvh - 48px);overflow:auto;box-sizing:border-box}
+#dialog::backdrop{background:color-mix(in srgb, var(--rt-blue-800) 40.00%, transparent);backdrop-filter:blur(4px)}
+:is(#dialog,.ds-dialog) h2{font-size:20px;line-height:1.4;margin:0 0 12px;letter-spacing:-.4px}
+:is(#dialog,.ds-dialog)>p{font-size:14px;line-height:1.7;color:var(--rt-muted);margin:0 0 24px}
+:is(#dialog,.ds-dialog) .buttons{display:flex;flex-direction:row;gap:var(--rt-space-2);align-items:stretch;margin-top:24px;flex-wrap:wrap}
+:is(#dialog,.ds-dialog) .buttons>.btn{flex:1 1 120px;min-width:0;margin:0}
+#toast,.ds-toast{background:var(--rt-ink);color:var(--rt-gray-0);border:0;border-radius:14px;padding:14px 18px;font-size:14px;line-height:1.5;box-shadow:0 8px 24px color-mix(in srgb, var(--rt-blue-800) 14.90%, transparent);text-align:left;overflow-wrap:anywhere}
+#toast{max-width:400px;width:max-content;max-width:min(400px,calc(100vw - 32px));bottom:calc(156px + env(safe-area-inset-bottom,0px));pointer-events:none}
+body[data-surface=admin] #toast{bottom:24px}
+@media(prefers-reduced-motion:reduce){:is(#app,#dialog,.ds-preview) .btn{transition:none}#toast{transition:none}}
+
+/* Card families: existing screen classes are aliases of these shared variants.
+   Layout (grid, media position, timeline order) stays with the screen. */
+:root{
+ --rt-card-padding:20px;--rt-card-gap:16px;--rt-radius-media:12px;
+ --rt-title-size:18px;--rt-body-size:14px;--rt-caption-size:13px;
+ --rt-selected:var(--rt-blue-50);--rt-success:var(--rt-blue-600);--rt-success-bg:var(--rt-blue-50);
+ --rt-warning:var(--rt-red-800);--rt-warning-bg:var(--rt-red-50);
+ --rt-feature:linear-gradient(135deg,var(--rt-blue-500),var(--rt-blue-600));
+}
+:is(#app,#dialog,.ds-preview) :is(.card,.place,.stop-card,.overview-day,.route-stop,.recommendation-card,.my-trip-card,.request-inbox-card,.meeting-card,.journey-summary,.mate-request-summary,.import-card,.metric,.mini-itinerary,.guide-callout,.trip-settings,.map-workspace,.empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty,.my-signup,.sample-start-card,.my-current,.guest-invite,.guest-account-intro,.mate-profile,.trip-feature,.trip-mate-card,.free-quote-intro,:where(.mate-intro-list article),:where(.mate-intro footer),.saved-places-entry,.resume-action,.trip-create-banner){
+ border:1px solid var(--rt-border);border-radius:var(--rt-radius-card);background:var(--rt-surface);
+ color:var(--rt-ink);box-shadow:var(--rt-shadow);min-width:0;gap:var(--rt-card-gap);
+ backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+/* Information and compact list cards share one spacing contract. */
+:is(#app,#dialog,.ds-preview) :is(.card.pad,.guest-place-card,.place,.stop-card,.overview-day,.route-stop,.my-trip-card,.request-inbox-card,.meeting-card,.journey-summary,.mate-request-summary,.metric,.mini-itinerary,.guide-callout,.trip-settings,.my-signup,.sample-start-card,.my-current,.guest-invite,.guest-account-intro,.mate-profile,.trip-feature,.trip-mate-card,.free-quote-intro,:where(.mate-intro-list article),:where(.mate-intro footer),.saved-places-entry,.resume-action,.trip-create-banner){padding:var(--rt-card-padding)}
+:is(#app,#dialog,.ds-preview) :is(.card,.place,.stop-card,.overview-day,.route-stop,.recommendation-card,.my-trip-card,.request-inbox-card,.meeting-card,.journey-summary,.mate-request-summary,.metric) :is(h2,h3,h4){font-size:var(--rt-title-size);line-height:1.5;color:var(--rt-ink);letter-spacing:-.3px}
+:is(#app,#dialog,.ds-preview) :is(.card,.place,.stop-card,.overview-day,.route-stop,.recommendation-card,.my-trip-card,.request-inbox-card,.meeting-card,.journey-summary,.mate-request-summary) p{font-size:var(--rt-body-size);line-height:1.7;color:var(--rt-muted);overflow-wrap:anywhere}
+:is(#app,#dialog,.ds-preview) .my-trip-summary strong{font-size:var(--rt-title-size);line-height:1.5;color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) :is(.my-trip-summary small,.request-inbox-meta,.recommendation-attribution){font-size:var(--rt-caption-size);line-height:1.5;color:var(--rt-muted)}
+/* Photo cards keep edge-to-edge media and put padding on the content only. */
+:is(#app,#dialog,.ds-preview) .recommendation-card{padding:0;overflow:hidden}
+:is(#app,#dialog,.ds-preview) .recommendation-body{padding:var(--rt-card-padding);gap:var(--rt-space-2)}
+:is(#app,#dialog,.ds-preview) :is(.place-thumb,.guest-place-photo,.my-trip-cover,.route-thumb){border-radius:var(--rt-radius-media);overflow:hidden;background:var(--rt-subtle)}
+:is(#app,#dialog,.ds-preview) .recommendation-actions{flex-wrap:wrap;gap:var(--rt-space-2)}
+:is(#app,#dialog,.ds-preview) .recommendation-actions .btn{flex:1 1 auto}
+/* Hero treatment is reserved for the single service entry card. */
+:is(#app,.ds-preview) .import-card{background:var(--rt-feature);padding:var(--rt-card-padding);border-color:transparent;color:var(--rt-gray-0)}
+:is(#app,.ds-preview) .import-card :is(h1,h2,h3,p){color:inherit}
+:is(#app,.ds-preview) .import-card::before,:is(#app,.ds-preview) .import-card::after{display:none}
+:is(#app,.ds-preview) .journey-summary::before,:is(#app,.ds-preview) .journey-summary::after{display:none}
+/* Empty cards share hierarchy without forcing a fixed height. */
+:is(#app,#dialog,.ds-preview) :is(.empty,.chat-empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty){padding:var(--rt-space-6) var(--rt-card-padding);text-align:center;background:var(--rt-subtle);box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(.empty,.chat-empty,.inbox-empty,.library-empty,.notification-empty,.trip-upcoming-empty) :is(h2,h3){font-size:var(--rt-title-size);line-height:1.5;color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) :is(.empty,.chat-empty,.inbox-empty,.library-empty,.notification-empty,.trip-upcoming-empty) p{font-size:var(--rt-body-size);line-height:1.7;color:var(--rt-muted)}
+/* Selected, unread and keyboard states remain visible after normalization. */
+:is(#app,#dialog,.ds-preview) :is(.place.is-selected,.route-stop.focused,.conversation-item.is-unread){background:var(--rt-selected);border-color:var(--rt-primary);box-shadow:inset 3px 0 var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) :is(.my-trip-card,.request-inbox-card):hover{border-color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .badge{background:var(--rt-subtle);color:var(--rt-ink);border:0;border-radius:8px;padding:4px 8px;font-size:12px;line-height:1.5;box-shadow:none}
+:is(#app,#dialog,.ds-preview) .badge.warm{background:var(--rt-warning-bg);color:var(--rt-warning)}
+/* All functional icons use icon(), including custom screen controls. */
+:is(#app,#dialog,.ds-preview) svg.rt-icon{width:var(--rt-icon-size,24px);height:var(--rt-icon-size,24px);flex:none;vertical-align:middle;stroke-width:1.7}
+:is(#app,#dialog,.ds-preview) :is(.app-back,.library-add,.mate-close,.notification-bell,.trip-library-shortcut,.profile-photo-clear,.profile-camera-button){min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--rt-radius-control)}
+:is(#app,#dialog,.ds-preview) :is(.chip,.notification-filter,.library-filter,.mate-region-chips button,.day-tabs button){min-height:44px;border:1px solid var(--rt-border);border-radius:var(--rt-radius-control);background:var(--rt-subtle);color:var(--rt-ink);box-shadow:none;text-shadow:none;font-size:14px;padding:8px 12px}
+:is(#app,#dialog,.ds-preview) :is(.chip,.notification-filter,.library-filter,.mate-region-chips button,.day-tabs button):is(.active,.is-active,[aria-pressed=true]){background:var(--rt-selected);border-color:var(--rt-primary);color:var(--rt-primary);box-shadow:inset 0 0 0 1px var(--rt-primary)}
+@media(max-width:360px){:root{--rt-card-padding:16px;--rt-card-gap:12px}.recommendation-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Nested facts, notes and notices are inset surfaces rather than new card types. */
+:is(#app,#dialog,.ds-preview) :is(.journey-facts,.journey-price,.mate-fee-amount,.trip-note,.chat-trip-context,.notice,.infobar,.collection-target){border:1px solid var(--rt-border);border-radius:var(--rt-radius-control);padding:var(--rt-space-4);background:var(--rt-subtle);color:var(--rt-ink);box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(.notice.warn,.infobar.warn){background:var(--rt-warning-bg);color:var(--rt-warning)}
+
+/* Blue / red / neutral roles apply to every surface, including legacy shells. */
+:root{--ink:var(--rt-ink);--muted:var(--rt-muted);--green:var(--rt-primary);--paper:var(--rt-gray-50);--bg:var(--rt-gray-50)}
+html{background:var(--rt-gray-100)}
+body{background:var(--rt-gray-50);color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) :is(input,select,textarea){accent-color:var(--rt-primary)}
+:is(#app,.ds-preview) .mobiletabs{background:var(--rt-surface)}
+:is(#app,.ds-preview) .mobiletabs .active{color:var(--rt-primary)}
+:is(#app,.ds-preview) .mobiletabs .active b{background:var(--rt-blue-50)}
+:is(#app,#dialog,.ds-preview) .btn:disabled{background:var(--rt-gray-100);color:var(--rt-gray-600);border-color:var(--rt-gray-200);opacity:1}
+:is(#app,#dialog,.ds-preview) .rt-round-action{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;padding:0;border:0;border-radius:50%;background:var(--rt-primary);color:white;box-shadow:0 6px 14px color-mix(in srgb,var(--rt-primary) 20%,transparent)}
+:is(#app,#dialog,.ds-preview) .rt-round-action.danger{background:var(--rt-red-500);box-shadow:0 6px 14px color-mix(in srgb,var(--rt-red-500) 20%,transparent)}
+:is(#app,#dialog,.ds-preview) .rt-round-action.neutral{background:var(--rt-gray-400);box-shadow:0 6px 14px color-mix(in srgb,var(--rt-gray-400) 20%,transparent)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-primary{background:var(--rt-blue-50);color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .rt-status-text-primary{color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .rt-status-text-ink{color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) .error{color:var(--rt-danger)}
+:is(#app,#dialog,.ds-preview) .bubble.mine{background:var(--rt-blue-50);color:var(--rt-blue-800)}
+/* Inline link-entry action must not inherit full-width card CTA sizing. */
+#app .import-input-row .import-search{width:auto;flex:0 0 auto;min-height:44px;padding:8px 10px;font-size:13px;white-space:nowrap}
+#app .import-input-row input{width:0;flex:1 1 0;min-width:0}
+#app .mate-intro :is(h2,h3){color:var(--rt-ink)}
+#app .mate-intro p{color:var(--rt-muted)}
+
+/* Reference component geometry: pill actions and light outlined fields. */
+:root{--rt-radius-button:999px;--rt-radius-field:10px}
+:is(#app,#dialog,.ds-preview) .btn{border-radius:var(--rt-radius-button);padding-inline:24px}
+:is(#app,#dialog,.ds-preview) .btn.small{padding-inline:18px}
+:is(#app,#dialog,.ds-preview) .btn:not(:disabled):not([aria-disabled=true]):hover,
+:is(#app,#dialog,.ds-preview) .btn[data-preview-state=hover]{filter:none;background:var(--rt-primary-hover);box-shadow:0 4px 10px color-mix(in srgb,var(--rt-primary) 20%,transparent)}
+:is(#app,#dialog,.ds-preview) .btn.secondary:not(:disabled):hover,
+:is(#app,#dialog,.ds-preview) .btn.secondary[data-preview-state=hover]{background:var(--rt-gray-100);box-shadow:0 4px 10px color-mix(in srgb,var(--rt-gray-600) 15%,transparent)}
+:is(#app,#dialog,.ds-preview) .btn.danger:not(:disabled):hover{background:var(--rt-red-800)}
+:is(#app,#dialog,.ds-preview) .btn.light:not(:disabled):hover{background:var(--rt-blue-50);color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .btn:not(:disabled):active,
+:is(#app,#dialog,.ds-preview) .btn[data-preview-state=pressed]{transform:translateY(1px);box-shadow:inset 0 2px 4px color-mix(in srgb,var(--rt-gray-900) 16%,transparent)}
+:is(#app,#dialog,.ds-preview) .textbtn{display:inline-flex;align-items:center;justify-content:center;gap:20px;color:var(--rt-ink);border-radius:var(--rt-radius-button)}
+:is(#app,#dialog,.ds-preview) .textbtn:disabled{color:var(--rt-gray-400);cursor:not-allowed}
+:is(#app,#dialog,.ds-preview) .textbtn:not(:disabled):hover{color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) :is(input:not([type]),input[type=text],input[type=email],input[type=password],input[type=search],input[type=url],input[type=tel],input[type=number],input[type=date],input[type=time],textarea,select){min-height:48px;border:1px solid var(--rt-gray-200);border-radius:var(--rt-radius-field);background-color:var(--rt-surface);color:var(--rt-ink);box-shadow:none;font-size:14px;padding:12px 14px}
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select):focus{border-color:var(--rt-blue-400);outline:2px solid var(--rt-blue-50);outline-offset:1px;box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select)[aria-invalid=true]{border-color:var(--rt-red-400);background-color:var(--rt-surface)}
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select):disabled{background-color:var(--rt-gray-50);color:var(--rt-gray-400);border-color:var(--rt-gray-100)}
+:is(#app,#dialog,.ds-preview) :is(input,textarea)::placeholder{color:var(--rt-gray-500);opacity:1}
+.rt-field{display:flex;align-items:center;gap:10px;min-height:48px;border:1px solid var(--rt-gray-200);border-radius:var(--rt-radius-field);padding:0 12px;background:var(--rt-surface);color:var(--rt-gray-500);min-width:0}
+:is(#app,#dialog,.ds-preview) .rt-field input{flex:1;width:0;min-width:0;min-height:46px;border:0;background:transparent;padding:10px 0;outline:none;box-shadow:none}
+.rt-field:focus-within,.rt-field[data-preview-state=active]{border-color:var(--rt-blue-400);box-shadow:0 0 0 1px var(--rt-blue-50)}
+.rt-field[data-preview-state=error]{border-color:var(--rt-red-200);color:var(--rt-danger)}
+.rt-field[data-preview-state=success]{border-color:var(--rt-blue-200)}
+.rt-field[data-preview-state=disabled]{background:var(--rt-gray-50);border-color:var(--rt-gray-100);color:var(--rt-gray-400)}
+.rt-field .field-result{color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .rt-field svg.rt-icon{width:20px;height:20px}
+.field-tool{display:flex;align-items:center;justify-content:center;flex:none;width:32px;min-height:44px;padding:0;background:transparent;border:0;color:inherit}
+.field-tool:disabled{color:var(--rt-gray-400)}
+
+:is(#app,#dialog,.ds-preview) :is(input[type=email],input[type=password],input[type=search]){padding-left:44px}
+:is(#app,#dialog,.ds-preview) .rt-field input{padding-left:0}
+
+:is(#app,#dialog,.ds-preview) .btn.secondary:disabled{border-color:transparent}
+
+/* Soft depth: blue light, elevated surfaces and a luminous primary action. */
+:root{
+ --rt-canvas:linear-gradient(145deg,var(--rt-blue-50),var(--rt-gray-50) 60%,var(--rt-blue-100));
+ --rt-elevation:8px 10px 24px color-mix(in srgb,var(--rt-blue-800) 12%,transparent),-5px -5px 16px var(--rt-surface);
+ --rt-shadow:0 8px 22px color-mix(in srgb,var(--rt-blue-800) 9%,transparent);
+ --rt-field-shadow:inset 0 1px 2px var(--rt-surface),0 5px 12px color-mix(in srgb,var(--rt-blue-800) 10%,transparent);
+ --rt-primary-fill:linear-gradient(145deg,var(--rt-blue-400) -55%,var(--rt-blue-500) 38%,var(--rt-blue-600));
+ --rt-primary-glow:0 7px 16px color-mix(in srgb,var(--rt-blue-500) 28%,transparent),inset 0 1px 2px color-mix(in srgb,var(--rt-surface) 55%,transparent);
+}
+body:has(#app){background:var(--rt-canvas)}
+body[data-surface=admin]:has(#app){background:var(--rt-gray-50)}
+:is(#app,#dialog,.ds-preview) .btn:not(.secondary,.light,.danger,:disabled,[aria-disabled=true]){background:var(--rt-primary-fill);box-shadow:var(--rt-primary-glow)}
+:is(#app,#dialog,.ds-preview) .btn:not(.secondary,.light,.danger,:disabled):is(:hover,[data-preview-state=hover]){background:linear-gradient(145deg,var(--rt-blue-500),var(--rt-blue-600));box-shadow:0 9px 20px color-mix(in srgb,var(--rt-blue-500) 34%,transparent),inset 0 1px 2px color-mix(in srgb,var(--rt-surface) 50%,transparent)}
+:is(#app,#dialog,.ds-preview) .btn.secondary{border-color:transparent;background:linear-gradient(145deg,var(--rt-gray-50),var(--rt-gray-100));box-shadow:0 4px 10px color-mix(in srgb,var(--rt-gray-800) 7%,transparent)}
+:is(#app,#dialog,.ds-preview) .btn:not(:disabled):is(:active,[data-preview-state=pressed]){box-shadow:inset 0 2px 5px color-mix(in srgb,var(--rt-blue-800) 22%,transparent);transform:translateY(1px)}
+:is(#app,#dialog,.ds-preview) .btn:is(:disabled,[aria-disabled=true]){box-shadow:none;border-color:transparent}
+:is(#app,#dialog,.ds-preview) :is(.rt-field,input:not([type]),input[type=date],input[type=time],input[type=datetime-local],input[type=month],input[type=week],input[type=email],input[type=password],input[type=text],input[type=search],input[type=url],input[type=tel],input[type=number],textarea,select){background-color:color-mix(in srgb,var(--rt-blue-50) 40%,var(--rt-surface));box-shadow:var(--rt-field-shadow)}
+:is(#app,#dialog,.ds-preview) .rt-field input{background-color:transparent;box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select):disabled,:is(#app,#dialog,.ds-preview) .rt-field[data-preview-state=disabled]{background-color:var(--rt-gray-50);box-shadow:none}
+:is(#app,#dialog,.ds-preview) .rt-field[data-preview-state=error]{border-color:var(--rt-red-200);box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(.rt-field:focus-within,.rt-field[data-preview-state=active],input:focus,textarea:focus,select:focus){border-color:var(--rt-blue-400);box-shadow:0 0 0 3px var(--rt-blue-50),var(--rt-field-shadow)}
+:is(#app,#dialog,.ds-preview) :is(.rt-field[data-preview-state=success]){border-color:var(--rt-blue-200)}
+:is(#app,#dialog,.ds-preview) :is(.notification-bell,.trip-header-icon,.kit-avatar){background:linear-gradient(145deg,var(--rt-surface),var(--rt-blue-50));box-shadow:var(--rt-field-shadow)}
+#dialog,.ds-dialog{box-shadow:0 18px 48px color-mix(in srgb,var(--rt-blue-800) 18%,transparent),inset 0 1px 2px var(--rt-surface)}
+:is(#app,.ds-preview) .import-card{background:var(--rt-primary-fill);box-shadow:var(--rt-primary-glow)}
+:is(#app,.ds-preview) .mobiletabs{background:color-mix(in srgb,var(--rt-surface) 94%,var(--rt-blue-50));box-shadow:0 -5px 22px color-mix(in srgb,var(--rt-blue-800) 8%,transparent)}
+/* Authentication gets a restrained version of the reference's atmospheric light. */
+body:is([data-route=signup],[data-route=signup-email]){background:radial-gradient(ellipse at 95% 0%,var(--rt-blue-200),transparent 42%),var(--rt-canvas)}
+@media(prefers-reduced-transparency:reduce){body:has(#app){background:var(--rt-blue-50)}}
+
+:is(#app,#dialog,.ds-preview) select{padding-right:44px}
+
+/* Focus belongs to the field shell: no nested white surface or outer glow. */
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select):focus,
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select):focus-visible{outline:none;outline-offset:0;border-color:var(--rt-blue-400);box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(.rt-field:focus-within,.rt-field[data-preview-state=active]){border-color:var(--rt-blue-400);box-shadow:none}
+:is(#app,#dialog,.ds-preview) .rt-field input,
+:is(#app,#dialog,.ds-preview) .rt-field input:focus,
+:is(#app,#dialog,.ds-preview) .rt-field input:focus-visible{border:0;outline:none;box-shadow:none;background-color:transparent}
+:is(#app,#dialog,.ds-preview) .rt-field[data-preview-state=error]:focus-within{border-color:var(--rt-red-400)}
+:is(#app,#dialog,.ds-preview) :is(input,textarea,select)[aria-invalid=true]:focus{border-color:var(--rt-red-400)}
+
+/* Selected places: a quiet surface and one explicit check, without a thick rail. */
+:is(#app,#dialog,.ds-preview) :is(.place.is-selected,.route-stop.focused){border:1px solid var(--rt-blue-200);background:linear-gradient(135deg,var(--rt-surface),var(--rt-blue-50));box-shadow:none}
+.rt-selection-mark{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;border-radius:50%;background:var(--rt-primary);color:var(--rt-surface)}
+:is(#app,#dialog,.ds-preview) .rt-selection-mark svg.rt-icon{width:16px;height:16px}
+:is(#app,#dialog,.ds-preview) .place.is-selected>input[type=checkbox]{accent-color:var(--rt-primary);width:20px;height:20px;flex:none}
+
+/* Card actions share a bottom-right placement, including legacy card aliases. */
+:is(#app,.ds-preview) :is(.card,.empty,.inbox-empty,.library-empty,.recommendation-empty,.trip-empty,.my-signup,.sample-start-card,.my-current,.guest-invite,.guest-account-intro,.guide-callout,.trip-feature,.trip-mate-card,.trip-mate-inline,.mate-intro footer,.recommendation-body):not(:where(.rt-card-actions-centered)) > .btn,
+:is(#app,.ds-preview) .card :is(form,article,.task-group) > .btn{
+ display:flex;width:fit-content;max-width:100%;margin-left:auto;margin-right:0;
+ margin-top:var(--rt-space-4);align-self:flex-end;justify-self:end;flex:0 0 auto;
+}
+:is(#app,.ds-preview) :is(.card,.empty,.place,.stop-card,.route-stop,.guest-invite,.guest-account-intro) .buttons,
+:is(#app,.ds-preview) :is(.rt-card-actions,.recommendation-actions,.guest-invite-actions,.guest-account-actions,.kit-proposal-actions){
+ display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;
+ gap:var(--rt-space-2);width:100%;margin-top:var(--rt-space-4);
+}
+:is(#app,.ds-preview) :is(.card,.empty,.place,.stop-card,.route-stop,.guest-invite,.guest-account-intro) .buttons > .btn,
+:is(#app,.ds-preview) :is(.rt-card-actions,.recommendation-actions,.guest-invite-actions,.guest-account-actions,.kit-proposal-actions) > .btn{
+ flex:0 1 auto;width:auto;max-width:100%;margin:0;
+}
+:is(#app,.ds-preview) .recommendation-body{display:flex;flex-direction:column;flex:1}
+:is(#app,.ds-preview) .recommendation-actions{margin-top:auto;padding-top:var(--rt-space-4)}
+
+/* Centered card action variant for invitation cards. */
+:is(#app,.ds-preview) .rt-card-actions-centered > .btn{display:flex;width:fit-content;max-width:100%;margin:var(--rt-space-4) auto 0;align-self:center;justify-self:center;flex:0 0 auto}
+
+/* Shared empty-state card: centered icon, explanation and action. */
+:is(#app,.ds-preview) .rt-card-stack{display:grid;gap:var(--rt-space-4)}
+:is(#app,.ds-preview) .rt-card-stack>.card{margin:0}
+:is(#app,.ds-preview) .rt-empty-card{display:flex;flex-direction:column;align-items:center;gap:0;padding:var(--rt-space-5);text-align:center}
+:is(#app,.ds-preview) .rt-empty-card-icon{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;margin-bottom:var(--rt-space-5);border-radius:var(--rt-radius-control);background:var(--rt-blue-50);color:var(--rt-primary)}
+:is(#app,.ds-preview) .rt-empty-card h2{margin:0 0 var(--rt-space-2);font-size:var(--rt-title-size);line-height:1.5}
+:is(#app,.ds-preview) .rt-empty-card p{margin:0;color:var(--rt-muted);line-height:1.8}
+:is(#app,.ds-preview) .rt-empty-card .rt-card-actions{margin-top:var(--rt-space-5)}
+
+/* Empty states override ordinary cards: center all content and action groups. */
+:is(#app,#dialog,.ds-preview) :is(.rt-empty-card,.empty,.chat-empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty,.trip-unavailable){text-align:center;align-items:center;justify-items:center}
+:is(#app,#dialog,.ds-preview) :is(.rt-empty-card,.empty,.chat-empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty,.trip-unavailable) :is(.buttons,.rt-card-actions){display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:var(--rt-space-2);width:100%}
+:is(#app,#dialog,.ds-preview) :is(.rt-empty-card,.empty,.chat-empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty,.trip-unavailable) > .btn{display:flex;width:fit-content;max-width:100%;margin-left:auto;margin-right:auto;align-self:center;justify-self:center;flex:0 1 auto}
+:is(#app,#dialog,.ds-preview) :is(.rt-empty-card,.empty,.chat-empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty,.trip-unavailable) :is(.buttons,.rt-card-actions) > .btn{flex:0 1 auto;width:auto;max-width:100%;margin-left:0;margin-right:0;align-self:center}
+:is(#app,#dialog,.ds-preview) :is(.rt-empty-card,.empty,.chat-empty,.inbox-empty,.library-empty,.library-filter-empty,.notification-empty,.place-picker-empty,.recommendation-empty,.trip-day-empty,.trip-empty,.trip-map-empty,.trip-upcoming-empty,.trip-unavailable) > :is(.rt-empty-card-icon,.inbox-start-icon,.library-empty-icon,.conversation-avatar){margin-left:auto;margin-right:auto;align-self:center;justify-self:center}
+
+/* Shared route tabs: native links preserve keyboard and browser navigation. */
+:is(#app,.ds-preview) .rt-segmented-tabs{display:flex;gap:var(--rt-space-1);padding:var(--rt-space-1);margin:0 0 var(--rt-space-5);border-radius:var(--rt-radius-control);background:var(--rt-gray-100)}
+:is(#app,.ds-preview) .rt-segmented-tabs>a{display:flex;flex:1;align-items:center;justify-content:center;gap:var(--rt-space-2);min-height:48px;padding:var(--rt-space-2);border-radius:var(--rt-radius-field);color:var(--rt-muted);font-size:14px;font-weight:600;text-decoration:none}
+:is(#app,.ds-preview) .rt-segmented-tabs>a[aria-current=page]{background:var(--rt-surface);color:var(--rt-primary);box-shadow:var(--rt-shadow)}
+:is(#app,.ds-preview) .rt-segmented-tabs>a[aria-current=page] .badge{background:var(--rt-blue-50);color:var(--rt-primary)}
+:is(#app,.ds-preview) .rt-segmented-tabs>a:focus-visible{outline:3px solid var(--rt-primary);outline-offset:2px}
+
+/* Borderless empty state for standalone notices. */
+:is(#app,#dialog,.ds-preview) .rt-empty-card.rt-empty-plain{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:224px;padding:var(--rt-space-6) var(--rt-card-padding);border:0;border-radius:0;background:transparent;box-shadow:none;text-align:center}
+:is(#app,#dialog,.ds-preview) .rt-empty-card.rt-empty-plain > .rt-empty-card-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;margin:0 0 var(--rt-space-5);background:transparent;border-radius:0}
+:is(#app,#dialog,.ds-preview) .rt-empty-card.rt-empty-plain > h2{width:100%;margin:0 0 var(--rt-space-2)}
+:is(#app,#dialog,.ds-preview) .rt-empty-card.rt-empty-plain > p{width:100%;margin:0}
+
+/* Unread counts keep strong contrast in selected and unselected filters. */
+:is(#app,#dialog,.ds-preview) .rt-count-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--rt-blue-600);color:var(--rt-gray-0);font-size:12px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;box-shadow:none}
+
+/* Reading a notification changes its dot, never its title emphasis. */
+:is(#app,.ds-preview) .notification-item:is(.is-read,.is-unread) strong{color:var(--rt-blue-800);font-weight:700}
+
+:is(#app,#dialog,.ds-preview) .chat-trip-context{background:var(--rt-gray-0)}
+:is(#app,#dialog,.ds-preview) .btn.rt-round-action{padding:0;flex-shrink:0;border-radius:50%}
+:is(#app,#dialog,.ds-preview) .rt-round-action svg.rt-icon{display:block;position:relative;z-index:1;width:24px;height:24px;color:var(--rt-gray-0);stroke:currentColor;fill:none;flex:none}
+:is(#app,#dialog,.ds-preview) .rt-round-action.secondary svg.rt-icon{color:var(--rt-blue-800)}
+
+/* Empty-card actions override the general card action alignment. */
+:is(#app,#dialog,.ds-preview) .card.rt-empty-card > .btn{margin-left:auto;margin-right:auto;align-self:center;justify-self:center}
+
+/* Travel creation is a primary card action with a matching foreground. */
+:is(#app,.ds-preview) .trip-create-banner{background:var(--rt-primary);color:var(--rt-gray-0)}
+:is(#app,.ds-preview) .trip-create-banner :is(strong,small){color:var(--rt-gray-0)}
+:is(#app,.ds-preview) .trip-create-banner:hover{background:var(--rt-blue-800)}
+
+/* Equal-width paired actions share the full card width. */
+:is(#app,.ds-preview) .rt-card-actions.rt-card-actions-equal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+:is(#app,.ds-preview) .rt-card-actions.rt-card-actions-equal > .btn{width:100%;min-width:0;min-height:48px;height:auto;margin:0;padding:var(--rt-space-3) var(--rt-space-4);font-size:14px;line-height:1.5;align-self:stretch;box-sizing:border-box}
+
+/* Provider identity must remain legible over shared surface treatments. */
+:root{--rt-provider-kakao:#FEE500;--rt-provider-naver:#03C75A}
+:is(#app,.ds-preview) .signup-provider{background:var(--provider-bg);color:var(--provider-text);box-shadow:var(--rt-field-shadow)}
+:is(#app,.ds-preview) .signup-provider--kakao{--provider-bg:var(--rt-provider-kakao)}
+:is(#app,.ds-preview) .signup-provider--naver{--provider-bg:var(--rt-provider-naver)}
+
+/* Shared bottom sheet: fixed head/footer, independently scrolling choices. */
+#dialog.rt-bottom-sheet{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:560px;height:auto;max-height:calc(100dvh - 12px);padding:0;overflow:hidden;border-radius:var(--rt-radius-dialog) var(--rt-radius-dialog) 0 0;background:var(--rt-surface)}
+:where(#dialog,.ds-preview) .rt-sheet{display:flex;flex-direction:column;max-height:calc(100dvh - 12px);padding:0;min-height:0}
+:where(#dialog,.ds-preview) .rt-sheet-head{flex:none;padding:11px 18px 0}
+:where(#dialog,.ds-preview) .rt-sheet-head::before{content:"";display:block;width:29px;height:4px;margin:0 auto 7px;border-radius:var(--rt-radius-control);background:var(--rt-border)}
+#dialog .rt-sheet-head header{display:flex;align-items:center;justify-content:space-between;gap:11px}
+#dialog .rt-sheet-head h2{margin:0;font-size:18px;line-height:1.4}
+#dialog .rt-sheet-head .mate-close{display:grid;place-items:center;width:40px;height:40px;min-height:40px;padding:0;flex:none}
+#dialog .rt-sheet-head p{margin:4px 0 11px;font-size:12px;line-height:1.5}
+#dialog .rt-sheet-head label{display:block;margin:0 0 5px;font-size:12px;line-height:1.4}
+#dialog .rt-sheet-head select{margin:0;min-height:40px;padding-top:9px;padding-bottom:9px;font-size:16px;line-height:1.4}
+#dialog .rt-sheet-head .mate-region-all{display:flex;align-items:center;gap:5px;min-height:40px;margin:4px 0 0;padding:7px 0;font-size:13px}
+:where(#dialog,.ds-preview) .rt-sheet-body{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 18px 14px;scroll-padding:4px}
+#dialog .rt-choice-grid,.ds-preview .rt-choice-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0}
+#dialog .rt-choice-grid button,.ds-preview .rt-choice-grid button{min-width:0;min-height:40px;padding:7px 4px;font-size:12px;line-height:1.35;overflow-wrap:anywhere;border-radius:var(--rt-radius-control)}
+:where(#dialog,.ds-preview) .rt-sheet-footer{flex:none;padding:9px 18px max(14px,env(safe-area-inset-bottom));border-top:1px solid var(--rt-border);background:var(--rt-surface)}
+#dialog .rt-sheet-footer .mate-region-selection{margin:0 0 7px;max-height:36px;overflow-y:auto;overscroll-behavior:contain;font-size:11px;line-height:18px;color:var(--rt-muted)}
+#dialog .rt-sheet-footer .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:43px;margin:0;padding:11px 14px;font-size:14px;line-height:1.4}
+#dialog .rt-sheet-footer .btn:disabled{opacity:.45}
+body:has(#dialog.rt-bottom-sheet[open]){overflow:hidden}
+@media(max-width:359px){#dialog .rt-choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#dialog .rt-sheet-head{padding-inline:14px}#dialog .rt-sheet-body,#dialog .rt-sheet-footer{padding-inline:14px}}
+
+/* Shared radio, checkbox and toggle-button choices use the same state tokens. */
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice-group,.rt-multi-choice-group){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--rt-space-2)}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice,.rt-multi-choice){position:relative;display:block;min-width:0;margin:0;cursor:pointer}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice,.rt-multi-choice) > input{position:absolute;width:1px;height:1px;padding:0;margin:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;opacity:0}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice > span,.rt-multi-choice > span,.rt-choice-button){display:flex;align-items:center;justify-content:center;min-height:44px;box-sizing:border-box;padding:var(--rt-space-2) var(--rt-space-3);border:1px solid var(--rt-border);border-radius:var(--rt-radius-control);background:var(--rt-subtle);color:var(--rt-ink);font-size:14px;font-weight:500;line-height:1.5;text-align:center;overflow-wrap:anywhere;box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice > input:checked + span,.rt-multi-choice > input:checked + span,.rt-choice-button[aria-pressed=true]){background:var(--rt-selected);border-color:var(--rt-primary);color:var(--rt-primary);box-shadow:inset 0 0 0 1px var(--rt-primary);font-weight:600}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice > input:focus-visible + span,.rt-multi-choice > input:focus-visible + span,.rt-choice-button:focus-visible){outline:2px solid var(--rt-primary);outline-offset:3px}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice,.rt-multi-choice):has(> input:disabled){cursor:not-allowed}
+:is(#app,#dialog,.ds-preview) :is(.rt-single-choice,.rt-multi-choice) > input:disabled + span{opacity:.45}
+@media(hover:hover){:is(#app,#dialog,.ds-preview) :is(.rt-single-choice,.rt-multi-choice):hover > input:not(:disabled):not(:checked) + span{border-color:var(--rt-primary)}}
+
+/* Compact shared choice variant for the region sheet. */
+#dialog .rt-choice-grid .rt-choice-button,.ds-preview .rt-choice-grid .rt-choice-button{min-height:40px;padding:7px 4px;font-size:12px;line-height:1.35}
+
+/* Shared photo upload control for account and mate registration forms. */
+:is(#app,#dialog,.ds-preview) .profile-photo-editor .profile-camera-button{display:flex;align-items:center;justify-content:center;gap:0;margin:0;padding:0;border-radius:50%}
+:is(#app,#dialog,.ds-preview) .profile-photo-editor .profile-camera-button[hidden]{display:none}
+:is(#app,#dialog,.ds-preview) .profile-photo-editor .profile-camera-button input[type=file]{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;padding:0;opacity:0;cursor:pointer}
+
+/* Shared multiline introduction field and matching form labels. */
+:is(#app,#dialog,.ds-preview) textarea.rt-textarea-large{width:100%;min-height:224px;resize:vertical}
+#app .mate-onboarding #mate-form textarea.rt-textarea-large{min-height:224px}
+#app .mate-onboarding .mate-field-label{font-size:14px;font-weight:600;line-height:1.5;color:var(--rt-blue-800)}
+
+/* A single action fills its shared menu grid. */
+.trip-add-grid > button:only-child{grid-column:1 / -1}
+
+/* Shared contextual action menu: compact rows with visible action hierarchy. */
+.rt-action-menu{width:248px;max-width:calc(100vw - 64px);padding:6px;border:1px solid var(--rt-gray-200);border-radius:16px;background:var(--rt-gray-50);box-shadow:0 8px 24px color-mix(in srgb,var(--rt-gray-900) 14%,transparent)}
+.rt-action-menu-list{display:flex;flex-direction:column;gap:4px}
+:is(#app,#dialog,.ds-preview) .rt-action-menu-item{display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%;min-height:48px;margin:0;padding:12px;border:0;border-radius:10px;background:var(--rt-gray-100);color:var(--rt-gray-900);font:inherit;font-size:14px;font-weight:600;line-height:1.5;text-align:left;white-space:normal;cursor:pointer;box-shadow:none}
+.rt-action-menu-item .rt-icon{flex-shrink:0;color:var(--rt-blue-600)}
+.rt-action-menu-item span{min-width:0;overflow-wrap:anywhere}
+:is(#app,#dialog,.ds-preview) .rt-action-menu-item:is(:hover,:focus-visible,[aria-pressed=true]){background:var(--rt-blue-100);color:var(--rt-blue-800)}
+.rt-action-menu-item[aria-pressed=true] .rt-icon{fill:var(--rt-blue-200)}
+:is(#app,#dialog,.ds-preview) .rt-action-menu-item--danger{margin-top:4px;border-top:1px solid var(--rt-gray-200);border-radius:0 0 10px 10px;background:var(--rt-red-50);color:var(--rt-red-600)}
+.rt-action-menu-item--danger .rt-icon{color:inherit}
+:is(#app,#dialog,.ds-preview) .rt-action-menu-item--danger:is(:hover,:focus-visible){background:var(--rt-red-100);color:var(--rt-red-800)}
+
+/* Shared itinerary stop editor: compact order and removal controls. */
+:is(#app,.ds-preview) .rt-stop-editor{grid-column:1/-1;margin-top:var(--rt-space-3);padding-top:var(--rt-space-3);border-top:1px solid var(--rt-border)}
+:is(#app,.ds-preview) .rt-stop-editor-label{display:block;margin-bottom:var(--rt-space-2);font-size:12px;font-weight:600;color:var(--rt-gray-600)}
+:is(#app,.ds-preview) .rt-stop-editor-actions{display:flex;align-items:center;gap:var(--rt-space-2);flex-wrap:wrap}
+:is(#app,.ds-preview) .rt-stop-editor-actions .iconbtn{width:44px;min-height:44px;flex:none}
+:is(#app,.ds-preview) .rt-stop-editor-actions .btn{margin:0 0 0 auto;min-height:44px;gap:var(--rt-space-1)}
+
+/* Shared invitation card: moments first, contextual action second. */
+:is(#app,.ds-preview) .rt-mate-invite{margin-top:var(--rt-space-5);padding:var(--rt-space-5);border-color:var(--rt-blue-100);background:linear-gradient(145deg,var(--rt-blue-50),var(--rt-surface) 75%);box-shadow:none;overflow:hidden}
+:is(#app,.ds-preview) .rt-mate-invite-eyebrow{display:flex;align-items:center;gap:var(--rt-space-2);color:var(--rt-blue-600);font-size:var(--rt-caption-size);font-weight:600}
+:is(#app,.ds-preview) .rt-mate-invite h3{margin:var(--rt-space-4) 0 var(--rt-space-3);font-size:clamp(24px,6vw,30px);line-height:1.35;letter-spacing:-.8px;text-wrap:balance}
+:is(#app,.ds-preview) .rt-mate-invite p{margin:0;line-height:1.8;word-break:keep-all;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-mate-invite-moments{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--rt-space-2);list-style:none;margin:var(--rt-space-5) 0;padding:0}
+:is(#app,.ds-preview) .rt-mate-invite-moments li{display:flex;flex-direction:column;align-items:center;gap:var(--rt-space-3);padding:var(--rt-space-4) var(--rt-space-1);border-radius:var(--rt-radius-media);background:var(--rt-surface);color:var(--rt-blue-600);text-align:center}
+:is(#app,.ds-preview) .rt-mate-invite-moments span{font-size:12px;line-height:1.5;color:var(--rt-ink);word-break:keep-all}
+:is(#app,.ds-preview) .rt-mate-invite-footer{display:flex;flex-direction:column;gap:var(--rt-space-3);border-top:1px solid var(--rt-blue-100);padding-top:var(--rt-space-4)}
+:is(#app,.ds-preview) .rt-mate-invite-footer p{font-size:var(--rt-caption-size)}
+:is(#app,.ds-preview) .rt-mate-invite-footer .btn{width:100%;box-sizing:border-box}
+
+/* Inline itinerary actions use the common icon button and spacing tokens. */
+:is(#app,.ds-preview) .rt-stop-row{display:flex;align-items:center;gap:var(--rt-space-2)}
+:is(#app,.ds-preview) .rt-stop-row>.trip-stop-content{flex:1;min-width:0;width:auto}
+:is(#app,.ds-preview) .rt-stop-row>.iconbtn{flex:none;width:44px;min-height:44px}
+
+/* Compact vertical cards use one gap instead of stacking margins and gaps. */
+:is(#app,#dialog,.ds-preview) .rt-card-compact{display:flex;flex-direction:column;gap:var(--rt-space-3);padding:var(--rt-space-5)}
+:is(#app,#dialog,.ds-preview) .rt-card-compact > *{margin-top:0;margin-bottom:0}
+:is(#app,#dialog,.ds-preview) .rt-card-compact > .btn{margin-top:var(--rt-space-1);margin-bottom:0}
+
+/* Booking navigation: primary return action and accessible secondary withdrawal. */
+:is(#app,.ds-preview) .rt-booking-actions{display:flex;flex-direction:column;align-items:stretch;gap:var(--rt-space-3);margin:var(--rt-space-5) 0}
+:is(#app,.ds-preview) .rt-booking-actions>.btn{width:100%;margin:0;min-height:48px}
+:is(#app,.ds-preview) .rt-booking-actions>.btn.secondary{align-self:center;width:auto;background:transparent;box-shadow:none;color:var(--rt-muted)}
+
+/* Chat identity shares a single-line header with a trailing menu action. */
+:is(#app,.ds-preview) .chat-person>div{flex:1;min-width:0}
+:is(#app,.ds-preview) .chat-person>.rt-round-action{margin-left:auto;flex-shrink:0}
+
+/* Shared application status and expandable information cards. */
+:is(#app,.ds-preview) .rt-status-card{display:flex;flex-direction:column;align-items:center;gap:var(--rt-space-4);padding:32px var(--rt-space-5);text-align:center;box-shadow:none}
+:is(#app,.ds-preview) .rt-status-symbol{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--rt-blue-50);color:var(--rt-primary)}
+:is(#app,.ds-preview) .rt-status-card h1{margin:0;font-size:24px;line-height:1.4;letter-spacing:-.6px;word-break:keep-all;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-status-card p{margin:0;word-break:keep-all;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-status-card:not(:where(.rt-card-actions-centered)) .btn{width:100%;margin:0}
+:is(#app,.ds-preview) .rt-disclosure-card{padding:0;overflow:hidden;box-shadow:none}
+:is(#app,.ds-preview) .rt-disclosure-card>summary{display:flex;align-items:center;justify-content:space-between;gap:var(--rt-space-3);min-height:64px;padding:var(--rt-space-4) var(--rt-space-5);list-style:none;cursor:pointer;font-size:14px;font-weight:600}
+:is(#app,.ds-preview) .rt-disclosure-card>summary::-webkit-details-marker{display:none}
+:is(#app,.ds-preview) .rt-disclosure-card>summary svg{flex-shrink:0;color:var(--rt-muted)}
+:is(#app,.ds-preview) .rt-disclosure-card[open]>summary svg{transform:rotate(180deg)}
+:is(#app,.ds-preview) .rt-disclosure-card>summary:focus-visible{outline:2px solid var(--rt-primary);outline-offset:-4px}
+:is(#app,.ds-preview) .rt-disclosure-body{padding:var(--rt-space-5);border-top:1px solid var(--rt-border)}
+:is(#app,.ds-preview) .rt-status-note{margin:0;text-align:center;font-size:var(--rt-caption-size);color:var(--rt-muted);word-break:keep-all}
+
+/* Shared request summary card: status, date, area, labeled facts, action. */
+:is(#app,.ds-preview) .rt-request-card{display:flex;flex-direction:column;gap:var(--rt-space-4)}
+:is(#app,.ds-preview) .rt-request-card > *{margin:0;min-width:0}
+:is(#app,.ds-preview) .rt-request-badges{display:flex;flex-wrap:wrap;gap:var(--rt-space-2)}
+:is(#app,.ds-preview) .rt-request-card h2{font-size:22px;line-height:1.4;letter-spacing:-.4px;overflow-wrap:anywhere;color:var(--rt-ink)}
+:is(#app,.ds-preview) .rt-request-region{display:flex;align-items:flex-start;gap:var(--rt-space-2);font-size:15px;line-height:1.6;color:var(--rt-ink);overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-request-region .rt-icon{flex-shrink:0;margin-top:3px;color:var(--rt-muted)}
+:is(#app,.ds-preview) .rt-request-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--rt-space-3);padding:var(--rt-space-4);border-radius:var(--rt-radius-control);background:var(--rt-subtle)}
+:is(#app,.ds-preview) .rt-request-facts dt{font-size:12px;line-height:1.5;color:var(--rt-muted);margin:0 0 var(--rt-space-1)}
+:is(#app,.ds-preview) .rt-request-facts dd{font-size:15px;line-height:1.5;font-weight:600;color:var(--rt-ink);margin:0;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-request-card .rt-card-actions{margin:0}
+:is(#app,.ds-preview) .rt-request-card .rt-card-actions > .btn{width:100%;margin:0}
+
+/* Shared profile and compact information cards. */
+.rt-card-stack{display:grid;gap:var(--rt-space-4);min-width:0}
+:is(#app,.ds-preview) .rt-profile-card,:is(#app,.ds-preview) .rt-info-card{margin:0;background:var(--rt-surface);border:1px solid var(--rt-border);box-shadow:none}
+.rt-profile-identity{display:flex;align-items:center;gap:var(--rt-space-4)}
+.rt-profile-identity>div{min-width:0}
+.rt-profile-label{display:block;font-size:12px;line-height:1.5;color:var(--rt-muted);margin-bottom:var(--rt-space-1)}
+:is(#app,.ds-preview) .rt-profile-identity h2{margin:0;font-size:22px;line-height:1.4;color:var(--rt-ink);overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-profile-bio{margin:var(--rt-space-4) 0 0;font-size:14px;line-height:1.75;color:var(--rt-muted);white-space:pre-wrap;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-info-card h2{display:flex;align-items:center;gap:var(--rt-space-2);margin:0 0 var(--rt-space-2);font-size:16px;line-height:1.5;color:var(--rt-ink)}
+.rt-fact-list{margin:0}
+.rt-fact-list>div{display:grid;grid-template-columns:minmax(72px,auto) minmax(0,2fr);gap:var(--rt-space-4);padding:var(--rt-space-3) 0;align-items:baseline}
+.rt-fact-list>div+div{border-top:1px solid var(--rt-gray-100)}
+.rt-fact-list>div:last-child{padding-bottom:0}
+.rt-fact-list dt{font-size:13px;color:var(--rt-muted);line-height:1.6}
+.rt-fact-list dd{margin:0;font-size:14px;font-weight:500;line-height:1.6;color:var(--rt-ink);white-space:pre-wrap;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-info-card--private{background:var(--rt-subtle)}
+.rt-private-label{margin-left:auto;flex-shrink:0;font-size:11px;font-weight:500;color:var(--rt-muted)}
+:is(#app,.ds-preview) .rt-info-note{margin:var(--rt-space-3) 0 0;font-size:12px;line-height:1.6;color:var(--rt-muted)}

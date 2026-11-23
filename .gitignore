@@ -8,3 +8,7 @@ __pycache__/
 archives/
 *.zip
 /*.png
+/resources/brand/*.png
+
+# Local reference documents are not service source.
+/resources/documents/

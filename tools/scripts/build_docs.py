@@ -1,0 +1,126 @@
+"""Generate the single Reeltrip product documentation from the shared screen catalog."""
+from pathlib import Path
+import html,json,re,subprocess
+from spec_explorer import render_explorer
+ROOT=Path(__file__).resolve().parents[2]
+OUT=ROOT/'docs'
+E=lambda value:html.escape(str(value),quote=True)
+catalog=json.loads(subprocess.check_output(['node','-e',"global.window={};require('./src/assets/catalog.js');process.stdout.write(JSON.stringify(window.REEL_SCREENS))"],cwd=ROOT,text=True))
+state_previews=json.loads((ROOT/'resources/review/screen-states.json').read_text())
+for i,s in enumerate(catalog,1):
+ s.setdefault('id',f'B-{i:02d}')
+ if s['route'] in state_previews:s['statePreviews']=state_previews[s['route']]
+def page(title,body):
+ toc=''.join(f'<a href="#{slug}">{E(label)}</a>' for slug,label in re.findall(r'<section class="docsection" id="([^"]+)"><h2>([^<]+)</h2>',body))
+ toc_html='<nav class="reader-toc" aria-label="문서 목차">'+toc+'</nav>' if toc else ''
+ return f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{E(title)} · 릴트립</title><link rel="stylesheet" href="../src/assets/docs.css"><link rel="stylesheet" href="../src/assets/spec-explorer.css"><script defer src="../src/assets/spec-explorer.js"></script><script defer src="../src/assets/spec-inline-preview.js"></script></head><body class="readable-doc"><a class="doc-skip" href="#document">본문으로 이동</a><header class="reader-bar"><a href="index.html"><strong>reeltrip</strong> 문서</a><nav aria-label="문서 메뉴"><a href="product.html">전체 기획</a><a href="specification.html">화면 명세</a><a href="policies.html">공통 정책</a><a href="design-guide.html">디자인 시스템</a><a href="developer-handoff.html">개발 인계</a><a href="../src/frontend/index.html">화면 탐색</a></nav></header><main class="hub" id="document"><header class="reader-title"><p class="spec-kicker">REELTRIP / DOCUMENTATION</p><h1>{E(title)}</h1></header>{toc_html}{body}</main></body></html>'
+def section(title,body,slug=''):return '<section class="docsection"'+(' id="'+slug+'"' if slug else '')+'><h2>'+E(title)+'</h2>'+body+'</section>'
+plan='''<p>영상과 직접 입력으로 장소를 모으고, 내 여행을 만든 뒤 현지 메이트의 제안을 비교하는 매칭 서비스다.</p><h3>탭별 역할</h3><ul><li>발견: 영상 링크로 장소 찾기 → 선택한 장소를 보관함에 저장. 바로 일정에 넣지 않는다. 저장한 장소는 여행·날짜와 무관한 공용 보관함이며, 영상 추가·장소 추가·장소 관리만 제공한다. 보관함에서 새 여행을 만들거나 내 여행을 선택한 후, 여행 상세의 저장한 장소 선택 기능으로 원하는 날짜에 담는다.</li><li>채팅: 여행 요청·메이트별 대화 목록. 메이트 제안과 여행자 선택·예약 요청 후 대화를 시작하고 전체 일정 종료까지 유지한다. 최근 메시지·시각·상태·역할별 미읽음 표시. 종료된 대화는 읽기 전용. 실제 전송 없는 로컬 시제품.</li><li>내 여행: 여행 생성 카드·우측 상단 저장한 장소 아이콘·다가오는 여행/지난 여행 목록과 예정 여행 없음 안내. 여행 상세는 상단 정보 수정, 지도, 날짜별 일정 시트, 순서 번호와 거리 안내, ＋ 메뉴(저장한 장소·새 장소)로 구성한다. 출발일 수정 시 모든 날짜를 함께 이동한다. 별도 편집 화면 없이 여행 상세에서 장소별 메뉴로 순서 변경·삭제, 날짜 버튼으로 해당 날짜를 수정하며 변경 즉시 자동 저장한다. 새 여행 생성·선택 후 상세 안에서 날짜·장소·순서·메이트 요청을 관리한다. 여행별 일정은 분리 저장하고 장소 보관함은 공유한다. 일정에서 빼도 보관함에는 유지.</li><li>메이트: 도착한 제안 / 제안받기. 제안받기에서 자유 여행 함께하기 또는 내 여행 함께하기를 선택한다. 자유 여행 함께하기는 자유 견적 요청으로, 내 여행 함께하기는 요청 화면의 1단계 여행 목록에서 선택한 후 2단계 요청 내용을 작성하고 신청한다. 여행이 하나여도 선택 단계를 표시하며, 작성 화면에서 여행을 다시 선택할 수 있다. 선택한 여행 ID와 전체 일정을 요청에 보존한다. 자유 견적은 여행 지역·출발일·기간(당일~6박 7일)·인원으로 요청하며 장소 목록은 필요 없다. 내 여행에서는 날짜별 장소가 담긴 전체 여행으로 요청한다. 두 경로 모두 공개 요청 후 복수 제안을 비교·선택한다.</li><li>마이: 프로필 편집·메이트 등록. 설정 아이콘 안에 언어·모드 전환, 도움말·약관·회원 탈퇴.</li></ul><h3>확정 흐름</h3><p>여행 공개 → 메이트들의 일정·가격 제안 → 여행자 선택·예약 요청 → 메이트 확정 대기 → 메이트가 10% 매칭 수수료 결제 → 예약 확정 → 현장에서 여행비 전액 현금 직접 지급.</p><p>240,000원 여행이면 메이트는 플랫폼에 24,000원을 선결제하고, 여행자는 메이트에게 240,000원을 현금으로 직접 지급한다. 플랫폼은 여행비를 수납·송금하지 않는다.</p><h3>현재 구현 범위</h3><p>고객·메이트 동일 앱, 운영자는 별도 웹. 한국어·영어 로컬 시제품. 여러 여행·1개 활성 공개 요청을 유지하며, 내 여행 전체 일정 또는 자유 견적 요청을 공개한다. 기간과 요청 유형은 제안·예약까지 스냅샷으로 보존한다. 복수 제안을 지원하며 유효한 제안의 수정·중복 발행은 금지한다. 만료 후에만 다시 제안할 수 있다. 실제 영상 분석·인증·DB·PG·푸시·다중 사용자 동기화는 미구현이다.</p>'''
+policies='''<ul><li>공개 HTTPS Shorts/Reels 링크와 장소 확인을 지원한다. 실제 추출은 미연동이다.</li><li>요청은 최소 48시간 전·1~4명·최대 7일이다. 자유 견적은 지역 입력과 기간만으로 시작한다. 내 여행은 날짜 순서와 하루 최대 20곳을 검사한다. 지역별 실제 메이트 공급·영업 가능 여부는 서버 연결 후 검증한다. 숙박 일수는 기간이며 숙소나 24시간 동행을 포함하지 않는다. MVP 영어 동행은 하루 4시간 고정이며 메이트는 일행 전체 금액만 입력한다. 날짜·인원·기존 일정은 요청 스냅샷 그대로 유지한다. 자유 여행에만 날짜별 코스를 입력한다.</li><li>같은 요청에 복수 제안을 보존한다. 동일 메이트의 유효한 제안은 수정·재발행할 수 없다. 만료 후 재발행 시에만 교체하며 고객이 선택한 버전·금액을 예약에 고정한다. 채팅은 일정·금액을 변경하지 않는다.</li><li>여행자 선택만으로 확정하지 않는다. 선택된 메이트의 매칭 수수료 10% 결제 검증 후에만 확정한다.</li><li>현금 수령 상태는 예약 확정·여행 완료와 별개다. 자동 수령 처리하지 않는다.</li><li>확정 전 철회와 확정 후 취소 검토를 분리한다. 플랫폼은 여행비 자동 환불을 제공하지 않는다.</li><li>시제품 확정 기한은 선택 후 24시간과 출발 시각 중 빠른 시각이다. 실제 운영 유예시간·노쇼·취소 시 반환·VAT 및 분쟁 정책은 출시 전 확정한다. 이전 자동 환불률을 적용하지 않는다.</li><li>닉네임 중복 금지: NFKC·공백 제거·소문자 기준. 자신의 기존 이름 유지 허용. 변경 후 재확인과 저장 직전 재검사. 실제 서버 UNIQUE 제약은 별도 구현한다.</li></ul>'''
+mate_flow = '<h3>메이트 활동과 확정 관리</h3><p>메이트 GNB: 여행 찾기 / 내 활동 / 채팅 / 마이. 내 활동은 보낸 제안 / 예약 두 탭과 건수로 구분한다. 선택된 제안은 예약 탭으로 이동하고 수수료 결제 대기·예약 확정·완료·취소를 구분한다. 예약이 있으면 예약 탭을 기본으로 열며 사용자가 선택한 탭은 URL에 보존한다. 각 탭의 빈 상태는 아이콘·안내·버튼을 중앙 정렬한다. 수수료 금액·상태 확인과 결제는 해당 예약 상세에서 진행한다. 기존 화면 ID와 저장 키는 유지한다.</p><p>선택 시 feeDeadline을 고정한다. 시제품은 선택 후 24시간과 출발 시각 중 빠른 기한을 사용한다. 렌더링과 결제 시 만료를 확인하며 앱이 닫힌 동안 서버 알림이나 자동 작업은 실행되지 않는다. 확정 전 철회·메이트 진행 불가·기한 만료 후 여행자가 다른 제안 선택을 누르면 기존 예약을 bookingHistory에 보존하고 해당 제안을 만료시킨다. 다른 유효한 제안은 유지한다.</p><p>결제 화면은 약속 금액·수수료 10%·차감 후 금액(기타 비용 차감 전)을 표시한다. 성공 후 예약 상세에서 채팅으로 만날 장소·날짜별 시간·현금 지급 시점을 확인한다. 여행 완료와 현금 수령은 별도 확인하며 마지막 날 동행 종료 시각 이후에만 완료 처리한다. 확정 후 취소는 cancellation_requested 및 refundStatus=review로 분리하고 운영자의 예약 취소 완료는 환불 완료를 의미하지 않는다. 실제 환불률·노쇼·세금 정책과 PG 처리는 미구현이다.</p><p>가능 날짜 달력은 제공하지 않는다. 메이트가 가능한 요청에 직접 제안하며, 확정·취소 검토 중 예약과 날짜가 겹치는 제안은 차단한다. 기존 unavailableDates 저장값은 보존하되 제안 가능 여부에 사용하지 않는다. 실서비스는 서버 소유권 검사, 예약 중복 방지, 기한 만료와 PG 웹훅 경합 처리, 결제 멱등성, 금액·통화·주문 검증을 구현해야 한다.</p>'
+withdrawal_policy = '<h3>회원 탈퇴</h3><p>마이 → 설정 → 회원 탈퇴. 여행자·메이트 공통으로 삭제 범위와 복구 불가 안내를 확인하고 필수 동의 후 탈퇴한다. 취소 → 탈퇴하기 순서이며 취소 시 데이터를 유지한다. 진행 중인 예약(메이트 확정 대기·확정·취소 검토 포함)은 완료 또는 취소 후 탈퇴한다. 현재 상태 및 한국어·영어 저장본의 예약 이력을 실행 직전에 재검사한다. 프로필·장소·여행·요청·제안·채팅·문의 및 메이트 신청·권한, 본인의 닉네임 점유를 삭제하고 게스트 홈으로 이동한다. 언어 설정과 타인의 닉네임 점유는 유지한다. 저장소 오류 시 완료로 표시하지 않는다. 브라우저 로컬 시제품이며 실제 인증 계정·서버 데이터 삭제는 미연동이다.</p>'
+plan += withdrawal_policy
+plan += '<h3>MVP 기능 범위</h3><p>외부 예약은 장소별 외부 사이트 링크만 제공한다. 예약 기록 입력·수정·삭제와 앱 내 예약 상태 관리는 제공하지 않는다. 일정에는 거리·도보 추정 시간과 Google Maps 구간 길찾기를 유지한다. 장소별 체류시간 설정·표시, 시작 시간 설정, 방문 시각 자동 계산·표시, 총 체류시간 합산, 다른 날로 이동·메모 입력·여행 후기는 제외한다. 메이트 등록과 알림은 유지한다. 기존 B-* ID와 로컬 저장 키는 보존하며 삭제된 후기·예정 일정 주소는 예약 상세로, 가능 일정은 내 활동으로, 수수료 내역은 예약·수수료 상세로 연결한다.</p>'
+plan += mate_flow
+policies += mate_flow
+chat_policy = '''<h3 id="chat-mvp">채팅 정책</h3><ul><li><strong>시작:</strong> 메이트가 매칭 수수료를 결제한 뒤 먼저 메시지를 보내면 여행자가 1:1 대화에 참여한다. 결제 전에는 양측 모두 메시지를 보낼 수 없다.</li><li><strong>이용 기간:</strong> 여행 마지막 날 24:00(Asia/Seoul, 다음 날 00:00)까지 대화할 수 있다. 중간 일정 완료로 종료하지 않는다.</li><li><strong>종료:</strong> 이용 기간 종료 또는 예약 철회·취소 완료 시 읽기 전용으로 전환한다. 취소 검토 중에는 이용 기간 내 대화를 허용한다.</li><li><strong>메시지:</strong> 텍스트 1~1,000자만 지원한다. 빈 메시지는 보낼 수 없으며 사진·파일 첨부는 지원하지 않는다.</li><li><strong>예약 조건:</strong> 만날 장소·시간을 확인하는 용도다. 채팅 합의만으로 선택한 일정·금액은 변경되지 않는다.</li><li><strong>확정:</strong> 예약은 메이트의 10% 매칭 수수료 결제 후 확정되며 메이트가 대화를 먼저 시작한다. 여행비는 현장에서 현금으로 직접 지급한다.</li></ul>'''
+chat_policy += '<h3>신고·차단 MVP</h3><p>채팅방 더보기에서 사용자 신고·차단·해제를 제공한다. 신고는 사유 선택, 선택 상세(기타는 필수, 최대 1,000자)를 저장하며 같은 신고자의 같은 대화방 중복 신고를 막는다. 차단은 상대 ID 기준으로 다른 대화방에도 적용하고 양쪽 메시지 전송 및 미읽음 표시를 중단한다. 기존 대화와 예약 상태는 유지한다. 설정의 차단한 사용자에서 해제할 수 있다. 빈 목록은 차단 진입 경로를 안내하고, 목록이 있으면 사용자명·차단 중 상태·해제 버튼과 건수를 표시한다. 차단은 예약 취소가 아님을 안내한다. 해제 확인은 취소→차단 해제 순서로 제공하고 취소하면 목록으로 돌아간다. 해제 후 완료 안내와 갱신된 목록을 표시하며 마지막 사용자 해제 시 빈 상태로 전환한다. 상대방의 차단이나 채팅 종료 등 이용 조건으로 해제 후에도 전송이 제한될 수 있음을 확인창에 안내한다. 사용자·메이트 모두 상대를 신고·차단할 수 있다. 운영 웹의 문의·신고·차단에서 한국어·영어 앱의 신고자 역할·대상·사유·상세·시각·대화방 및 현재 차단 목록을 확인하고 새로고침할 수 있다. 차단 해제 후에도 신고 기록은 유지한다. 같은 브라우저·같은 출처의 로컬 저장소로 동작하며 외부 연동은 사용하지 않는다. 서버 연결 시 실제 사용자 ID, 인증·권한, 양방향 전송 차단 및 신고 처리 절차를 구현해야 한다.</p>'
+policies += chat_policy
+plan += '<h3>채팅 정책</h3><p>수수료 결제 후 메이트가 대화 시작 → 여행 마지막 날 24:00까지 이용 → 종료 후 읽기 전용. 철회·취소 완료 시 즉시 종료하며, 채팅은 예약 확정이나 일정·금액 변경을 의미하지 않는다. <a href="policies.html#chat-mvp">채팅 정책 전체 보기</a></p>'
+policies += '''<h3 id="signup-access">가입 방법과 로그인</h3><ul><li>가입 화면의 ‘이미 계정이 있나요? 로그인’과 게스트 마이의 로그인으로 기존 회원이 진입한다. signup?mode=signin에서 이메일 또는 소셜 로그인을 선택하고, signup-email?mode=signin에서 이메일 → 코드 확인 순서로 진행한다. 언어 전환과 뒤로 가기에서도 로그인 모드를 유지한다. 현재는 시연 인증이며 실제 계정 조회·이메일 발송·서버 인증은 연결되지 않았다.</li><li>처음 방문한 여행자는 Google·카카오·네이버 간편가입, 이메일 가입, 가입 없이 둘러보기 중 하나를 선택한다.</li><li>간편가입 버튼에는 제공사 로고와 이름을 함께 표시한다. Google은 흰 바탕과 다색 G, 카카오는 노란 바탕과 말풍선, 네이버는 초록 바탕과 N으로 구분한다.</li><li>미리보기에서는 간편가입 버튼을 한 번 누르면 즉시 로그인 상태로 홈에 진입한다. 실제 서비스에서는 각 제공사의 인증이 성공한 뒤 로그인 처리한다.</li><li>이메일 가입은 주소 입력 → 인증 코드 입력 → 가입 완료 순서로 진행한다. 미리보기에서는 시연용 코드로 확인하며, 실제 이메일 발송·검증은 서비스 연동 시 구현한다.</li></ul>
+<h3 id="signup-language">가입 언어와 로고</h3><p>가입 화면에서 한국어·영어·중국어 간체·일본어를 선택할 수 있다. 언어 설정에는 현재 언어 이름을 표시하고 선택 목록에는 선택 표시를 둔다. 선택 즉시 가입 화면에 적용하고 가입 후에도 같은 언어로 앱을 연다. 중국어 가입 로고에는 ‘映旅’, 일본어 가입 로고에는 ‘リールトリップ’을 표시한다. 게스트도 마이에서 언어를 변경할 수 있다.</p>
+<h3 id="guest-browsing">게스트 열람 범위와 가입 안내</h3><ul><li>‘가입 없이 둘러보기’를 선택하면 발견 홈을 연다. 발견·내 여행·메이트·채팅·마이 탭 이동, 추천 경로와 예시 장소 열람, 메이트 목록·프로필 열람은 가입 없이 허용한다.</li><li>장소 추가·저장, 여행 일정 만들기·수정, 메이트 요청 등 회원 기능을 실행할 때 가입을 안내한다. 탭을 여는 것만으로는 안내를 띄우지 않는다. 게스트의 개인 데이터는 저장하지 않는다.</li><li>가입 안내에는 여행을 연상시키는 이미지나 아이콘과 친근한 문구를 사용한다. ‘가입하기’는 가입 화면으로, ‘계속 둘러보기’는 직전에 보던 공개 화면으로 연결한다.</li><li>게스트 마이에는 게스트 상태, 가입 버튼, 언어 설정을 표시한다. 프로필 편집과 별도 이용안내 메뉴는 제공하지 않는다. 알림 진입점을 마이 메뉴에 중복 배치하지 않는다.</li><li>추천 경로의 장소 카드는 사진 옆에 장소명과 주소를 묶어서 표시한다. 좁은 화면에서도 긴 주소가 카드 안에서 줄바꿈되도록 한다.</li></ul>
+<h3 id="signup-preview">가입 화면 미리보기</h3><p>프로젝트 최상위 index.html을 브라우저에서 직접 열면 가입 화면으로 진입할 수 있어야 한다. 별도 로컬 서버를 시작하거나 포트 주소를 입력하는 절차는 필요하지 않다.</p>'''
+nickname_script = "global.window={};require('./src/assets/nickname-bases.js');process.stdout.write(JSON.stringify(window.ReelNicknameBases))"
+nickname_bases = json.loads(subprocess.check_output(['node','-e',nickname_script], cwd=ROOT, encoding='utf-8'))
+nickname_rows = zip(*(nickname_bases[lang] for lang in ('ko','en','zh-CN','ja')), strict=True)
+policies += '''<h3 id="signup-nickname">가입 시 임시 닉네임</h3><p>회원가입을 완료하면 가입 화면에서 선택한 언어로 임시 닉네임을 한 번 부여한다. 이후 앱 언어를 바꿔도 부여한 닉네임은 유지하며, 회원은 프로필에서 직접 변경할 수 있다.</p><p>한국어·영어·중국어 간체·일본어 각각 20개의 후보 중 하나를 고르고, 공백 한 칸 뒤에 0000~9999 범위의 숫자 네 자리를 붙인다. 앞자리 0도 표시한다(예: 구름 0427). 이미 사용 중인 조합이면 다른 조합을 부여한다.</p><p>후보는 구름·별·달처럼 짧고 독립적으로 쓰이는 명사를 우선한다. 종이지도처럼 여러 명사를 이어 붙인 설명형 이름은 피하고, 각 언어에서 같은 뜻을 자연스럽게 표현하는 단어를 고른다.</p><table><thead><tr><th>한국어</th><th>영어</th><th>중국어 간체</th><th>일본어</th></tr></thead><tbody>'''
+policies += ''.join('<tr>' + ''.join('<td>' + E(name) + '</td>' for name in row) + '</tr>' for row in nickname_rows)
+policies += '</tbody></table>'
+ia=''.join(section({'customer':'고객 앱','guide':'메이트 앱','admin':'운영 웹'}[role],'<ul>'+''.join(f'<li>{s["id"]} <a href="../src/{"admin" if role=="admin" else "app"}/index.html#{s["route"]}">{E(s["name"])}</a> · {E(s["route"])}</li>' for s in catalog if s['role']==role)+'</ul>') for role in ['customer','guide','admin'])
+spec=render_explorer(catalog)
+screens=''
+for s in catalog:
+ screens+=f'<article id="wire-{s["id"]}"><h3>{s["id"]} {E(s["name"])}</h3><ol>'+''.join('<li>'+E(z)+'</li>' for z in s['zones'])+'</ol><p><a href="specification.html#spec-'+s['id']+'">이 화면 명세 보기 →</a></p></article>'
+technical='''<p>원본: src/assets/app.js, catalog.js, access.js, revenue.js. 영어는 tools/i18n/build_english.py로 생성한다. 기존 B-* ID와 localStorage 키는 내부 호환성을 위해 유지한다.</p><ul><li>library: 공통 장소 보관함. trips/activeTripId: 여행별 저장과 선택 상태. board/days: 현재 여행의 날짜별 일정. 기존 단일 여행 데이터는 첫 여행으로 보존한다.</li><li>request: 공개 여행 스냅샷. requestType(itinerary/free), region, date/endDate, dayCount, days(날짜별 장소)를 포함하고 기존 요청은 하루로 호환한다. proposals: 메이트별 견적 배열. message: 금액 아래에서 입력하는 여행자 메시지(선택, 최대 1,000자). 여행자의 도착한 제안 카드와 제안 상세의 금액 아래에 표시하며 메이트의 보낸 제안에서도 확인한다. quote: 현재 상세 선택 제안.</li><li>booking: 선택 제안 스냅샷, feeRate=0.1, feeAmount, feeStatus, paymentMethod=cash, cashStatus.</li><li>프로필·읽음 상태·닉네임 디렉터리는 현재 로컬 저장이다. 서버 인증·소유권·개인정보 보호는 별도 구현이다.</li></ul><p>booking.feeDeadline, bookingHistory, unavailableDates, refundStatus(review), cashStatus는 메이트 활동 흐름을 보존한다.</p><h3>서버 연결 계약</h3><p>여행자 예약 요청은 awaiting_mate_fee. PG 서버 응답·서명 웹훅의 금액/통화/주문/선택 메이트 ID를 대조한 후 confirmed. 클라이언트 성공 값만으로 확정 금지. 서버 가격 스냅샷·트랜잭션·결제 멱등성·취소와 결제 경합 보상 처리를 구현한다. 닉네임 canonical UNIQUE와 소유권 검사는 서버에서 원자적으로 수행한다.</p><p><a href="developer-handoff.html">상세 계약·미확정 사항</a></p>'''
+qa='''<p>코드 검사는 브라우저·기기 시각 검증이나 실제 서버 통합 검증을 대체하지 않는다.</p><ul><li>node tools/tests/startup_checks.cjs: 전체 entry script 초기화·기존 저장 데이터 로드.</li><li>node tools/tests/navigation_checks.cjs: 한영 경로·닉네임·복수 제안·현금 매칭 상태 전이.</li><li>node tools/tests/matching_routes_checks.cjs: 장소 저장 분리·두 요청 경로·다일 견적·예약 기간 보존.</li><li>node tools/tests/access_checks.cjs: 역할별 시연 접근.</li><li>node tools/tests/google_map_checks.js: 지도 폴백·좌표.</li><li>python3 tools/tests/static_checks.py: 문서·경로·화면 추적성.</li><li>프로젝트 루트에서 node tools/tests/tower_seed_checks.cjs: 기존 데이터 업그레이드.</li></ul><p>출시 전 실제 인증·서버·PG 실패/중복/철회 경합·푸시·기기별 화면·접근성·운영 정책을 별도 검증한다.</p>'''
+legal='''<p>현금 직접 거래와 10% 매칭 수수료는 제품 결정이다. 이 설명만으로 법적 의무나 면제 여부가 확정된 것은 아니다.</p><p>실제 운영 주체·계약 상대방·자격·등록·보험·현금 거래 책임·수수료 세금·취소/노쇼 정책은 출시 전에 검토하고 확정한다. 이전 직접 여행 운영 모델의 법적 결론을 그대로 전용하지 않는다.</p>'''
+support_contract = """<h3 id="support-slack">문의 접수와 Slack 알림 · MVP 개발 요건</h3>
+<p>2026-11-23 결정. 도움말의 직접 문의 작성에서 문의를 보내면 서버에 접수하고 운영팀 Slack 채널로 알린다. 사용자 흐름은 접수로 끝난다. 저장됨·처리 완료 전용 화면, 문의 이력, 저장 건수와 최근 상태는 제공하지 않는다. 처리 상태는 운영 웹에서만 관리한다.</p>
+<ul><li>실서비스 버튼은 ‘문의 보내기’. 내용은 앞뒤 공백 제거 후 10~1,000자, 문의 유형은 허용 목록으로 서버에서 검증한다. 전송 중 중복 클릭을 막고 서버 접수 성공 시 ‘문의가 접수되었어요.’ 토스트를 잠시 보여준 뒤 빈 양식으로 돌아간다. 입력 오류·네트워크 오류·서버 오류는 내용을 유지하고 재시도를 허용한다.</li>
+<li>개발 API 계약: POST /api/support/tickets. 요청은 type, body, locale와 클라이언트가 생성한 Idempotency-Key. userId와 역할은 서버 세션에서 결정한다. 서버는 문의와 Slack 알림 작업을 하나의 트랜잭션으로 저장하고 201 {ticketId, status: 'received'}를 반환한다. 같은 사용자·키·동일 내용 재요청은 기존 접수 결과를 반환하고, 같은 키의 다른 내용은 409로 거절한다. 동일 제출 재시도에는 같은 키를 유지한다.</li>
+<li>Slack 전송은 서버 작업자가 담당한다. 서버 비밀 설정 SUPPORT_SLACK_WEBHOOK_URL로 운영팀이 지정한 채널에 전송하며 브라우저·소스 저장소에 웹훅 주소를 노출하지 않는다. 알림은 문의 ID, 유형, 본문, 접수 시각(Asia/Seoul), 사용자 내부 ID·역할·언어, 권한 보호된 운영 문의 상세 링크로 구성한다. 사용자 입력은 일반 텍스트로 처리해 멘션 실행을 막고 인증 토큰·결제정보 등은 넣지 않는다.</li>
+<li>서버 접수와 Slack 전송 결과를 분리한다. Slack 장애가 나도 접수된 문의를 사용자에게 재제출시키지 않는다. 운영 웹에 알림 상태 pending/sent/failed와 재시도 횟수·마지막 오류를 표시한다. 일시 오류는 지수 지연으로 최대 5회 재시도하고, 최종 실패는 운영자가 재전송한다. 문의 ID로 작업 중복을 방지하되 응답 유실 시 외부 알림 중복 가능성은 같은 문의 ID로 식별한다.</li>
+<li>운영 준비: 수신 워크스페이스·채널 확정, 웹훅 비밀 설정, 서버 인증·접수 DB·작업자·운영 상세 링크·요청 빈도 제한 구현. 실제 테스트 문의는 별도 승인 후 발송한다. Slack 알림은 운영 수신용이며 Slack 답글을 앱으로 전달하는 기능은 MVP 범위 밖이다.</li>
+<li>인수 기준: 정상 제출 1건 접수 및 Slack 수신, 한영 문의 원문 보존, 연속 클릭·응답 유실 후 동일 키 재시도의 중복 접수 방지, 입력 오류·접수 실패 시 본문 유지, Slack 장애 후 재전송, 새로고침·처리 완료 후에도 사용자 상태 화면 미노출을 확인한다.</li></ul>
+<p>현재 시제품은 ‘문의 저장’과 외부 전송이 없다는 토스트로 브라우저 저장만 시연한다. 실제 API·DB·Slack 연결은 미구현이다. 기존 tickets 저장 키와 운영 웹 문의 상태는 유지한다.</p>"""
+plan += '<h3>문의 접수 MVP</h3><p>문의 발송 → 서버 접수 → 운영팀 Slack 알림을 개발한다. 사용자에게는 일시적 접수 완료 안내만 제공하며 저장됨·처리 완료 화면과 이력은 제공하지 않는다. 현재 시제품은 로컬 저장이며 실제 전송은 미연동이다.</p>'
+technical += support_contract
+handoff_path = OUT/'developer-handoff.html'
+handoff = handoff_path.read_text()
+chat_implementation = '<p>현재는 실제 전송·서버 인증 없는 로컬 시제품이다. 역할별 읽음·미읽음과 새로고침 후 기록 유지를 시연한다. 서버 연결 시 참여자 권한·선택된 제안·예약 상태·종료 시각을 메시지 저장 트랜잭션에서 재검사해야 한다. 대화 보관 기간·삭제 기준·신고 및 제재 절차는 출시 전 별도 확정한다.</p>'
+handoff = re.sub(r'<section><h2>채팅 MVP 정책</h2>.*?</section>', lambda match: '<section><h2>채팅 MVP 정책</h2>'+chat_policy+chat_implementation+'</section>', handoff, flags=re.S)
+start_marker = '<!-- support-slack:start -->'
+end_marker = '<!-- support-slack:end -->'
+block = start_marker + support_contract + end_marker
+if start_marker in handoff:
+ handoff = re.sub(re.escape(start_marker)+r'.*?'+re.escape(end_marker), lambda match: block, handoff, flags=re.S)
+else:
+ handoff = handoff.replace('</main>', block+'</main>')
+handoff = re.sub(r'<!-- account-withdrawal:start -->.*?<!-- account-withdrawal:end -->', '', handoff, flags=re.S)
+handoff = handoff.replace('</main>', '<!-- account-withdrawal:start --><section>'+withdrawal_policy+'<p>서버 연결 시 재인증, 사용자 소유권 검사, 예약·수수료 상태와 삭제의 원자적 처리, 전체 세션 무효화 및 개인정보 삭제·보관 정책을 구현해야 한다.</p></section><!-- account-withdrawal:end --></main>')
+handoff_path.write_text(handoff)
+
+mate_contract = """<h3 id="mate-registration">메이트 등록·승인</h3><p>마이에서 메이트로 등록하기 → 전국 시·도 전체 또는 시·군·구 활동 지역 복수 선택(일반구가 있는 시는 구 단위, 제주는 제주시·서귀포시, 하위 시·군·구가 없는 세종은 전체)/영어·일본어·중국어·한국어 중 언어 1개 이상 복수 선택 → 필수 프로필 사진·직접 입력하는 활동 이름(사용자 닉네임과 메이트 활동 이름의 통합 중복 검사, 2~20자)·통합 자기소개(10~1,000자) → 비공개 휴대폰 번호·6자리 문자 인증 UI(시연용 123456, 실제 발송 없음, 유효시간 3분, 재전송 간격 30초, 5회 실패 제한) → 입력 확인·필수 동의 → 심사 요청. 활동 지역 선택은 하단 바텀시트로 제공하며 제목·시도 선택과 선택 요약·완료 버튼은 고정하고 지역 목록만 스크롤한다. 지역 버튼은 기본 4열, 360px 미만에서는 3열이며 내용을 약 90% 크기로 압축하고 최소 40px 터치 영역을 유지한다. 단계 진행률·이전·닫기·자동 임시 저장을 제공한다. 필수 사진은 JPG/PNG/WebP 1MB 이하로 미리보기·교체·삭제하며 브라우저에 저장한다. 동네와의 인연·걷는 속도/휴식·가능한 도움은 자기소개 한 영역에 자유롭게 작성하며 기존 개별 입력값은 빈 줄로 합쳐 보존한다. 관련 경험·자격 입력란은 제공하지 않는다. 공개 미리보기에는 본인 작성·미검증을 표시하고 연락처을 제외한다. 실제 운영의 확인 표시는 항목별 근거 종류·검토자·확인 일시와 유효기간 기록이 있어야 하며, 등록 승인 자체로 인증 배지를 부여하지 않는다. 완료 동행·후기는 실제 완료 예약과 연결된 기록만 집계한다. 시제품에는 확인 및 동행 기록 없음으로 표시한다. 자택 주소와 실제 증빙은 시제품에서 수집하지 않는다.</p><p>draft → pending → approved 또는 needs_info/rejected. 보완 요청과 거절은 사유 필수이며, 신청자는 수정 후 pending으로 재제출할 수 있다. 심사 중에는 제출 내용을 읽기만 가능하다. 승인 후에만 메이트 모드 전환과 활동을 허용한다. 메이트 마이의 프로필 편집에서 사진·활동 이름·자기소개를, 활동 정보 수정에서 분야·복수 지역·언어를 변경한다. 저장 시 반영하고 취소 시 폐기하며, 이름 변경은 중복 확인이 필요하다. 승인 상태와 비공개 연락처·심사 정보는 유지한다. 여행자 기능은 계속 이용 가능하다. 신청 시 결제하지 않으며 여행자 선택 후 10% 매칭 수수료 결제 → 예약 확정, 여행비 현장 현금 직접 지급 규칙을 유지한다.</p><p>운영 웹의 메이트 등록 심사에서 신청서·비공개 연락처을 검토하고 확인 체크 후 승인한다. 실제 운영에서는 본인 확인·자격 진위·계약 검증 기록이 있어야 승인 가능하다. 관련 자격 요건과 심사 소요시간은 출시 전 운영 정책으로 확정한다. 공개 프로필에는 연락처·증빙·심사 사유를 포함하지 않는다.</p><p>현재는 reeltrip-mate-application-v1에 하나의 시연 신청서를 저장하고 같은 출처·브라우저의 앱/운영 웹에서 공유한다. 한국어·영어 화면은 같은 신청서를 사용한다. 승인 상태를 기존 reeltrip-prototype-access-v1 권한에 반영한다. 활동 이름은 랜덤 부여하지 않으며 단계 진행과 제출 시 통합 목록을 재검사한다. 현재 중복 검사는 동일 브라우저의 시연 데이터에 한정되며 실서비스에서는 사용자 닉네임과 메이트 이름을 통합한 서버 고유 제약이 필요하다. 실제 사용자별 DB·인증·실제 SMS 발송 및 서버 검증·서류 업로드·알림·다중 사용자 처리는 미구현이다. 실제 승인 API는 관리자 권한·pending 상태·필수 검증·신청 버전을 서버에서 확인하고 역할 부여와 심사 로그를 원자적으로 저장해야 한다. 모든 메이트 활동 API는 서버에서 승인 상태를 검사해야 한다.</p>"""
+plan += mate_contract
+policies += mate_contract
+technical += mate_contract
+handoff = re.sub(r'<!-- mate-registration:start -->.*?<!-- mate-registration:end -->', '', handoff, flags=re.S)
+handoff_path.write_text(handoff.replace('</main>', '<!-- mate-registration:start -->'+mate_contract+'<!-- mate-registration:end --></main>'))
+
+public_requests_contract = """<h3 id="public-trip-requests">공개 여행 요청과 메이트 탐색 정책</h3>
+<p>2026-11-23 결정. 여행자가 명시적으로 제안 받기에 동의한 요청만 모든 승인 메이트에게 공개한다. 작성 중인 여행과 개인 장소 보관함은 비공개다. 초기에는 지역 불일치를 이유로 열람을 제한하지 않으며 요청별 전체 제안 수 상한을 두지 않는다. 동일 메이트의 유효한 제안 중복 제한은 유지한다.</p>
+<ul><li>흐름: 여행자가 공개 항목 확인·동의 → 승인 메이트가 여행 찾기에서 탐색 → 복수 메이트의 일정·가격 제안 → 여행자 비교·선택 → 신규 제안 접수 중단 → 선택 메이트의 10% 수수료 결제 → 확정. 여행비는 현장 현금 직접 지급한다.</li>
+<li>공개 항목: 날짜·지역·인원·안내 언어·공개 방문 장소·요청사항. 연락처, 정확한 숙소 주소, 개인 여행 제목, 계정 ID, 비공개 메모는 공개 응답에서 제외한다. 자유 입력에 개인정보를 적지 않도록 사전 안내하고 서버에서 검출·수정 요청을 처리한다. 클라이언트에서 숨기는 것만으로 보호했다고 간주하지 않는다.</li>
+<li>기본 정렬: 활동 지역과 전 일정 가능 여부 모두 일치 → 날짜 가능 → 지역 일치 → 최신 공개 순 → 요청 ID 순. 지역 미입력·인식 불가 요청도 목록에 남긴다. 실서비스는 표준 지역 코드로 매칭하고 날짜는 한국 시간 기준으로 예약 충돌과 메이트 휴무를 확인한다. 지역·날짜 필터는 선택사항이며 초기 기본값은 전체 공개 요청이다.</li>
+<li>상태: requested/quoted만 탐색에 노출. 여행자 선택·철회·마감 시 목록에서 제외하고 제출 시 상태를 재검사한다. 선택 대기 만료로 요청이 다시 열리면 재노출한다. 선택과 제안 제출 경합은 서버 트랜잭션으로 처리한다.</li>
+<li>성장 단계: 우선 지역·날짜·언어 적합도에 따라 노출 순서와 알림 대상을 좁힌다. 요청당 제안 수, 첫 제안 도착 시간, 무제안 요청 비율을 관찰한 뒤 제안 수 상한 또는 적합 메이트 우선 공개·점진 확대를 도입한다. 회원 수만으로 제한하지 않으며 수치 기준은 운영 데이터로 결정한다. 초기 자동 푸시·독점 배정은 제공하지 않는다.</li></ul>
+<p>서버 개발 계약: 공개 요청 조회·상세·제안 API 모두 승인된 메이트 권한을 서버에서 검사한다. 목록과 상세는 허용 필드만 반환하고 검색·페이지네이션에도 같은 공개 상태 조건을 적용한다. 여행자 본인만 공개·철회·선택 가능하다. 비승인·정지 계정의 조회 및 제출을 거절한다. 개인 여행 원본과 공개 스냅샷을 분리하고 공개 시점·동의 버전·종료 사유를 기록한다.</p>
+<p>현재 구현: 로컬 활성 요청 1건과 기존 저장 키를 유지한다. 공개 동의 안내, 승인 메이트 화면 접근, 공개 상태 필터, 지역 문자열·예약 충돌 기반 정렬을 시연한다. 요청 자유문은 목록에 노출하지 않는다. 실제 다중 사용자 피드·표준 지역 매칭·휴무 관리·개인정보 검출·서버 권한·알림은 미연결이며 완료본으로 표시하지 않는다.</p>"""
+plan += public_requests_contract
+policies += public_requests_contract
+technical += public_requests_contract
+handoff = handoff_path.read_text()
+handoff = re.sub(r'<!-- public-requests:start -->.*?<!-- public-requests:end -->', '', handoff, flags=re.S)
+handoff_path.write_text(handoff.replace('</main>', '<!-- public-requests:start -->'+public_requests_contract+'<!-- public-requests:end --></main>'))
+
+map_pin_contract = '''<section id="trip-map-pins"><h2>여행 지도 핀 누락 · 개발 인계</h2>
+<p><strong>실서비스 요구사항: 선택한 날짜의 일정에 포함된 위치 확인 완료 장소는 모두 지도에 표시한다. 성수 3곳 뒤에 4번 N서울타워를 추가하면 남산까지 포함하도록 지도 범위를 자동 조절하고, 목록과 같은 4번 핀을 표시해야 한다.</strong></p>
+<h3>현재 시제품에서 4번이 보이지 않는 이유</h3>
+<p>2026-11-23 확인. 화면 탐색의 기본 미리보기는 src/frontend/preview-map-config.js에서 review 모드로 설정한다. src/assets/app.js의 reviewMapImage()는 성수동 고정 지도 캡처 위에 핀을 겹쳐 그리며, reviewPosition()은 캡처 범위 밖 좌표를 null로 반환한다. N서울타워는 좌표가 있지만 남산에 있어 범위 밖으로 제외된다. 이는 ‘핀은 3개까지만 표시’라는 제품 정책이나 일정 추가 실패가 아니라 고정 이미지 미리보기의 한계다. 캡처 안에 임의로 4번 핀을 배치해서 해결하지 않는다.</p>
+<h3>실제 지도 구현 기준</h3><ul>
+<li>실제 지도에서는 선택 날짜의 전체 일정 좌표로 bounds를 계산한다. 최초 진입·날짜 전환·장소 추가/삭제 시 모든 핀이 보이도록 조정하며 헤더·일정 시트에 핀이 가리지 않도록 여백을 반영한다. 한 장소는 적정 확대 수준으로 중심 이동하고, 빈 일정은 빈 상태를 표시한다.</li>
+<li>목록의 방문 순서와 핀 번호를 동일하게 유지한다. 위치 미확인 장소를 제외하더라도 나머지 핀 번호를 다시 매기지 않는다. 순서 변경 시 번호도 함께 갱신한다.</li>
+<li>실제 지도 전환만으로 기존 예시 장소가 모두 표시되지는 않는다. 현재 pinEligible()은 Google placeId와 유효 좌표가 있고 demoCoordinates/demoPreview가 없는 장소만 허용한다. catalog.js의 N서울타워는 demoCoordinates:true인 예시다. 서비스에서는 실제 장소 검색·선택으로 위치를 확인한 데이터를 사용하고, 예시 플래그만 지워 위치 검증을 우회하지 않는다.</li>
+<li>좌표 누락·위치 미확인 장소는 일정 목록에 유지하고 ‘위치 확인 필요’ 안내와 장소 재선택 경로를 제공한다. 지도 연결 실패 시에도 목록을 유지하고 오류·재시도를 안내한다. 고정 이미지가 전체 장소를 표시하는 실제 지도인 것처럼 보이게 하지 않는다.</li>
+<li>직선 연결선은 방문 순서 표시이며 실제 도보 경로가 아니다. 실제 경로 데이터 연동 전에는 도보 경로로 안내하지 않는다.</li></ul>
+<h3>인수 확인 항목</h3><ul>
+<li>실제 위치 확인을 마친 성수 3곳과 N서울타워로 일정 구성 → 지도에 1~4번이 모두 보이고 4번은 남산 위치에 표시된다.</li>
+<li>4번 추가/삭제, 순서 변경, 날짜 전환, 저장 후 재진입 → 현재 날짜 목록과 핀·번호·지도 범위가 일치한다.</li>
+<li>중간 장소의 좌표 누락 → 해당 목록 항목에 확인 안내가 보이며 이후 장소 번호가 당겨지지 않는다.</li>
+<li>장소 0개/1개, 지도 로딩 실패, 한국어/영어 및 모바일 일정 시트가 열린 상태를 확인한다.</li></ul>
+<p>이 항목은 개발 요구사항이며 현재 실제 지도 연동과 인수 검증을 완료했다는 의미가 아니다.</p></section>'''
+technical += map_pin_contract
+qa += '<p><a href="developer-handoff.html#trip-map-pins">여행 지도 핀 전체 표시: 원인·구현 기준·인수 확인 항목</a></p>'
+handoff = handoff_path.read_text()
+handoff = re.sub(r'<!-- trip-map-pins:start -->.*?<!-- trip-map-pins:end -->', '', handoff, flags=re.S)
+handoff_path.write_text(handoff.replace('</main>', '<!-- trip-map-pins:start -->'+map_pin_contract+'<!-- trip-map-pins:end --></main>'))
+
+blocks=[('plan','서비스 기획',plan),('ia','정보 구조',ia),('screens','화면 구성',screens),('specification','기능 명세',spec),('policies','운영 정책',policies),('technical','개발 설계',technical),('qa','검증 기준',qa),('legal','미확정 운영 사항',legal)]
+(OUT/'product.html').write_text(page('릴트립 기획·명세',''.join(section(title,body,slug) for slug,title,body in blocks if slug != 'legal')))
+for slug,title,body in blocks:(OUT/f'{slug}.html').write_text(page(title,body))
+(OUT/'screen-spec.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n')
+print(f'Generated single-service documents: {len(catalog)} screens.')
+
+from build_design_system import build_design_system
+build_design_system()

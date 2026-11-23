@@ -1,0 +1,235 @@
+[
+  {
+    "role": "customer",
+    "label": "고객 모드",
+    "description": "하단 탭을 최상위로 표시합니다. 들여쓰기는 하위 화면, 화살표는 버튼·이벤트로 이어지는 진행 흐름입니다.",
+    "groups": [
+      {
+        "label": "발견",
+        "routes": [
+          "home",
+          "notifications",
+          "processing",
+          "results"
+        ],
+        "entries": {
+          "notifications": {
+            "parent": "home",
+            "relation": "menu"
+          },
+          "processing": {
+            "parent": "home",
+            "relation": "flow"
+          },
+          "results": {
+            "parent": "processing",
+            "relation": "flow"
+          }
+        }
+      },
+      {
+        "label": "내 여행",
+        "routes": [
+          "trips",
+          "board",
+          "manual"
+        ],
+        "entries": {
+          "board": {
+            "parent": "trips",
+            "relation": "menu"
+          },
+          "manual": {
+            "parent": "board",
+            "relation": "flow"
+          }
+        }
+      },
+      {
+        "label": "메이트 · 요청에서 예약까지",
+        "routes": [
+          "guides",
+          "request",
+          "requested",
+          "quote",
+          "checkout",
+          "booking",
+          "cancel"
+        ],
+        "entries": {
+          "request": {
+            "parent": "guides",
+            "relation": "flow"
+          },
+          "requested": {
+            "parent": "request",
+            "relation": "flow"
+          },
+          "quote": {
+            "parent": "requested",
+            "relation": "flow"
+          },
+          "checkout": {
+            "parent": "quote",
+            "relation": "flow"
+          },
+          "booking": {
+            "parent": "checkout",
+            "relation": "flow"
+          },
+          "cancel": {
+            "parent": "booking",
+            "relation": "flow"
+          }
+        }
+      },
+      {
+        "label": "채팅",
+        "routes": [
+          "messages",
+          "chat"
+        ],
+        "entries": {
+          "chat": {
+            "parent": "messages",
+            "relation": "menu"
+          }
+        }
+      },
+      {
+        "label": "마이",
+        "routes": [
+          "account",
+          "settings",
+          "support",
+          "policies",
+          "signup",
+          "signup-email",
+          "mate-register"
+        ],
+        "entries": {
+          "settings": {
+            "parent": "account",
+            "relation": "menu"
+          },
+          "support": {
+            "parent": "settings",
+            "relation": "menu"
+          },
+          "policies": {
+            "parent": "settings",
+            "relation": "menu"
+          },
+          "signup": {
+            "parent": "account",
+            "relation": "flow"
+          },
+          "signup-email": {
+            "parent": "signup",
+            "relation": "flow"
+          }
+        }
+      },
+      {
+        "label": "진입 미연결",
+        "routes": [
+          "guide"
+        ],
+        "entries": {}
+      }
+    ]
+  },
+  {
+    "role": "guide",
+    "label": "메이트 모드",
+    "description": "승인된 메이트 모드의 요청함·가능 일정·수수료·채팅·마이와 설정을 표시합니다.",
+    "groups": [
+      {
+        "label": "여행 찾기",
+        "routes": [
+          "guide-desk"
+        ],
+        "entries": {}
+      },
+      {
+        "label": "내 활동",
+        "routes": [
+          "guide-activity",
+          "guide-quote",
+          "guide-fee"
+        ],
+        "entries": {
+          "guide-quote": {
+            "parent": "guide-activity",
+            "relation": "flow"
+          },
+          "guide-fee": {
+            "parent": "guide-activity",
+            "relation": "flow"
+          }
+        }
+      },
+      {
+        "label": "채팅",
+        "routes": [
+          "messages",
+          "chat"
+        ],
+        "entries": {
+          "chat": {
+            "parent": "messages",
+            "relation": "menu"
+          }
+        }
+      },
+      {
+        "label": "마이",
+        "routes": [
+          "account",
+          "settings"
+        ],
+        "entries": {
+          "settings": {
+            "parent": "account",
+            "relation": "menu"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "role": "admin",
+    "label": "운영 웹",
+    "description": "앱과 분리된 운영 공간에서 장소·문의·메이트·예약을 관리해요.",
+    "groups": [
+      {
+        "label": "운영 웹 메뉴",
+        "routes": [
+          "admin",
+          "admin-places",
+          "admin-support",
+          "admin-guides",
+          "admin-bookings"
+        ],
+        "entries": {
+          "admin-places": {
+            "parent": "admin",
+            "relation": "menu"
+          },
+          "admin-support": {
+            "parent": "admin",
+            "relation": "menu"
+          },
+          "admin-guides": {
+            "parent": "admin",
+            "relation": "menu"
+          },
+          "admin-bookings": {
+            "parent": "admin",
+            "relation": "menu"
+          }
+        }
+      }
+    ]
+  }
+]

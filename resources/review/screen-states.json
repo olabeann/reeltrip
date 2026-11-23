@@ -1,0 +1,1630 @@
+{
+  "guides": [
+    {
+      "id": "none",
+      "label": "견적 요청 전",
+      "condition": "요청한 여행 없음",
+      "transition": "여행 요청 등록 → 제안 대기 중",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "waiting",
+      "label": "제안 대기 중",
+      "condition": "열린 여행 요청 있음 · 제안 0개",
+      "transition": "메이트 제안 도착 → 제안 도착",
+      "fixture": {
+        "flow": "waiting"
+      },
+      "note": ""
+    },
+    {
+      "id": "proposals",
+      "label": "제안 도착",
+      "condition": "열린 여행 요청 있음 · 제안 2개",
+      "transition": "여행자 제안 선택 → 수수료 결제 대기",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "note": ""
+    },
+    {
+      "id": "closed",
+      "label": "요청 마감",
+      "condition": "요청이 철회됨 · 제안 0개",
+      "transition": "새 여행 요청 → 제안 대기 중",
+      "fixture": {
+        "flow": "closed"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "메이트 선택 완료",
+      "condition": "예약 있음 · 메이트 수수료 미결제",
+      "transition": "메이트 수수료 10% 결제 → 예약 확정",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "read",
+      "label": "도착한 제안 모두 읽음",
+      "condition": "도착한 제안 2개 · 읽음 데이터 적용 (현재 목록에는 읽음 여부를 별도 표시하지 않음)",
+      "transition": "일정·금액 비교 후 선택",
+      "fixture": {
+        "flow": "proposals",
+        "viewedProposals": true
+      },
+      "expect": "제안 도착",
+      "note": ""
+    },
+    {
+      "id": "discover",
+      "label": "자유 견적 탭 · 요청 전",
+      "condition": "자유 견적 탭 선택 · 진행 중 요청 없음",
+      "transition": "지역·기간으로 견적 요청",
+      "fixture": {
+        "guidesTab": "discover"
+      },
+      "expect": "자유 여행 함께하기",
+      "note": ""
+    },
+    {
+      "id": "discover-existing",
+      "label": "자유 견적 탭 · 기존 요청",
+      "condition": "자유 견적 탭 선택 · 요청 진행 중",
+      "transition": "진행 중 요청 확인",
+      "fixture": {
+        "flow": "waiting",
+        "guidesTab": "discover"
+      },
+      "note": ""
+    }
+  ],
+  "requested": [
+    {
+      "id": "none",
+      "label": "견적 요청 전",
+      "condition": "요청한 여행 없음",
+      "transition": "여행 요청 등록 → 제안 대기 중",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "waiting",
+      "label": "제안 대기 중",
+      "condition": "열린 여행 요청 있음 · 제안 0개",
+      "transition": "메이트 제안 도착 → 제안 도착",
+      "fixture": {
+        "flow": "waiting"
+      },
+      "note": ""
+    },
+    {
+      "id": "proposals",
+      "label": "제안 도착",
+      "condition": "열린 여행 요청 있음 · 제안 2개",
+      "transition": "여행자 제안 선택 → 수수료 결제 대기",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "note": ""
+    },
+    {
+      "id": "closed",
+      "label": "요청 마감",
+      "condition": "요청이 철회됨 · 제안 0개",
+      "transition": "새 여행 요청 → 제안 대기 중",
+      "fixture": {
+        "flow": "closed"
+      },
+      "note": "",
+      "expect": "제안 받기가 종료되었어요",
+      "absent": "메이트의 제안을 기다리고 있어요"
+    },
+    {
+      "id": "fee",
+      "label": "메이트 선택 완료",
+      "condition": "예약 있음 · 메이트 수수료 미결제",
+      "transition": "메이트 수수료 10% 결제 → 예약 확정",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    }
+  ],
+  "quote": [
+    {
+      "id": "none",
+      "label": "제안 없음",
+      "condition": "요청·제안 없음",
+      "transition": "여행 요청 후 메이트 제안 수신",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "proposals",
+      "label": "유효한 제안",
+      "condition": "선택한 제안 있음 · 유효기간 이내",
+      "transition": "여행자 선택 → 메이트 수수료 결제 대기",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "note": ""
+    },
+    {
+      "id": "expired",
+      "label": "제안 만료",
+      "condition": "제안 유효기간 경과",
+      "transition": "메이트가 제안 갱신 → 유효한 제안",
+      "fixture": {
+        "flow": "expired"
+      },
+      "note": ""
+    }
+  ],
+  "booking": [
+    {
+      "id": "none",
+      "label": "예약 없음",
+      "condition": "예약 데이터 없음",
+      "transition": "여행자 제안 선택 → 수수료 결제 대기",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "수수료 결제 대기",
+      "condition": "예약 awaiting_mate_fee · feeStatus pending",
+      "transition": "메이트 수수료 10% 결제 → 예약 확정",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "confirmed",
+      "label": "예약 확정",
+      "condition": "예약 confirmed · feeStatus paid · 현장 여행비 미수령",
+      "transition": "여행 종료 → 여행 완료 / 취소 요청 → 취소 검토",
+      "fixture": {
+        "flow": "confirmed"
+      },
+      "note": ""
+    },
+    {
+      "id": "cancel",
+      "label": "취소 검토 중",
+      "condition": "예약 cancellation_requested",
+      "transition": "운영 취소·수수료 환불 검토",
+      "fixture": {
+        "flow": "cancel"
+      },
+      "note": ""
+    },
+    {
+      "id": "completed",
+      "label": "여행 완료",
+      "condition": "예약 completed",
+      "transition": "여행자가 후기 작성",
+      "fixture": {
+        "flow": "completed"
+      },
+      "note": ""
+    },
+    {
+      "id": "cancelled",
+      "label": "취소 완료",
+      "condition": "예약 cancelled · 여행비는 플랫폼 수납 없음",
+      "transition": "종료된 대화 기록 확인",
+      "fixture": {
+        "flow": "cancelled"
+      },
+      "note": ""
+    }
+  ],
+  "home": [
+    {
+      "id": "guest",
+      "label": "기본 홈",
+      "condition": "영상 링크 입력과 메이트 소개",
+      "transition": "영상 링크 입력 또는 메이트 찾기 → 가입 안내",
+      "fixture": {
+        "guest": true
+      },
+      "note": "회원 여부와 관계없이 같은 홈을 표시합니다. 일정·요청·예약은 각 관리 화면에서 확인합니다.",
+      "absent": "resume-action"
+    }
+  ],
+  "processing": [
+    {
+      "id": "loading",
+      "label": "분석 진행 중",
+      "condition": "extraction processing · 상태 확인 중에는 자동 완료 일시 정지",
+      "transition": "처리 완료 → 장소 선택",
+      "fixture": {
+        "extraction": "processing"
+      },
+      "expect": "extraction-stages",
+      "note": ""
+    },
+    {
+      "id": "failed",
+      "label": "분석 실패",
+      "condition": "비공개·삭제 등으로 분석 실패",
+      "transition": "장소 검색 또는 다른 링크 입력",
+      "fixture": {
+        "extraction": "failed"
+      },
+      "expect": "is-failed",
+      "note": ""
+    }
+  ],
+  "results": [
+    {
+      "id": "selected",
+      "label": "장소별 저장 가능",
+      "condition": "추출 장소 있음 · 장소별 저장 버튼 표시",
+      "transition": "장소 저장 → 저장한 장소 보기",
+      "fixture": {},
+      "expect": "data-action=\"save-result-place\"",
+      "note": "기존 상태 ID는 공유 링크 호환을 위해 유지. 현재 UI는 개별 저장 방식."
+    },
+    {
+      "id": "unselected",
+      "label": "장소별 저장 가능",
+      "condition": "추출 장소 있음 · 장소별 저장 버튼 표시",
+      "transition": "장소 저장 → 저장한 장소 보기",
+      "fixture": {
+        "unselected": true
+      },
+      "expect": "data-action=\"save-result-place\"",
+      "note": "기존 상태 ID는 공유 링크 호환을 위해 유지. 현재 UI는 개별 저장 방식."
+    },
+    {
+      "id": "empty",
+      "label": "추출 결과 없음",
+      "condition": "추출 후보 0개",
+      "transition": "장소 검색",
+      "fixture": {
+        "noPlaces": true,
+        "unselected": true
+      },
+      "expect": "발견한 장소 0곳",
+      "note": ""
+    }
+  ],
+  "manual": [
+    {
+      "id": "examples",
+      "label": "장소 검색 시작",
+      "condition": "검색 전 · 결과와 핀 없음",
+      "transition": "장소 이름 입력 후 검색",
+      "fixture": {},
+      "expect": "place-map-picker",
+      "note": ""
+    },
+    {
+      "id": "saved",
+      "label": "저장한 장소 탭",
+      "condition": "저장 장소 있음",
+      "transition": "장소 선택 후 상세 확인",
+      "fixture": {
+        "picker": "saved"
+      },
+      "expect": "place-map-picker",
+      "note": ""
+    },
+    {
+      "id": "empty",
+      "label": "저장한 장소 없음",
+      "condition": "저장한 장소 탭 · 보관함 0개",
+      "transition": "검색 결과 탭에서 장소 찾기",
+      "fixture": {
+        "picker": "saved",
+        "emptyLibrary": true
+      },
+      "note": ""
+    }
+  ],
+  "board": [
+    {
+      "id": "guest",
+      "label": "비회원 보관함",
+      "condition": "로그인 전",
+      "transition": "가입하고 장소 저장",
+      "fixture": {
+        "guest": true
+      },
+      "note": ""
+    },
+    {
+      "id": "empty",
+      "label": "보관함 비어 있음",
+      "condition": "보관함 0개",
+      "transition": "영상 또는 검색으로 장소 추가",
+      "fixture": {
+        "emptyLibrary": true
+      },
+      "expect": "가고 싶은 곳을 저장해 두세요",
+      "note": ""
+    },
+    {
+      "id": "saved",
+      "label": "저장 장소 있음",
+      "condition": "보관함에 Google 장소 3개 있음",
+      "transition": "새 여행 만들기 또는 내 여행 보기",
+      "fixture": {
+        "recommendation": "saved"
+      },
+      "expect": "library-list",
+      "note": ""
+    }
+  ],
+  "trips": [
+    {
+      "id": "guest",
+      "label": "비회원 여행 목록",
+      "condition": "로그인 전",
+      "transition": "가입하고 여행 만들기",
+      "fixture": {
+        "guest": true
+      },
+      "note": ""
+    },
+    {
+      "id": "upcoming",
+      "label": "다가오는 여행",
+      "condition": "미래 날짜의 저장 여행 있음",
+      "transition": "여행 상세 열기",
+      "fixture": {},
+      "expect": "다가오는 여행",
+      "note": ""
+    },
+    {
+      "id": "no-upcoming",
+      "label": "다가오는 여행 없음",
+      "condition": "예정된 여행 없음 · 지난 여행만 있음",
+      "transition": "여행 일정 만들기 → 새 여행 생성",
+      "fixture": {
+        "past": true
+      },
+      "expect": "아직 다가오는 여행이 없어요",
+      "note": "저장한 장소는 우측 상단 아이콘으로 이동"
+    },
+    {
+      "id": "past",
+      "label": "지난 여행",
+      "condition": "여행의 모든 날짜가 과거",
+      "transition": "지난 여행 상세 열기",
+      "fixture": {
+        "past": true
+      },
+      "expect": "지난 여행",
+      "note": ""
+    },
+    {
+      "id": "detail-empty",
+      "label": "여행 상세 · 장소 없음",
+      "condition": "선택 날짜 장소 0개",
+      "transition": "＋에서 장소 추가",
+      "fixture": {
+        "emptyBoard": true,
+        "hash": "trips?view=detail"
+      },
+      "expect": "어디부터 가볼까요?",
+      "note": ""
+    },
+    {
+      "id": "detail",
+      "label": "여행 상세 · 장소 있음",
+      "condition": "선택 날짜에 장소 있음",
+      "transition": "편집·공유·메이트 요청",
+      "fixture": {
+        "hash": "trips?view=detail"
+      },
+      "expect": "trip-timeline",
+      "note": ""
+    },
+    {
+      "id": "multi-day",
+      "label": "여행 상세 · 여러 날짜",
+      "condition": "2일 여행 · 날짜별 일정 있음",
+      "transition": "날짜 전환",
+      "fixture": {
+        "multiDay": true,
+        "hash": "trips?view=detail"
+      },
+      "expect": "2일차",
+      "note": ""
+    },
+    {
+      "id": "missing",
+      "label": "여행 상세 · 찾을 수 없음",
+      "condition": "존재하지 않는 여행 ID로 접근",
+      "transition": "내 여행 목록으로 돌아가기",
+      "fixture": {
+        "hash": "trips?view=detail&id=missing-preview"
+      },
+      "expect": "여행을 찾을 수 없어요.",
+      "note": ""
+    }
+  ],
+  "account": [
+    {
+      "id": "guest",
+      "label": "비회원 마이",
+      "condition": "로그인 전",
+      "transition": "회원가입",
+      "fixture": {
+        "guest": true
+      },
+      "note": ""
+    },
+    {
+      "id": "member",
+      "label": "회원 마이",
+      "condition": "회원 · 진행 중 요청 없음",
+      "transition": "프로필 편집 또는 새 여행",
+      "fixture": {},
+      "expect": "my-profile",
+      "note": ""
+    },
+    {
+      "id": "mate",
+      "label": "메이트 마이",
+      "condition": "승인된 메이트 모드",
+      "transition": "프로필·활동 정보 편집 후 저장 또는 취소",
+      "fixture": {
+        "mode": "guide",
+        "mateApplication": {
+          "status": "approved",
+          "step": 4,
+          "fields": {
+            "name": "미나",
+            "bio": "서울의 골목과 카페를 함께 걸으며 여행을 도와드려요.",
+            "specialty": "0",
+            "regions": [
+              {
+                "city": 0,
+                "district": 3
+              }
+            ],
+            "languages": "en",
+            "contact": "mate@example.com",
+            "experience": "동네 산책 안내 경험",
+            "localContext": "성수에서 3년째 살고 있어요.",
+            "pace": "천천히 걸으며 쉬어가요.",
+            "help": "메뉴 주문과 사진 촬영을 도와드려요.",
+            "policy": true,
+            "consent": true
+          }
+        }
+      },
+      "expect": "메이트 활동 정보",
+      "note": "",
+      "absent": "mate-entry"
+    }
+  ],
+  "support": [
+    {
+      "id": "form",
+      "label": "문의 작성",
+      "condition": "새 문의 작성 · 기존 문의 상태와 무관",
+      "transition": "문의 작성 → 제출 → 일시적 완료 안내 후 빈 양식",
+      "fixture": {},
+      "expect": "support-form",
+      "note": "저장됨·처리 완료 화면과 사용자 문의 이력은 제공하지 않는다. 시제품은 로컬 저장만 하며 실제 전송하지 않는다."
+    }
+  ],
+  "policies": [
+    {
+      "id": "member",
+      "label": "회원 이용 안내",
+      "condition": "회원에게 동일한 정적 이용 안내 표시",
+      "transition": "도움말로 이동",
+      "fixture": {},
+      "expect": "legalcopy",
+      "note": "회원·비회원에게 같은 이용 안내 본문을 표시합니다."
+    },
+    {
+      "id": "guest",
+      "label": "비회원 이용 안내",
+      "condition": "비회원도 안내 열람 가능",
+      "transition": "도움말 또는 가입",
+      "fixture": {
+        "guest": true
+      },
+      "expect": "legalcopy",
+      "note": "회원 상태와 같은 본문입니다. 비회원도 열람 가능한지 확인합니다."
+    }
+  ],
+  "guide": [
+    {
+      "id": "mina",
+      "label": "미나 프로필",
+      "condition": "기본 공개 메이트 미나",
+      "transition": "메이트 요청",
+      "fixture": {},
+      "expect": "mate-cover--mina",
+      "note": ""
+    },
+    {
+      "id": "jun",
+      "label": "준 프로필",
+      "condition": "승인된 예시 메이트 준",
+      "transition": "메이트 요청",
+      "fixture": {
+        "guide": "jun",
+        "approved": true
+      },
+      "expect": "mate-cover--jun",
+      "note": ""
+    }
+  ],
+  "request": [
+    {
+      "id": "select-trip",
+      "label": "여행 선택",
+      "condition": "진행 중 요청 없음",
+      "transition": "여행 선택 → 요청 내용 작성",
+      "fixture": {},
+      "expect": "함께할 여행을 선택해 주세요",
+      "note": ""
+    },
+    {
+      "id": "itinerary",
+      "label": "요청 내용 작성",
+      "condition": "일정에 장소 있음 · 진행 중 요청 없음",
+      "transition": "요청 등록 → 응답 대기",
+      "fixture": {
+        "hash": "request?trip=trip-preview"
+      },
+      "expect": "내 여행으로 메이트 요청",
+      "note": ""
+    },
+    {
+      "id": "free",
+      "label": "자유 견적 요청",
+      "condition": "지역·기간으로 새 요청 작성",
+      "transition": "요청 등록 → 응답 대기",
+      "fixture": {
+        "hash": "request?mode=free"
+      },
+      "expect": "자유 견적 요청",
+      "note": ""
+    }
+  ],
+  "checkout": [
+    {
+      "id": "none",
+      "label": "유효한 제안 없음",
+      "condition": "제안 데이터 없음",
+      "transition": "제안 확인",
+      "fixture": {},
+      "expect": "유효한 여행 제안이 필요해요.",
+      "note": "제안 없음·만료는 같은 예약 진행 차단 안내를 사용합니다."
+    },
+    {
+      "id": "proposals",
+      "label": "예약 정보 입력",
+      "condition": "유효한 제안 있음 · 예약 없음",
+      "transition": "여행자 선택 → 수수료 대기",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "expect": "checkout-form",
+      "note": ""
+    },
+    {
+      "id": "expired",
+      "label": "제안 만료",
+      "condition": "제안 유효기간 경과",
+      "transition": "최신 제안 확인",
+      "fixture": {
+        "flow": "expired"
+      },
+      "expect": "유효한 여행 제안이 필요해요.",
+      "note": "제안 없음과 같은 차단 안내입니다. 제안 상세에서는 만료 상태를 별도로 확인합니다."
+    },
+    {
+      "id": "fee",
+      "label": "이미 예약 요청됨",
+      "condition": "선택한 제안의 예약 있음",
+      "transition": "예약 상세 보기",
+      "fixture": {
+        "flow": "fee"
+      },
+      "expect": "이미 예약 진행 중인 제안이에요.",
+      "note": ""
+    }
+  ],
+  "chat": [
+    {
+      "id": "none",
+      "label": "대화 없음",
+      "condition": "예약·대화 기록 없음",
+      "transition": "메이트 제안 선택 후 대화 시작",
+      "fixture": {},
+      "expect": "아직 대화가 없어요.",
+      "note": ""
+    },
+    {
+      "id": "new",
+      "label": "대화 시작",
+      "condition": "예약 요청으로 쌍방 의사 확인 · 메시지 없음",
+      "transition": "첫 메시지 보내기",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "active",
+      "label": "대화 중 · 메시지 있음",
+      "condition": "예약 요청 이후 메시지 기록 있음",
+      "transition": "메시지 보내기",
+      "fixture": {
+        "flow": "confirmed",
+        "chat": "active"
+      },
+      "note": ""
+    },
+    {
+      "id": "closed",
+      "label": "종료된 대화",
+      "condition": "예약 취소 완료 · 메시지 기록 있음",
+      "transition": "기록만 열람",
+      "fixture": {
+        "flow": "cancelled",
+        "chat": "active"
+      },
+      "note": ""
+    },
+    {
+      "id": "date-ended",
+      "label": "여행일 종료 · 기록 열람",
+      "condition": "여행 완료 · 마지막 날짜가 지남",
+      "transition": "대화 기록만 확인",
+      "fixture": {
+        "flow": "completed",
+        "chat": "active",
+        "ended": true
+      },
+      "expect": "종료된 대화는 기록만 확인할 수 있어요.",
+      "note": ""
+    },
+    {
+      "id": "mate-none",
+      "label": "메이트 · 대화 없음",
+      "condition": "승인된 메이트 모드 · 예약·대화 기록 없음",
+      "transition": "메이트 제안 선택 후 대화 시작",
+      "fixture": {
+        "mode": "guide"
+      },
+      "expect": "아직 대화가 없어요.",
+      "note": ""
+    },
+    {
+      "id": "mate-new",
+      "label": "메이트 · 대화 시작",
+      "condition": "승인된 메이트 모드 · 예약 요청으로 쌍방 의사 확인 · 메시지 없음",
+      "transition": "첫 메시지 보내기",
+      "fixture": {
+        "flow": "fee",
+        "mode": "guide"
+      },
+      "note": ""
+    },
+    {
+      "id": "mate-active",
+      "label": "메이트 · 대화 중 · 메시지 있음",
+      "condition": "승인된 메이트 모드 · 예약 요청 이후 메시지 기록 있음",
+      "transition": "메시지 보내기",
+      "fixture": {
+        "flow": "confirmed",
+        "chat": "active",
+        "mode": "guide"
+      },
+      "note": ""
+    },
+    {
+      "id": "mate-closed",
+      "label": "메이트 · 종료된 대화",
+      "condition": "승인된 메이트 모드 · 예약 취소 완료 · 메시지 기록 있음",
+      "transition": "기록만 열람",
+      "fixture": {
+        "flow": "cancelled",
+        "chat": "active",
+        "mode": "guide"
+      },
+      "note": ""
+    },
+    {
+      "id": "mate-date-ended",
+      "label": "메이트 · 여행일 종료 · 기록 열람",
+      "condition": "승인된 메이트 모드 · 여행 완료 · 마지막 날짜가 지남",
+      "transition": "대화 기록만 확인",
+      "fixture": {
+        "flow": "completed",
+        "chat": "active",
+        "ended": true,
+        "mode": "guide"
+      },
+      "expect": "종료된 대화는 기록만 확인할 수 있어요.",
+      "note": ""
+    }
+  ],
+  "messages": [
+    {
+      "id": "none",
+      "label": "대화 없음",
+      "condition": "예약·대화 기록 없음",
+      "transition": "메이트 제안 선택 후 대화 시작",
+      "fixture": {},
+      "expect": "아직 대화가 없어요.",
+      "note": ""
+    },
+    {
+      "id": "new",
+      "label": "대화 시작",
+      "condition": "예약 요청으로 쌍방 의사 확인 · 메시지 없음",
+      "transition": "첫 메시지 보내기",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "active",
+      "label": "대화 중 · 메시지 있음",
+      "condition": "예약 요청 이후 메시지 기록 있음",
+      "transition": "메시지 보내기",
+      "fixture": {
+        "flow": "confirmed",
+        "chat": "active"
+      },
+      "note": ""
+    },
+    {
+      "id": "closed",
+      "label": "종료된 대화",
+      "condition": "예약 취소 완료 · 메시지 기록 있음",
+      "transition": "기록만 열람",
+      "fixture": {
+        "flow": "cancelled",
+        "chat": "active"
+      },
+      "note": ""
+    },
+    {
+      "id": "mixed",
+      "label": "진행 중 + 종료된 대화",
+      "condition": "진행 중인 대화와 종료된 대화가 함께 있음",
+      "transition": "진행 중 대화는 메시지 전송 · 종료된 대화는 기록 열람",
+      "fixture": {
+        "flow": "confirmed",
+        "chat": "mixed"
+      },
+      "note": "진행 중 대화가 위에, 종료된 대화가 아래에 표시됩니다. 종료된 대화는 읽지 않음 배지가 없습니다."
+    },
+    {
+      "id": "mate-none",
+      "label": "메이트 · 대화 없음",
+      "condition": "승인된 메이트 모드 · 예약·대화 기록 없음",
+      "transition": "메이트 제안 선택 후 대화 시작",
+      "fixture": {
+        "mode": "guide"
+      },
+      "expect": "아직 대화가 없어요.",
+      "note": ""
+    },
+    {
+      "id": "mate-new",
+      "label": "메이트 · 대화 시작",
+      "condition": "승인된 메이트 모드 · 예약 요청으로 쌍방 의사 확인 · 메시지 없음",
+      "transition": "첫 메시지 보내기",
+      "fixture": {
+        "flow": "fee",
+        "mode": "guide"
+      },
+      "note": ""
+    },
+    {
+      "id": "mate-active",
+      "label": "메이트 · 대화 중 · 메시지 있음",
+      "condition": "승인된 메이트 모드 · 예약 요청 이후 메시지 기록 있음",
+      "transition": "메시지 보내기",
+      "fixture": {
+        "flow": "confirmed",
+        "chat": "active",
+        "mode": "guide"
+      },
+      "note": ""
+    },
+    {
+      "id": "mate-closed",
+      "label": "메이트 · 종료된 대화",
+      "condition": "승인된 메이트 모드 · 예약 취소 완료 · 메시지 기록 있음",
+      "transition": "기록만 열람",
+      "fixture": {
+        "flow": "cancelled",
+        "chat": "active",
+        "mode": "guide"
+      },
+      "note": ""
+    },
+    {
+      "id": "mate-mixed",
+      "label": "메이트 · 진행 중 + 종료된 대화",
+      "condition": "진행 중인 대화와 종료된 대화가 함께 있음",
+      "transition": "진행 중 대화는 메시지 전송 · 종료된 대화는 기록 열람",
+      "fixture": {
+        "flow": "confirmed",
+        "chat": "mixed",
+        "mode": "guide"
+      },
+      "note": "진행 중 대화가 위에, 종료된 대화가 아래에 표시됩니다. 종료된 대화는 읽지 않음 배지가 없습니다."
+    }
+  ],
+  "cancel": [
+    {
+      "id": "none",
+      "label": "취소할 예약 없음",
+      "condition": "취소 가능한 예약 없음",
+      "transition": "예약 상태 확인",
+      "fixture": {},
+      "expect": "취소할 수 있는 예약이 없어요.",
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "확정 전 요청 철회",
+      "condition": "예약 awaiting_mate_fee",
+      "transition": "철회 제출 → 요청 철회",
+      "fixture": {
+        "flow": "fee"
+      },
+      "expect": "요청 철회",
+      "note": ""
+    },
+    {
+      "id": "confirmed",
+      "label": "확정 예약 취소 요청",
+      "condition": "예약 confirmed",
+      "transition": "사유 제출 → 운영 검토",
+      "fixture": {
+        "flow": "confirmed"
+      },
+      "expect": "cancel-form",
+      "note": ""
+    }
+  ],
+  "guide-desk": [
+    {
+      "id": "none",
+      "label": "공개 요청 없음",
+      "condition": "요청 데이터 없음",
+      "transition": "요청 도착 후 확인",
+      "fixture": {},
+      "note": ""
+    },
+    {
+      "id": "waiting",
+      "label": "제안 전",
+      "condition": "공개 요청 있음 · 내가 보낸 유효한 제안 없음",
+      "transition": "일정 검토 후 제안 발행",
+      "fixture": {
+        "flow": "waiting"
+      },
+      "note": ""
+    },
+    {
+      "id": "proposals",
+      "label": "제안 보냄 · 선택 대기",
+      "condition": "내가 보낸 유효한 제안 있음",
+      "transition": "보낸 제안 확인 · 여행자 선택 대기",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "여행자 선택 완료",
+      "condition": "예약 awaiting_mate_fee",
+      "transition": "수수료 결제 후 확정",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    }
+  ],
+  "guide-quote": [
+    {
+      "id": "none",
+      "label": "공개 요청 없음",
+      "condition": "요청 데이터 없음",
+      "transition": "요청 도착 후 확인",
+      "fixture": {},
+      "note": ""
+    },
+    {
+      "id": "waiting",
+      "label": "제안 전",
+      "condition": "공개 요청 있음 · 내가 보낸 유효한 제안 없음",
+      "transition": "일정 검토 후 제안 발행",
+      "fixture": {
+        "flow": "waiting"
+      },
+      "note": ""
+    },
+    {
+      "id": "proposals",
+      "label": "제안 보냄 · 선택 대기",
+      "condition": "내가 보낸 유효한 제안 있음",
+      "transition": "보낸 제안 확인 · 여행자 선택 대기",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "여행자 선택 완료",
+      "condition": "예약 awaiting_mate_fee",
+      "transition": "수수료 결제 후 확정",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": "",
+      "expect": "이미 여행자가 선택한 제안이에요."
+    }
+  ],
+  "guide-fee": [
+    {
+      "id": "none",
+      "label": "예약 없음",
+      "condition": "예약 없음",
+      "transition": "여행자 선택 후 결제 가능",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "수수료 결제 대기",
+      "condition": "예약 awaiting_mate_fee · 수수료 pending",
+      "transition": "메이트 10% 결제 → 예약 확정",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "failed",
+      "label": "수수료 결제 실패",
+      "condition": "예약 awaiting_mate_fee · 수수료 failed",
+      "transition": "결제 재시도 → 성공 또는 실패",
+      "fixture": {
+        "flow": "failed"
+      },
+      "note": ""
+    },
+    {
+      "id": "confirmed",
+      "label": "수수료 결제 완료",
+      "condition": "예약 confirmed · 수수료 paid",
+      "transition": "수수료 내역 확인",
+      "fixture": {
+        "flow": "confirmed"
+      },
+      "note": ""
+    },
+    {
+      "id": "cancelled",
+      "label": "취소된 예약 · 결제 불가",
+      "condition": "예약 요청 철회 · 수수료 미결제",
+      "transition": "요청함에서 현재 상태 확인",
+      "fixture": {
+        "flow": "cancelled",
+        "unpaidCancellation": true
+      },
+      "expect": "취소 완료",
+      "note": "",
+      "absent": "id=\"mate-fee-form\""
+    }
+  ],
+  "notifications": [
+    {
+      "id": "mixed",
+      "label": "읽음·미읽음 알림 누적",
+      "condition": "알림 8건 · 읽지 않음 4건 · 읽음 4건 · 최신순",
+      "transition": "알림 열기 → 읽음 처리 후 관련 화면 이동",
+      "fixture": {
+        "flow": "proposals",
+        "notificationHistory": true
+      },
+      "expect": "is-read",
+      "note": "여러 날짜에 쌓인 예시 알림입니다. 읽은 알림도 목록에 유지됩니다."
+    },
+    {
+      "id": "empty",
+      "label": "알림 없음",
+      "condition": "요청·예약 이벤트 없음",
+      "transition": "새 요청·제안·예약 이벤트 발생",
+      "fixture": {},
+      "expect": "아직 알림이 없어요",
+      "note": ""
+    },
+    {
+      "id": "unread",
+      "label": "읽지 않은 알림",
+      "condition": "제안 도착 알림 미확인",
+      "transition": "알림 열기 또는 모두 읽음",
+      "fixture": {
+        "flow": "proposals"
+      },
+      "expect": "is-unread",
+      "note": ""
+    },
+    {
+      "id": "read",
+      "label": "모두 읽음",
+      "condition": "제안 도착 알림 읽음",
+      "transition": "새 이벤트 발생 시 미확인 표시",
+      "fixture": {
+        "flow": "proposals",
+        "readNotifications": true
+      },
+      "expect": "is-read",
+      "note": ""
+    }
+  ],
+  "settings": [
+    {
+      "id": "customer",
+      "label": "여행자 설정",
+      "condition": "여행자 모드",
+      "transition": "언어·계정·데이터 관리",
+      "fixture": {},
+      "expect": "settings-group",
+      "note": ""
+    },
+    {
+      "id": "mate",
+      "label": "메이트 설정",
+      "condition": "승인된 메이트 모드",
+      "transition": "여행자로 전환",
+      "fixture": {
+        "mode": "guide"
+      },
+      "expect": "settings-group",
+      "note": ""
+    },
+    {
+      "id": "guest",
+      "label": "회원가입 필요",
+      "condition": "비회원으로 회원 전용 설정 접근",
+      "transition": "가입 후 설정 이용",
+      "fixture": {
+        "guest": true
+      },
+      "note": ""
+    }
+  ],
+  "signup": [
+    {
+      "id": "guest",
+      "label": "가입 시작",
+      "condition": "로그인 전 · 가입 수단 선택",
+      "transition": "이메일 가입 또는 시연 가입",
+      "fixture": {
+        "guest": true
+      },
+      "expect": "signup-screen",
+      "note": "가입 수단 선택 화면입니다. 체험 회원 재방문에도 같은 가입 UI를 사용합니다."
+    },
+    {
+      "id": "member",
+      "label": "이미 가입한 체험 계정",
+      "condition": "체험 회원 상태로 가입 화면 재방문",
+      "transition": "계속 이용 또는 가입 수단 선택",
+      "fixture": {},
+      "expect": "signup-screen",
+      "note": "별도 가입 완료 화면이 아닙니다. 체험 회원 재방문 시에도 가입 수단 선택 화면을 표시합니다."
+    },
+    {
+      "id": "signin",
+      "label": "로그인 시작",
+      "condition": "기존 회원 · 로그인 수단 선택",
+      "transition": "이메일 로그인 또는 시연 로그인",
+      "fixture": {
+        "guest": true,
+        "hash": "signup?mode=signin"
+      },
+      "expect": "signup-screen",
+      "note": "실제 인증 연결 전 시제품입니다."
+    }
+  ],
+  "signup-email": [
+    {
+      "id": "address",
+      "label": "이메일 입력",
+      "condition": "가입 첫 단계",
+      "transition": "이메일 입력 → 인증번호 단계",
+      "fixture": {
+        "guest": true
+      },
+      "expect": "signup-email-form",
+      "note": ""
+    },
+    {
+      "id": "code",
+      "label": "인증번호 입력",
+      "condition": "인증번호 단계 · 실제 발송 없음",
+      "transition": "시연 코드 확인 → 가입",
+      "fixture": {
+        "guest": true,
+        "emailStep": "code"
+      },
+      "expect": "signup-code-form",
+      "note": ""
+    },
+    {
+      "id": "signin-address",
+      "label": "로그인 이메일 입력",
+      "condition": "이메일 로그인 · 이메일 입력",
+      "transition": "인증번호 확인 → 로그인",
+      "fixture": {
+        "guest": true,
+        "hash": "signup-email?mode=signin"
+      },
+      "expect": "signup-email-form",
+      "note": "실제 인증 연결 전 시제품입니다."
+    },
+    {
+      "id": "signin-code",
+      "label": "로그인 인증번호 입력",
+      "condition": "이메일 로그인 · 인증번호 단계 · 실제 발송 없음",
+      "transition": "인증번호 확인 → 로그인",
+      "fixture": {
+        "guest": true,
+        "hash": "signup-email?mode=signin",
+        "emailStep": "code"
+      },
+      "expect": "signup-code-form",
+      "note": "실제 인증 연결 전 시제품입니다."
+    }
+  ],
+  "admin": [
+    {
+      "id": "empty",
+      "label": "예약·문의 없음",
+      "condition": "예약·문의 0건",
+      "transition": "검수 또는 문의 접수",
+      "fixture": {},
+      "expect": "운영 현황",
+      "note": ""
+    },
+    {
+      "id": "active",
+      "label": "운영 처리 항목 있음",
+      "condition": "예약 취소 요청 · 열린 문의 있음",
+      "transition": "각 운영 화면에서 처리",
+      "fixture": {
+        "flow": "cancel",
+        "ticket": "open"
+      },
+      "expect": "운영 현황",
+      "note": ""
+    }
+  ],
+  "admin-places": [
+    {
+      "id": "pending",
+      "label": "장소 확인 필요",
+      "condition": "장소 검수 상태 pending",
+      "transition": "검토·수정 또는 반려",
+      "fixture": {
+        "placeStatus": "pending"
+      },
+      "expect": "장소 검수",
+      "note": ""
+    },
+    {
+      "id": "verified",
+      "label": "장소 확인 완료",
+      "condition": "장소 검수 상태 verified",
+      "transition": "검토·수정 또는 반려",
+      "fixture": {
+        "placeStatus": "verified"
+      },
+      "expect": "장소 검수",
+      "note": ""
+    },
+    {
+      "id": "rejected",
+      "label": "장소 반려",
+      "condition": "장소 검수 상태 rejected",
+      "transition": "검토·수정 또는 반려",
+      "fixture": {
+        "placeStatus": "rejected"
+      },
+      "expect": "장소 검수",
+      "note": ""
+    }
+  ],
+  "admin-support": [
+    {
+      "id": "none",
+      "label": "접수 문의 없음",
+      "condition": "문의 없음",
+      "transition": "문의 접수 또는 처리 완료 확인",
+      "fixture": {
+        "ticket": null
+      },
+      "note": ""
+    },
+    {
+      "id": "open",
+      "label": "접수된 문의",
+      "condition": "문의 1건 · open",
+      "transition": "문의 접수 또는 처리 완료 확인",
+      "fixture": {
+        "ticket": "open"
+      },
+      "note": ""
+    },
+    {
+      "id": "resolved",
+      "label": "처리 완료된 문의",
+      "condition": "문의 1건 · resolved",
+      "transition": "문의 접수 또는 처리 완료 확인",
+      "fixture": {
+        "ticket": "resolved"
+      },
+      "note": ""
+    }
+  ],
+  "admin-guides": [
+    {
+      "id": "draft",
+      "label": "신청 없음",
+      "condition": "신청 없음",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "draft",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        }
+      }
+    },
+    {
+      "id": "pending",
+      "label": "신청 심사",
+      "condition": "신청 심사",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "pending",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        }
+      }
+    },
+    {
+      "id": "approved",
+      "label": "등록 완료",
+      "condition": "등록 완료",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "approved",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        }
+      }
+    },
+    {
+      "id": "needs_info",
+      "label": "보완 요청",
+      "condition": "보완 요청",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "needs_info",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        }
+      }
+    },
+    {
+      "id": "rejected",
+      "label": "승인 거절",
+      "condition": "승인 거절",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "rejected",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        }
+      }
+    }
+  ],
+  "admin-bookings": [
+    {
+      "id": "none",
+      "label": "예약 없음",
+      "condition": "예약·수수료 상태: 예약 없음",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "수수료 결제 대기",
+      "condition": "예약·수수료 상태: 수수료 결제 대기",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "failed",
+      "label": "수수료 결제 실패",
+      "condition": "예약·수수료 상태: 수수료 결제 실패",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "failed"
+      },
+      "note": ""
+    },
+    {
+      "id": "confirmed",
+      "label": "예약 확정",
+      "condition": "예약·수수료 상태: 예약 확정",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "confirmed"
+      },
+      "note": ""
+    },
+    {
+      "id": "cancel",
+      "label": "취소 검토",
+      "condition": "예약·수수료 상태: 취소 검토",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "cancel"
+      },
+      "note": ""
+    },
+    {
+      "id": "cancelled",
+      "label": "취소 완료",
+      "condition": "예약·수수료 상태: 취소 완료",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "cancelled"
+      },
+      "note": ""
+    },
+    {
+      "id": "completed",
+      "label": "여행 완료",
+      "condition": "예약·수수료 상태: 여행 완료",
+      "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+      "fixture": {
+        "flow": "completed"
+      },
+      "note": ""
+    }
+  ],
+  "mate-register": [
+    {
+      "id": "step-0",
+      "label": "활동 분야",
+      "condition": "등록 신청 작성 중",
+      "transition": "필수 입력 → 다음 단계",
+      "fixture": {
+        "mateApplication": {
+          "status": "draft",
+          "step": 0,
+          "fields": {}
+        }
+      }
+    },
+    {
+      "id": "step-1",
+      "label": "지역·언어",
+      "condition": "등록 신청 작성 중",
+      "transition": "필수 입력 → 다음 단계",
+      "fixture": {
+        "mateApplication": {
+          "status": "draft",
+          "step": 1,
+          "fields": {}
+        }
+      }
+    },
+    {
+      "id": "step-2",
+      "label": "프로필",
+      "condition": "등록 신청 작성 중",
+      "transition": "필수 입력 → 다음 단계",
+      "fixture": {
+        "mateApplication": {
+          "status": "draft",
+          "step": 2,
+          "fields": {}
+        }
+      }
+    },
+    {
+      "id": "step-3",
+      "label": "연락처·경험",
+      "condition": "등록 신청 작성 중",
+      "transition": "필수 입력 → 다음 단계",
+      "fixture": {
+        "mateApplication": {
+          "status": "draft",
+          "step": 3,
+          "fields": {}
+        }
+      }
+    },
+    {
+      "id": "step-4",
+      "label": "최종 확인",
+      "condition": "등록 신청 작성 중",
+      "transition": "필수 입력 → 다음 단계",
+      "fixture": {
+        "mateApplication": {
+          "status": "draft",
+          "step": 4,
+          "fields": {}
+        }
+      }
+    },
+    {
+      "id": "pending",
+      "label": "심사 중",
+      "condition": "심사 중",
+      "transition": "관리자 심사 또는 신청 수정",
+      "fixture": {
+        "mateApplication": {
+          "status": "pending",
+          "step": 0,
+          "fields": {},
+          "reason": "소개 내용을 보완해 주세요."
+        }
+      }
+    },
+    {
+      "id": "needs_info",
+      "label": "보완 요청",
+      "condition": "보완 요청",
+      "transition": "관리자 심사 또는 신청 수정",
+      "fixture": {
+        "mateApplication": {
+          "status": "needs_info",
+          "step": 0,
+          "fields": {},
+          "reason": "소개 내용을 보완해 주세요."
+        }
+      }
+    },
+    {
+      "id": "rejected",
+      "label": "승인 거절",
+      "condition": "승인 거절",
+      "transition": "관리자 심사 또는 신청 수정",
+      "fixture": {
+        "mateApplication": {
+          "status": "rejected",
+          "step": 0,
+          "fields": {},
+          "reason": "소개 내용을 보완해 주세요."
+        }
+      }
+    },
+    {
+      "id": "approved",
+      "label": "등록 완료",
+      "condition": "등록 완료",
+      "transition": "관리자 심사 또는 신청 수정",
+      "fixture": {
+        "mateApplication": {
+          "status": "approved",
+          "step": 0,
+          "fields": {},
+          "reason": "소개 내용을 보완해 주세요."
+        }
+      }
+    }
+  ],
+  "guide-activity": [
+    {
+      "id": "none",
+      "label": "활동 없음",
+      "condition": "활동 없음",
+      "transition": "예약 상세 또는 제안 확인",
+      "fixture": {
+        "flow": "none"
+      },
+      "note": ""
+    },
+    {
+      "id": "quote",
+      "label": "보낸 제안",
+      "condition": "보낸 제안",
+      "transition": "예약 상세 또는 제안 확인",
+      "fixture": {
+        "flow": "quote"
+      },
+      "note": ""
+    },
+    {
+      "id": "fee",
+      "label": "확정 대기",
+      "condition": "확정 대기",
+      "transition": "예약 상세 또는 제안 확인",
+      "fixture": {
+        "flow": "fee"
+      },
+      "note": ""
+    },
+    {
+      "id": "confirmed",
+      "label": "예약 확정",
+      "condition": "예약 확정",
+      "transition": "예약 상세 또는 제안 확인",
+      "fixture": {
+        "flow": "confirmed"
+      },
+      "note": ""
+    },
+    {
+      "id": "cancelled",
+      "label": "취소 완료",
+      "condition": "취소 완료",
+      "transition": "예약 상세 또는 제안 확인",
+      "fixture": {
+        "flow": "cancelled"
+      },
+      "note": ""
+    },
+    {
+      "id": "completed",
+      "label": "여행 완료",
+      "condition": "여행 완료",
+      "transition": "예약 상세 또는 제안 확인",
+      "fixture": {
+        "flow": "completed"
+      },
+      "note": ""
+    }
+  ]
+}

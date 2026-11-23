@@ -1,0 +1,562 @@
+{
+  "action:guides-tab": {
+    "target": "guides",
+    "state": "discover",
+    "kind": "화면 내 변경",
+    "effect": "선택한 data-id에 따라 도착한 제안/자유 견적 탭만 전환; 요청·예약 유지"
+  },
+  "action:withdraw": {
+    "target": "requested",
+    "state": "closed",
+    "kind": "화면 내 변경",
+    "effect": "requested 또는 quoted이고 예약이 없을 때 request.status=withdrawn; 도착 제안은 유지하되 예약 불가"
+  },
+  "action:demo-proposals": {
+    "target": "requested",
+    "state": "proposals",
+    "kind": "화면 내 변경",
+    "effect": "시연: 미나·준 제안 생성; request.status=quoted; 같은 메이트의 제안만 갱신"
+  },
+  "action:select-proposal": {
+    "target": "quote",
+    "state": "proposals",
+    "kind": "이동",
+    "effect": "클릭한 제안을 state.quote에 설정하고 제안 ID·버전 읽음 기록 저장 → quote"
+  },
+  "action:new-trip": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "현재 화면에서 날짜 선택 모달 열기 → 시작·종료일(최대 7일) → 이름·인원 → 여행 생성 시 trips?view=detail&id=새ID"
+  },
+  "action:recommendation-retry": {
+    "target": "home",
+    "state": "ready",
+    "kind": "화면 내 변경",
+    "effect": "같은 검색어 재조회: loading → ready/empty/error; API 연결 여부에 따라 달라짐"
+  },
+  "action:save-recommendation": {
+    "target": "home",
+    "state": "saved-results",
+    "kind": "화면 내 변경",
+    "effect": "회원은 선택 장소를 library에 중복 없이 저장; 현재 일정은 유지. 비회원은 가입 안내 후 저장 재개"
+  },
+  "action:focus-place": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "선택 장소의 지도·카드 포커스 갱신; API 연결 시 미연결 장소는 manual에서 위치 확인"
+  },
+  "action:filter": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "state.filter 변경; 선택 목록과 저장 데이터 유지"
+  },
+  "action:resolve-place": {
+    "target": "manual",
+    "state": "examples",
+    "kind": "이동",
+    "effect": "장소 이름을 검색어로 전달 → manual?resolve=장소ID; 여행에서 진입 시 from=trips 유지"
+  },
+  "action:correct": {
+    "target": "manual",
+    "state": "examples",
+    "kind": "이동",
+    "effect": "manual?resolve=장소ID로 이동해 Google 장소 연결; 여행 편집에서 진입하면 여행 맥락 유지"
+  },
+  "action:save-places": {
+    "target": "board",
+    "state": "saved",
+    "kind": "이동",
+    "effect": "선택 장소를 library에 추가 후 board; API 연결 시 미연결 장소는 먼저 manual에서 확인"
+  },
+  "action:place-picker-tab": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "검색 결과/저장한 장소 탭 전환; 현재 검색 결과 선택 초기화"
+  },
+  "action:must": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "state.must에 장소 ID 추가/제거; 필수 방문 지정 토글"
+  },
+  "action:remove": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "board에서는 보관함에서 삭제; planner에서는 선택 날짜 일정·필수 방문에서 삭제하고 미저장 처리"
+  },
+  "action:edit": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "외부 예약 정보 입력 모달; 제공처·날짜·시간·링크·메모 저장 후 현재 화면 갱신. 실제 예약 생성 없음"
+  },
+  "action:options": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "예약 서비스 선택 모달; 제공처 링크는 외부 사이트, 이미 예약한 정보 추가는 기록 입력 모달"
+  },
+  "action:day": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "현재 날짜 편집 내용을 저장한 뒤 선택 날짜로 전환"
+  },
+  "action:add-day": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "마지막 날짜 다음 날을 추가하고 새 날짜 선택; 최대 7일이면 비활성"
+  },
+  "action:save-trip": {
+    "target": "trips",
+    "state": "saved",
+    "kind": "화면 내 변경",
+    "effect": "전체 날짜 일정 로컬 저장; saved=true, 저장 완료 버튼 비활성",
+    "destination": "#trips?view=detail"
+  },
+  "action:move": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "선택 날짜 안에서 장소 순서 변경; 경계 방향은 비활성; saved=false"
+  },
+  "action:move-day": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "다른 날짜 선택 모달 → 장소 이동. 대상 날짜 20곳 초과는 차단; 현재 날짜에서 제거 후 저장"
+  },
+  "action:copy": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "공유 텍스트를 클립보드에 복사; 실패 시 텍스트 선택. 데이터 변경 없음"
+  },
+  "action:open-trip": {
+    "target": "trips",
+    "state": "detail",
+    "kind": "이동",
+    "effect": "클릭한 여행 ID의 날짜·장소·메모 복원 → trips?view=detail&id=해당ID"
+  },
+  "action:edit-trip": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "여행 이름·날짜·인원 편집 모달 → 검증 후 저장·현재 화면 갱신"
+  },
+  "action:trip-add-menu": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "장소 추가/메모 추가 메뉴 → 저장 장소 선택 또는 메모 입력; 장소 검색은 manual?from=trips"
+  },
+  "action:edit-profile": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "프로필 편집 모달. 닉네임 중복 확인·사진 검증 후 저장; 성공 시 닫고 마이 갱신"
+  },
+  "action:my-proposals": {
+    "target": "guides",
+    "state": "proposals",
+    "kind": "이동",
+    "effect": "guidesTab=requests 설정 → guides의 도착한 제안 탭"
+  },
+  "action:rate": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "선택 점수 state.rating=1~5; 아직 후기 저장 전"
+  },
+  "action:availability": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "날짜별 활동 불가 설정을 토글. 요청 전체 기간 검사. 기존 예약 유지."
+  },
+  "action:notification-filter": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "all/trip/guide 필터만 전환; 알림의 읽음 상태는 유지"
+  },
+  "action:notifications-read-all": {
+    "target": "notifications",
+    "state": "read",
+    "kind": "화면 내 변경",
+    "effect": "현재 생성된 알림 ID 모두 읽음 기록 후 화면 갱신"
+  },
+  "action:notification-open": {
+    "target": null,
+    "state": null,
+    "kind": "조건 분기",
+    "effect": "클릭한 알림 ID를 읽음 처리 후 해당 알림의 실제 href로 이동"
+  },
+  "action:export-data": {
+    "target": null,
+    "state": null,
+    "kind": "외부",
+    "effect": "현재 시연 데이터를 JSON 파일로 다운로드; 저장 데이터 유지"
+  },
+  "action:reset": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "삭제 확인 모달. 확인 시 앱 저장키·공유 닉네임 삭제, 초기 예시 데이터로 재설정 후 home. 데이터 유지 버튼은 닫기만 수행"
+  },
+  "action:signup-provider": {
+    "target": "home",
+    "state": "guest",
+    "kind": "조건 분기",
+    "effect": "시연 회원 세션 설정 → 보류한 저장/견적 작업이 있으면 재개; 없으면 현재 모드 홈. 실제 소셜 인증 없음"
+  },
+  "action:browse-guest": {
+    "target": "home",
+    "state": "guest",
+    "kind": "이동",
+    "effect": "체험 회원 세션 해제 → home 비회원 탐색"
+  },
+  "action:signup-edit-email": {
+    "target": "signup-email",
+    "state": "address",
+    "kind": "화면 내 변경",
+    "effect": "code → address 단계; 가입/로그인 모드는 유지"
+  },
+  "action:reject-place": {
+    "target": "admin-places",
+    "state": "rejected",
+    "kind": "화면 내 변경",
+    "effect": "rejected=true, verified=false, 반려 사유 기록; 장소 목록 갱신"
+  },
+  "action:resolve-ticket": {
+    "target": "admin-support",
+    "state": "resolved",
+    "kind": "화면 내 변경",
+    "effect": "클릭한 ticket.status=open → resolved; 처리 버튼 제거"
+  },
+  "action:guide-needs-info": {
+    "target": "admin-guides",
+    "state": "needs_info",
+    "kind": "화면 내 변경",
+    "effect": "guideApproved=false, adminReview=needs_info; 준이 선택돼 있으면 미나로 변경"
+  },
+  "action:confirm-cash-cancel": {
+    "target": "admin-bookings",
+    "state": "cancelled",
+    "kind": "화면 내 변경",
+    "effect": "운영 화면에서 cancellation_requested일 때 booking·request를 cancelled로 갱신; 현금 자동 환불 없음"
+  },
+  "form:extract-form": {
+    "target": "processing",
+    "state": "loading",
+    "kind": "제출",
+    "effect": "유효한 Shorts/Reels HTTPS 링크면 extraction=processing → processing; 시연 약 1.4초 뒤 partial → results. 잘못된 URL은 이동 없이 오류"
+  },
+  "form:discover-search-form": {
+    "target": "home",
+    "state": "ready",
+    "kind": "제출",
+    "effect": "검색어로 장소 조회; loading → ready/empty/error. 요청 실패 시 재시도"
+  },
+  "form:place-search-form": {
+    "target": "manual",
+    "state": "examples",
+    "kind": "제출",
+    "effect": "검색어로 장소 조회 후 현재 화면에 결과 표시; 결과 선택 → 상세 확인 → 저장/일정 추가"
+  },
+  "form:support-form": {
+    "target": "support",
+    "state": "form",
+    "kind": "제출",
+    "effect": "10~1,000자 문의 입력 → 로컬 저장 → 일시적 토스트와 빈 양식. 사용자 저장됨·처리 완료 화면 없음. 실제 서버·Slack 전송은 개발 예정"
+  },
+  "form:request-form": {
+    "target": "requested",
+    "state": "waiting",
+    "kind": "제출",
+    "effect": "필수 입력·동의·출발 48시간 이후 검증 → request=requested, 이전 제안·예약·후기 초기화 → requested; 오류는 현재 화면"
+  },
+  "form:checkout-form": {
+    "target": "booking",
+    "state": "fee",
+    "kind": "제출",
+    "effect": "유효 제안·이름·이메일·동의 확인 → booking=awaiting_mate_fee, request=matching, 대화방 생성 → booking; 기존 예약은 중복 생성 안 함"
+  },
+  "form:chat-form": {
+    "target": "chat",
+    "state": "active",
+    "kind": "제출",
+    "effect": "열린 대화의 1~1,000자 메시지 로컬 저장; 상대 모드 안 읽음 증가. 취소·기간 종료 시 전송 불가"
+  },
+  "form:cancel-form": {
+    "target": "booking",
+    "state": "cancel",
+    "kind": "제출",
+    "effect": "확정 전: booking=cancelled, feeStatus=void, request=withdrawn. 확정 후: booking=cancellation_requested. 사유·동의 확인 후 booking으로 이동"
+  },
+  "form:review-form": {
+    "target": "booking",
+    "state": "reviewed",
+    "kind": "제출",
+    "effect": "완료된 예약·미작성 후기만 허용; 별점과 본문 검증 후 후기 저장 → booking. 별점 누락은 오류, 중복 저장 차단"
+  },
+  "form:quote-form": {
+    "target": "guide-activity",
+    "state": "quote",
+    "kind": "제출",
+    "effect": "수락 가능·열린 요청에서 요금/시간/일정/사유 검증 → 작성 메이트의 제안 버전 갱신, request=quoted → guide-desk"
+  },
+  "form:mate-fee-form": {
+    "target": "guide-fee",
+    "state": "confirmed",
+    "kind": "제출",
+    "effect": "시연 성공: feeStatus=paid, booking=confirmed, request=booked → guide-earnings. 실패: feeStatus=failed, 미확정 유지, 현재 화면 오류·재시도"
+  },
+  "form:signup-email-form": {
+    "target": "signup-email",
+    "state": "code",
+    "kind": "제출",
+    "effect": "브라우저 이메일 형식 검증 후 address → code; 로그인 모드 유지. 실제 이메일 발송 없음"
+  },
+  "form:signup-code-form": {
+    "target": "home",
+    "state": "guest",
+    "kind": "제출",
+    "effect": "시연 코드 일치 → 회원 세션·보류 작업 재개 또는 모드 홈. 불일치 → 현재 화면 오류·코드 입력 포커스"
+  },
+  "form:verify-form": {
+    "target": "admin-guides",
+    "state": "approved",
+    "kind": "제출",
+    "effect": "세 시연 확인 체크 후 guideApproved=true, adminReview=approved; 현재 화면에서 공개 프로필 상태 갱신"
+  },
+  "action:chat-policy": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "우측 상단 안내 아이콘으로 채팅 이용 안내 열기; 닫기 또는 Escape로 복귀; 대화·예약 상태 유지"
+  },
+  "action:home-mate-start": {
+    "kind": "이동",
+    "target": "guides",
+    "state": "discover",
+    "effect": "제안받기 탭을 선택하고 메이트 제안 화면으로 이동. 요청·예약 데이터 유지."
+  },
+  "form:mate-form": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "입력 검증 후 다음 단계. 마지막 단계에서 pending으로 제출; 승인 전 활동 불가"
+  },
+  "form:mate-review-form": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "운영자가 확인 체크 후 pending 신청을 approved로 변경; 메이트 권한 부여"
+  },
+  "action:mate-back": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "저장된 이전 입력 단계로 이동"
+  },
+  "action:mate-review": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "사유 필수. pending 신청을 보완 요청 또는 거절 상태로 변경"
+  },
+  "action:board-video": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "현재 페이지에서 영상 링크 입력 → 예시 장소 선택 → 보관함 저장. 실제 영상 분석 미연결."
+  },
+  "action:trip-pick-places": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "현재 여행의 선택 날짜에 추가할 저장 장소 선택 창 열기. 추가 버튼을 누른 장소만 일정에 반영하며 보관함에는 유지."
+  },
+  "action:mate-region-open": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "임시 지역 선택 창 열기"
+  },
+  "action:mate-region-toggle": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "지역 복수 선택 또는 해제. 전체 선택과 개별 선택 조정"
+  },
+  "action:mate-region-done": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "선택 지역 저장 후 창 닫기"
+  },
+  "action:board-add": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "영상 링크 또는 장소 검색으로 저장 방법 선택; 기존 저장 장소·일정 유지"
+  },
+  "action:board-search": {
+    "target": "manual",
+    "state": null,
+    "kind": "이동",
+    "effect": "추가 메뉴를 닫고 장소 검색으로 이동"
+  },
+  "action:library-filter": {
+    "target": "board",
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "전체 또는 꼭 가볼 곳만 표시; 저장 장소·일정 유지"
+  },
+  "action:close": {
+    "target": null,
+    "state": null,
+    "kind": "모달 닫기",
+    "effect": "현재 모달 닫기; 저장 데이터 유지"
+  },
+  "action:mate-photo-remove": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "작성 중인 신청서의 프로필 사진을 삭제하고 현재 단계를 다시 표시한다."
+  },
+  "action:mate-cash": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "현금 전액 수령 확인 모달. 확인 후 cashStatus=collected; 예약 상태 유지."
+  },
+  "action:mate-complete": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "마지막 동행 종료 시각 이후 완료 확인 모달. 완료와 현금 수령 분리."
+  },
+  "action:reopen-matching": {
+    "kind": "상태 변경",
+    "target": "requested",
+    "state": null,
+    "effect": "확정 전 취소 예약 보존 후 다른 유효 제안 재선택."
+  },
+  "form:mate-cancel-form": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "확정 전 선택 해제 / 확정 후 취소 및 반환 검토."
+  },
+  "form:mate-progress-form": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "메이트 권한과 현재 상태 검사 후 현금 수령 또는 여행 완료 저장."
+  },
+  "action:quote-map-day": {
+    "kind": "화면 내 변경",
+    "target": null,
+    "state": null,
+    "effect": "요청 스냅샷의 날짜별 지도·일정 확인. 요청 일정은 변경하지 않고 입력 중 제안 금액·동의를 유지한다."
+  },
+  "action:quote-map-focus": {
+    "kind": "화면 내 변경",
+    "target": null,
+    "state": null,
+    "effect": "요청 장소 지도 핀 선택. 요청 장소를 수정하지 않고 입력 중 제안 금액·동의를 유지한다."
+  },
+  "action:check-mate-name": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "직접 입력한 활동 이름을 사용자 닉네임·메이트 활동 이름 통합 목록에서 검사하고 결과를 표시한다. 현재 동일 브라우저 시연 데이터 기준."
+  },
+  "action:user-safety": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "현재 대화 상대 신고·차단·해제 메뉴 표시"
+  },
+  "action:blocked-users": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "차단한 사용자 목록 및 해제 버튼 표시"
+  },
+  "action:mate-contact-support": {
+    "kind": "화면 이동",
+    "target": "support",
+    "state": null,
+    "effect": "작성 중인 메이트 신청서를 저장하고 문의 작성 화면으로 이동"
+  },
+  "action:refresh-safety": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "한국어·영어 로컬 저장소의 신고 및 현재 차단 목록을 다시 읽어 표시"
+  },
+  "action:trip-day-settings": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "선택 날짜와 시작 시간 수정 창. 유효한 변경은 즉시 자동 저장하며 다른 날짜는 유지."
+  },
+  "action:trip-stop-menu": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "선택 장소의 위·아래 이동과 일정에서 빼기 메뉴. 보관함 원본은 유지."
+  },
+  "action:save-result-place": {
+    "kind": "저장",
+    "target": null,
+    "state": null,
+    "effect": "해당 장소만 저장한 장소에 추가하고 결과 목록 유지. 위치 미확인 장소는 위치 확인으로 이동. 비회원은 가입 안내로 이동."
+  },
+  "action:request-trip": {
+    "kind": "이동",
+    "target": "request",
+    "state": null,
+    "destination": "#request?trip=여행ID",
+    "effect": "선택한 여행을 불러오고 요청 내용 작성 단계로 이동"
+  },
+  "action:mate-phone-send": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "6자리 인증 UI 시연. 실제 문자 발송 없음. 시연번호 123456, 3분 만료, 30초 재전송 제한."
+  },
+  "action:mate-phone-verify": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "시연번호 확인. 최대 5회 실패 제한. 번호 변경 시 인증 해제. 실제 서버 인증 아님."
+  },
+  "action:withdraw-account": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "회원 탈퇴 안내·필수 동의. 진행 중인 예약은 탈퇴 차단. 확인 후 한국어·영어 로컬 회원 정보 삭제 및 게스트 홈 이동."
+  },
+  "action:mate-edit-profile": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "메이트 프로필 편집 팝업에서 변경 후 저장. 취소하면 변경 폐기."
+  },
+  "action:mate-edit-activity": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "메이트 활동 정보 수정 팝업에서 변경 후 저장. 취소하면 변경 폐기."
+  }
+}

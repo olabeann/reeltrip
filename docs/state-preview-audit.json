@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-23",
+  "screens": 36,
+  "states": 144,
+  "browserChecks": {
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "cases": 288,
+    "blankScreens": 0,
+    "selectedStateMismatches": 0,
+    "frameURLMismatches": 0,
+    "horizontalContentOverflow": 0,
+    "resetAfterNavigation": "passed"
+  },
+  "iaChecks": {
+    "nodes": 36,
+    "stateLinks": 144,
+    "missingOrDuplicateScreens": 0,
+    "nodeDetailMismatches": 0,
+    "roleFilter": "passed",
+    "screenIdSearch": "passed",
+    "desktopAndMobileHorizontalOverflow": 0,
+    "statePreviewNavigation": "passed"
+  },
+  "fixes": [
+    "Closed requests no longer display a waiting-for-proposals message.",
+    "Selected proposals show a booking-progress guard instead of a missing-request message.",
+    "Frame interactions and route changes are identified outside the app.",
+    "Old frame content stays hidden until the requested document loads.",
+    "Reselecting and resetting always load a fresh isolated document.",
+    "Shared UI cases have explicit explanations; nine missing implemented states were added.",
+    "Content-hashed local scripts and styles prevent cached copy/app release mismatches.",
+    "Preview readiness requires rendered main content; empty frames are reported as load failures.",
+    "Sign-in chooser, email address and verification-code previews added."
+  ],
+  "scope": "Implemented prototype screen states with isolated local fixtures. Live authentication, payment, delivery and map services are not verified.",
+  "latestBrowserVerification": {
+    "cases": 288,
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "method": "Select every state through inline IA controls; require rendered main text and exact iframe document URL.",
+    "blankScreens": 0,
+    "frameURLMismatches": 0
+  }
+}
