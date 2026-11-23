@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-23",
+  "screens": 37,
+  "states": 146,
+  "rules": 454,
+  "method": {
+    "labelsAndLinks": "Actual KO/EN application scripts rendered for every registered fixture at a deterministic review clock; HTML controls parsed for exact label, href, source state, disabled state and common navigation.",
+    "actionEffects": "Reviewed application event handlers; conditional effects stored separately.",
+    "followupDialogs": "Reviewed modal templates and handlers; source marker checks; listed as follow-up rather than initial visible buttons."
+  },
+  "changes": [
+    "Replaced approximate button names with exact rendered Korean/English labels.",
+    "Corrected mate request card and notification targets using actual href.",
+    "Show only rules available for the selected state; flag disabled controls.",
+    "Added missing place, guest, navigation, disclosure and follow-up dialog controls.",
+    "Separate actual destination addresses from independent preview fixtures.",
+    "Generate screen count from current catalog."
+  ],
+  "knownLimitations": [
+    "Admin place edit currently navigates to a customer route blocked by role permissions; shown as implementation limitation.",
+    "API-dependent details and modal follow-up descriptions are source-reviewed; no live authentication/payment/provider transactions performed."
+  ],
+  "checks": [
+    "build_transition_catalog.py --check",
+    "ia_preview_checks.cjs",
+    "state_preview_checks.cjs",
+    "state_panel_checks.cjs",
+    "static_checks.py",
+    "startup_checks.cjs",
+    "navigation_checks.cjs",
+    "access_checks.cjs",
+    "google_map_checks.js",
+    "tower_seed_checks.cjs",
+    "matching_routes_checks.cjs"
+  ]
+}
