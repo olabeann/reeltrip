@@ -17,26 +17,22 @@
 .notification-document .notification-table{width:100%;border-collapse:collapse;font-size:14px}
 .notification-document .notification-table th,.notification-document .notification-table td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--preview-border);vertical-align:top}
 .notification-document .notification-table th{background:#f6f7f8}
-.notification-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 24px}.notification-message{min-width:0}.notification-document .notification-message h3{font-size:16px;margin:0 0 8px}.notification-message details{margin-top:12px;font-size:13px;overflow-wrap:anywhere}.notification-message summary{cursor:pointer}.notification-message details p{line-height:1.7}
+.notification-role-filter{margin:20px 0 12px}.notification-message-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}.notification-document .notification-intro{font-size:16px;line-height:1.7;margin:0 0 16px}.notification-document .notification-usage{font-size:14px;color:var(--rt-muted);line-height:1.7;margin:0 0 20px}.notification-document .notification-guide{margin:0 0 20px;font-size:14px;line-height:1.7}.notification-document summary{cursor:pointer}.notification-document summary:focus-visible{outline:3px solid var(--rt-primary);outline-offset:4px}.notification-document #notification-copy-panel>h2{font-size:24px;margin:0 0 8px}.notification-document #notification-role-count{margin:0 0 16px;font-size:14px}
 @media(max-width:720px){.notification-message-grid{grid-template-columns:minmax(0,1fr)}.notification-document .notification-layout{grid-template-columns:minmax(0,1fr)}.notification-document .notification-frame{max-width:430px;margin:auto;height:680px}.notification-document .notification-table th,.notification-document .notification-table td{padding:10px 6px}}
 </style>
 <div class="notification-document">
-<p>홈페이지에서 알림이 어떻게 쌓이고 보이는지 확인하는 문서입니다. 메시지별 제목·본문·날짜를 카드로 확인하고, 알림함 예시와 발송 기준을 함께 살펴보세요.</p>
+<p class="notification-intro">누가, 어떤 상황에서, 어떤 알림을 받는지 확인하세요.</p>
 <div class="notification-tabs" role="tablist" aria-label="알림 문서">
 <button id="notification-copy-tab" role="tab" aria-selected="true" aria-controls="notification-copy-panel" tabindex="0">메시지별 문구</button>
-<button id="notification-example-tab" role="tab" aria-selected="false" aria-controls="notification-example-panel" tabindex="-1">알림함 예시</button>
 <button id="notification-rules-tab" role="tab" aria-selected="false" aria-controls="notification-rules-panel" tabindex="-1">발송 기준</button>
 </div>
 <section id="notification-copy-panel" role="tabpanel" aria-labelledby="notification-copy-tab">
-<h2>알림 메시지 전체 문구</h2><p>상황과 수신자별 39개 메시지입니다. 파란 점·제목·본문·날짜 순서로 표시하며, 긴 본문도 생략 없이 확인할 수 있습니다.</p><p class="notification-meta">운영 구현용 문구 초안입니다. 날짜·이름·금액은 예시이며 실제 알림을 발송하지 않습니다. 이메일 전용·문의 기록·운영팀 메시지도 문구 확인용으로 같은 형태를 사용합니다. 화살표는 표현 예시이며 카드는 이동하지 않습니다. 이메일 발송 여부와 예외는 발송 기준을 따릅니다.</p>
+<h2>수신자별 알림</h2>
+<p class="notification-usage">카드에는 실제 목록처럼 2줄까지 표시합니다. 각 알림 아래에서 발송 시점과 수신 조건을 확인하세요. 문구는 한 벌만 사용합니다. 생략된 내용은 ‘문구 확인’에서 볼 수 있어요.</p>
+<p class="notification-usage"><strong>여행자·메이트 알림 12종.</strong> 선택·취소 등 본인이 한 행동과 단순 종료는 해당 화면에서 확인합니다. 서비스 알림은 알림함에 표시합니다. 현재 서버 알림·푸시는 미연결입니다.</p><p class="notification-usage">새 제안·예약 변경은 즉시 알림함에 기록합니다. 채팅은 미읽음 표시만 사용합니다.</p>
+<div class="ds-preview notification-role-filter"><div class="rt-filter-chips" role="group" aria-label="알림 수신자"><button type="button" class="rt-filter-chip" data-recipient-filter="traveler" aria-pressed="true">여행자</button><button type="button" class="rt-filter-chip" data-recipient-filter="mate" aria-pressed="false">메이트</button><button type="button" class="rt-filter-chip" data-recipient-filter="all" aria-pressed="false">전체</button></div></div>
+<p id="notification-role-count" class="notification-meta" role="status" aria-live="polite"></p>
 <!-- notification-message-catalog -->
-</section>
-<section hidden id="notification-example-panel" role="tabpanel" aria-labelledby="notification-example-tab">
-<div class="notification-toolbar"><label for="notification-scenario">알림함 상태</label><select id="notification-scenario"><option value="mixed">읽은 알림과 새 알림</option><option value="unread">새 제안 도착</option><option value="read">읽은 알림</option><option value="empty">알림 없음</option></select></div>
-<div class="notification-layout">
-<iframe class="notification-frame" id="notification-example-frame" title="홈페이지 알림함 예시" src="../src/frontend/preview.html?screen=notifications&amp;state=mixed#notifications"></iframe>
-<aside class="notification-notes"><h3>실제 알림함처럼 확인하세요</h3><p>제안 도착, 예약 확정, 여행 완료와 취소 알림이 최신순으로 표시됩니다. 각 알림에서 제목·여행 정보·날짜를 함께 확인할 수 있습니다.</p><ul><li>파란 점은 읽지 않은 알림입니다.</li><li>읽은 알림도 목록에 남습니다.</li><li>알림을 누르면 읽음 처리 후 관련 화면으로 이동합니다.</li></ul><p>다른 상태를 선택하면 해당 예시를 새로 불러옵니다. 알림을 누른 뒤에는 아래 링크로 목록으로 돌아올 수 있습니다.</p><p><a id="notification-reset" href="../src/frontend/preview.html?screen=notifications&amp;state=mixed#notifications" target="notification-preview">알림함 예시 다시 보기</a></p><p class="notification-meta">여행자 화면의 예시 데이터입니다. 이전 여행 알림은 당시 예약을 재현하지 않고 현재 예시 화면으로 연결합니다. 기존 회원 데이터와 분리되며 실제 알림·이메일을 발송하지 않습니다.</p><p><a href="notification-policy.md">전체 알림 정책 원문</a> · <a href="mvp-policy.html">홈페이지 MVP 정책</a></p></aside>
-</div>
 </section>
 <section id="notification-rules-panel" role="tabpanel" aria-labelledby="notification-rules-tab" hidden tabindex="0">
 <!-- notification-policy-content -->
@@ -44,11 +40,13 @@
 </div>
 <script>
 (()=>{
+ const filters=[...document.querySelectorAll('[data-recipient-filter]')],cards=[...document.querySelectorAll('.notification-message')];
+ const names={traveler:'여행자',mate:'메이트',all:'전체'};
+ function filterRecipient(role){let count=0;for(const card of cards){const visible=role==='all'||card.dataset.recipients.split(' ').includes(role);card.hidden=!visible;if(visible)count++;}for(const button of filters)button.setAttribute('aria-pressed',String(button.dataset.recipientFilter===role));document.getElementById('notification-role-count').textContent=names[role]+' 알림 '+count+'개';}
+ for(const button of filters){const role=button.dataset.recipientFilter;const count=cards.filter(card=>role==='all'||card.dataset.recipients.split(' ').includes(role)).length;button.textContent=names[role]+' '+count;button.addEventListener('click',()=>filterRecipient(role));}
+ filterRecipient('traveler');
  const tabs=[...document.querySelectorAll('.notification-tabs [role=tab]')];
  function selectTab(tab){for(const item of tabs){const selected=item===tab;item.setAttribute('aria-selected',String(selected));item.tabIndex=selected?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;}}
  tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>selectTab(tab));tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();selectTab(tabs[next]);tabs[next].focus();});});
- const frame=document.getElementById('notification-example-frame'),selector=document.getElementById('notification-scenario'),reset=document.getElementById('notification-reset');
- frame.name='notification-preview';
- selector.addEventListener('change',()=>{const url='../src/frontend/preview.html?screen=notifications&state='+encodeURIComponent(selector.value)+'#notifications';frame.src=url;reset.href=url;});
 })();
 </script>
