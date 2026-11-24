@@ -92,7 +92,7 @@ for(const lang of ['ko','en']){
  a.state.library=a.state.library.filter(id=>id!=='food');c.location.hash='#results';
  const individual={dataset:{action:'save-result-place',id:'food'}};
  assert(a.results().includes('data-action="save-result-place"'));
- assert(!a.results().includes('bottomaction'));assert(!a.results().includes('map-workspace'));
+ assert(!a.results().includes('bottomaction'));assert(a.results().includes('map-workspace'));assert(!a.results().includes('class="map-selected"'));assert.deepEqual(plain(a.getMapPlaces()).map(p=>p.id),plain(a.state.places).filter(p=>!p.recommended).map(p=>p.id));
  c.handlers.click({target:{closest:s=>s==='[data-action]'?individual:null},preventDefault(){}});
  assert(a.state.library.includes('food'));assert.equal(c.location.hash,'#results');
  assert.deepEqual([...a.state.board],board);assert.deepEqual(plain(a.state.days),before);
@@ -133,16 +133,21 @@ for(const lang of ['ko','en']){
  assert.equal(a.proposals().length,2);assert.equal(a.state.quote.pricing.hours,8);assert(!a.guideQuote().includes('id="quote-form"'));assert(!a.makeQuote(480000,'Changed itinerary',undefined,undefined,'mina'));assert.equal(a.state.quote.endDate,r.endDate);assert.equal(a.state.quote.dayCount,2);
  const room=a.ensureConversation(a.state.quote);assert.equal(room.endDate,r.endDate);
  assert(a.requestBooking('Traveler','guest@example.com'));assert.equal(a.state.booking.endDate,r.endDate);assert.equal(a.state.booking.requestType,'free');assert.equal(a.state.booking.feeAmount,42000);assert(a.booking().includes(r.endDate));
+ // Reopening a selected proposal leads directly to its booking, never another mate's fee.
+ assert(a.guideQuote().includes('href="#guide-desk"'));assert(!a.guideQuote().includes('href="#guide-fee"'));
+ const selectedGuide=a.state.booking.guideId;a.state.booking.guideId='mina';
+ assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'수수료 확인하고 결제하기':'Review fee & pay'));
+ a.state.booking.status='confirmed';assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'예약 보기':'View booking'));
+ a.state.booking.status='awaiting_mate_fee';a.state.booking.guideId=selectedGuide;
  // Exercise real submit handlers without re-seeding between matching stages.
  const submit=(id,values)=>{const form=new c.HTMLFormElement();Object.assign(form,{id,values});c.handlers.submit({target:form,preventDefault(){}});};
- const chosen=a.state.quote;a.state.quote=a.state.proposals.find(q=>q.guideId!==chosen.guideId);assert(a.quote().includes(lang==='ko'?'선택하지 않은 제안':'Proposal not selected'));a.state.quote=chosen;
+ const chosen=a.state.quote;a.state.quote=a.state.proposals.find(q=>q.guideId!==chosen.guideId);assert(a.quote().includes('href="#booking"'));assert(!a.quote().includes('href="#checkout"'));a.state.quote=chosen;
  const agreed=plain(a.state.booking);c.window.ReelAccess.mode=()=> 'guide';
  assert(!a.confirmMateFee('failure'));assert.equal(a.state.booking.status,'awaiting_mate_fee');assert.equal(a.state.booking.feeStatus,'failed');
  submit('mate-fee-form',{terms:'on',outcome:'success'});assert.equal(c.location.hash,'guide-fee');assert.equal(a.state.booking.status,'confirmed');assert.equal(a.state.request.status,'booked');assert.equal(a.state.booking.feeAmount,agreed.feeAmount);
  assert(!a.confirmMateFee('success'),'must not charge confirmed booking twice');
  c.window.ReelAccess.mode=()=> 'customer';
- submit('cancel-form',{terms:'on',reason:'Change of travel plans'});assert.equal(c.location.hash,'booking');assert.equal(a.state.booking.status,'cancellation_requested');assert.equal(a.state.booking.cancelReason,'Change of travel plans');
- c.window.ReelAccess.isAdmin=true;c.handlers.click({preventDefault(){},target:{closest:selector=>selector==='[data-action]'?{dataset:{action:'confirm-cash-cancel'}}:null}});assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,'cancelled');c.window.ReelAccess.isAdmin=false;
+ submit('cancel-form',{terms:'on',reason:'Change of travel plans'});assert.equal(c.location.hash,'booking');assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,'cancelled');assert.equal(a.state.booking.cancelReason,'Change of travel plans');
  // Pending requests cancel immediately without recording a paid fee.
  a.state.booking={...agreed};a.state.request.status='matching';submit('cancel-form',{terms:'on',reason:'Changed plans'});assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.booking.feeStatus,'void');assert.equal(a.state.request.status,'withdrawn');
  // Completed bookings keep chat and details but no review UI or submission.
@@ -214,9 +219,9 @@ for(const lang of ['ko','en']){
  const selected=a.state.booking.guideId;
  a.state.booking.feeDeadline=Date.now()-1;
  c.window.ReelAccess.mode=()=> 'guide';assert(!a.confirmMateFee('success'));
- assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.booking.feeStatus,'void');
- assert(!a.reopenMatching(),'Only traveler can reselect');
- c.window.ReelAccess.mode=()=> 'customer';assert(a.reopenMatching());
+ assert.equal(a.state.bookingHistory.at(-1).status,'cancelled');assert.equal(a.state.bookingHistory.at(-1).feeStatus,'void');
+ assert(!a.reopenMatching(),'Already automatically reopened');
+ c.window.ReelAccess.mode=()=> 'customer';
  assert.equal(a.state.booking,null);assert.equal(a.state.bookingHistory.length,1);
  assert.equal(a.state.request.status,'quoted');
  const alternative=a.proposals().find(q=>q.guideId!==selected);
@@ -245,8 +250,7 @@ for(const lang of ['ko','en']){
  const submit=(id,values)=>{const form=new c.HTMLFormElement();Object.assign(form,{id,values});c.handlers.submit({target:form,preventDefault(){}});};
  submit('mate-progress-form',{kind:'mate-complete',ack:'on'});assert.equal(a.state.booking.status,'confirmed','Cannot complete a future trip');
  submit('mate-progress-form',{kind:'mate-cash',ack:'on'});assert.equal(a.state.booking.cashStatus,'collected');assert.equal(a.state.booking.status,'confirmed');
- submit('mate-cancel-form',{reason:'Cannot attend'});assert.equal(a.state.booking.status,'cancellation_requested');assert.equal(a.state.booking.refundStatus,'review');assert.equal(a.state.booking.feeStatus,'paid');
- c.window.ReelAccess.isAdmin=true;c.handlers.click({preventDefault(){},target:{closest:selector=>selector==='[data-action]'?{dataset:{action:'confirm-cash-cancel'}}:null}});
+ submit('mate-cancel-form',{reason:'Cannot attend'});assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,'cancelled');assert.equal(a.state.booking.refundStatus,'review');assert.equal(a.state.booking.feeStatus,'paid');
  assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.booking.refundStatus,'review');assert.equal(a.state.booking.feeStatus,'paid');
  const reload=setup(lang,c.storage);assert.equal(reload.api.state.bookingHistory.length,1);assert.equal(reload.api.state.booking.refundStatus,'review');
  console.log('PASS '+lang+': expiry, alternative selection, date availability, activity navigation, cash collection and refund separation.');

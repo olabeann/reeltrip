@@ -2,11 +2,20 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 function setup(lang,admin=false,store=new Map()){
  const ctx={sessionStorage:{getItem:()=> 'yes'},URLSearchParams,Event:class{},location:{search:'',hash:'#mate-register'},document:{documentElement:{lang},body:{dataset:{surface:admin?'admin':''},classList:{add(){}}},addEventListener(){}},window:{addEventListener(){},dispatchEvent(){}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},setTimeout,clearTimeout};vm.createContext(ctx);
  for(const f of ['nickname-bases','signup-copy','access','catalog'+(lang==='en'?'.en':'')])vm.runInContext(fs.readFileSync(__dirname+'/../../src/assets/'+f+'.js','utf8'),ctx);
- const code=fs.readFileSync(__dirname+'/../../src/assets/app'+(lang==='en'?'.en':'')+'.js','utf8').split('window.ReelBookingTools.init(')[0];vm.runInContext(code+'globalThis.m={mateNameProblem,readNicknameDirectory,nicknameProblem,account,mateApplication,saveMate,validMate,reviewMate,mateRegistration,mateAdmin,validMateRegions,mateRegionText,mateDistricts,mateRegionSheet,toggleMateRegion,setRegionDraft:(city,regions)=>{mateRegionCity=city;mateRegionDraft=regions;},getRegionDraft:()=>mateRegionDraft,matePublicPreview,captureMate,readMatePhoto};})();',ctx);return ctx;
+ const code=fs.readFileSync(__dirname+'/../../src/assets/app'+(lang==='en'?'.en':'')+'.js','utf8').split('window.ReelBookingTools.init(')[0];vm.runInContext(code+'globalThis.m={mateNameProblem,readNicknameDirectory,nicknameProblem,account,mateApplication,saveMate,validMate,reviewMate,mateRegistration,mateAdmin,validMateRegions,mateRegionText,mateDistricts,mateRegionSheet,toggleMateRegion,setRegionDraft:(city,regions)=>{mateRegionCity=city;mateRegionDraft=regions;},getRegionDraft:()=>mateRegionDraft,matePublicProfile,guidePage,matePublicPreview,captureMate,readMatePhoto};})();',ctx);return ctx;
 }
 for(const lang of ['ko','en']){
  const store=new Map(),app=setup(lang,false,store),ops=setup(lang,true,store);
  const dialog={innerHTML:''};app.document.querySelector=()=>dialog;
+ for(const status of ['draft','pending','approved','needs_info','rejected']){
+  app.m.saveMate({status,step:4,fields:{}});
+  const page=app.m.account();
+  assert.equal(page.includes('data-access-mode="guide"'),status==='approved');
+  assert(page.includes(status==='approved'?'href="#guide-desk"':'href="#mate-register"'));
+  if(lang==='en')assert(!/[가-힣]/.test(page));
+ }
+ store.delete('reeltrip-mate-application-v1');app.window.ReelAccess.reset();
+
  store.set('reeltrip-prototype-nicknames-v1',JSON.stringify({takenuser:'traveler-other',myuser:'traveler-demo'}));
  assert(app.m.mateNameProblem('Taken User'));assert(app.m.mateNameProblem('ＭＹＵＳＥＲ'));assert.equal(app.m.mateNameProblem('Fresh Mate'),'');
  app.m.saveMate({status:'draft',fields:{name:'Fresh Mate'}});
@@ -58,6 +67,13 @@ for(const lang of ['ko','en']){
  assert(app.m.validMate({...a,fields:{...a.fields,specialty:undefined}}));
  const publicInfo=app.m.matePublicPreview({...a,fields:{...a.fields,localContext:'Local for 3 years',pace:'Slow walks',help:'Menu help'}});
  assert(publicInfo.includes('Local for 3 years'));assert(publicInfo.includes('Slow walks'));assert(!publicInfo.includes(a.fields.contact));assert(!publicInfo.includes(a.fields.experience));
+ const publicFields={...multi.fields,name:'Local <Mate>',bio:'Custom introduction\nSecond line',photo:'data:image/png;base64,TEST',contact:'010-9999-0000',specialty:2};
+ const profile=app.m.matePublicProfile(publicFields);
+ for(const value of ['Local &lt;Mate&gt;','Custom introduction\nSecond line','data:image/png;base64,TEST',app.m.mateRegionText(publicFields.regions)])assert(profile.includes(value));
+ assert(!profile.includes(publicFields.contact));assert(!profile.includes(lang==='ko'?'활동 분야':'Specialty'));
+ assert(app.m.matePublicPreview({fields:publicFields}).includes(profile));
+ app.m.saveMate({status:'approved',fields:publicFields});app.location.hash='#guide?mate=self';assert(app.m.guidePage().includes(app.m.matePublicProfile(publicFields,true)));
+ app.m.saveMate({status:'pending',fields:publicFields});assert(!app.m.guidePage().includes(publicFields.photo));app.location.hash='#mate-register';
  assert.equal(app.m.captureMate({elements:[{name:'photo',type:'file',value:'fakepath'}]},{fields:{photo:'retained'}}).fields.photo,'retained');
  const error={textContent:''};app.document.querySelector=()=>error;
  app.m.readMatePhoto({files:[{type:'image/svg+xml',size:100}],value:'bad'});assert(error.textContent);

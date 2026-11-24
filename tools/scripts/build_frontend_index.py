@@ -108,7 +108,7 @@ short_names = {'guide-activity':'내 활동',
  'home':'홈 · 메이트와 함께하는 여행','processing':'영상 분석','results':'장소 선택','manual':'장소 검색',
  'trips':'내 여행','board':'저장한 장소',
  'guides':'메이트 탭','guide':'메이트 프로필','request':'여행 요청','requested':'도착한 제안','quote':'제안 상세',
- 'checkout':'메이트 선택','booking':'예약 상세','cancel':'취소 요청','review':'후기 작성',
+ 'checkout':'메이트 선택','booking':'예약 상세','cancel':'예약 취소','review':'후기 작성',
  'messages':'채팅 목록','chat':'대화방','account':'마이','upcoming':'예정된 일정','settings':'설정','notifications':'알림','support':'도움말·문의','policies':'이용 안내',
  'signup':'회원가입','signup-email':'이메일 가입','guide-desk':'여행 찾기','guide-activity':'내 활동','guide-quote':'제안 작성','guide-calendar':'일정',
  'mate-register':'메이트 등록','guide-fee':'수수료 결제','guide-earnings':'수수료 내역','admin':'운영 대시보드','admin-places':'장소 검수','admin-support':'문의 관리','admin-guides':'메이트 심사','admin-bookings':'예약·취소 관리'
@@ -146,11 +146,13 @@ def render_node(route, entries, role):
         prefix='<p class="ia-unlinked">앱 내 진입 버튼 없음 · 검토용 직접 접근</p>'
     else:
         prefix='<div class="ia-entry-label">'+('운영 진입' if screen['role']=='admin' else '하단 탭')+'</div>'
-    prefix='<span class="ia-unlinked">진입 미연결</span>' if route=='guide' else ''
+    prefix='<span class="ia-unlinked">진입 미연결</span>' if route=='guide' and not edge else ''
     count=len(mode_states(route, role))
     assert count, (route, role)
     key=node_id(route, role)
     out=f'<li class="ia-tree-item {edge["relation"] if edge else "root"}" data-parent="{edge["parent"] if edge else ""}">{prefix}<a class="ia-node" id="ia-{key}" href="#ia-{key}" data-route="{route}" data-role="{role}" aria-label="{screen["id"]} {html.escape(screen["name"])} · {count}개 상태"><span class="node-id">{screen["id"]}</span><strong>{short_names[route]}</strong><span class="state-count" title="확인할 수 있는 상태 {count}개">{count}</span></a>'
+    if route=='signup-email':
+        out+='<div class="shared-links"><a href="../emails/index.html?lang=ko" target="_blank" rel="noopener" aria-label="인증번호 메일 HTML 미리보기 (새 탭)">인증번호 메일 HTML ↗</a></div>'
     children=[r for r,e in entries.items() if e['parent']==route]
     if children:out+='<ul class="ia-children">'+''.join(render_node(r,entries,role) for r in children)+'</ul>'
     return out+'</li>'
@@ -204,10 +206,11 @@ index_markup=index_markup.replace('</p></div></div>\n<aside', '</p></div>'+detai
 (OUT / 'index.html').write_text(index_markup.replace('SCREEN_TOTAL',str(len(SCREENS))).replace('STATE_TOTAL',str(state_total)).replace('BRANCHES',branches).replace('JOURNEYS',journey_markup))
 
 # Version every local script/style together so cached copies cannot mix releases.
-for name in ('index.html', 'states.html', 'preview.html', 'preview-en.html', 'preview-admin.html', 'preview-admin-en.html'):
-    entry = OUT / name
+entries = [OUT / name for name in ('index.html', 'states.html', 'preview.html', 'preview-en.html', 'preview-admin.html', 'preview-admin-en.html')]
+entries += [ROOT / 'src' / surface / name for surface in ('app', 'admin') for name in ('index.html', 'english.html')]
+for entry in entries:
     def version_asset(match):
-        asset = (OUT / match.group(2)).resolve()
+        asset = (entry.parent / match.group(2)).resolve()
         if not asset.is_file():
             raise FileNotFoundError(asset)
         digest = hashlib.sha256(asset.read_bytes()).hexdigest()[:12]

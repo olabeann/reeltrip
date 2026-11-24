@@ -45,7 +45,7 @@ assert.equal(visible()[0].id,'spec-B-04');
 controls['#spec-search'].value='no-such-screen'; controls['#spec-search'].fire('input');
 assert.equal(visible().length,0); assert.equal(controls['.spec-empty'].hidden,false);
 controls['[data-clear-search]'].fire('click');
-assert.equal(links.filter(l=>!l.hidden).length,36);
+assert.equal(links.filter(l=>!l.hidden).length,catalog.length);
 controls['#spec-role'].value='guide'; controls['#spec-role'].fire('change');
 assert.equal(links.filter(l=>!l.hidden).length,catalog.filter(s=>s.role==='guide').length);
 assert.equal(visible()[0].dataset.role,'guide');
@@ -67,5 +67,5 @@ location.hash='#does-not-exist'; events.hashchange(); assert.equal(visible().len
   for (const screen of screens) assert(html.includes(`id="${screen.id}"`),`${file}: ${screen.id}`);
   assert(!/class="screen-spec"[^>]*\shidden/.test(html),'No-JS readers must retain all content');
  }
- console.log('PASS: 36 screen anchors, direct links, normalized search, role filter, empty/reset, selection, hash navigation, clipboard success/fallback, no-JS content. Browser layout not tested.');
+ console.log('PASS: catalog screen anchors, direct links, normalized search, role filter, empty/reset, selection, hash navigation, clipboard success/fallback, no-JS content. Browser layout not tested.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

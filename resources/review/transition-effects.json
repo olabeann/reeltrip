@@ -246,12 +246,6 @@
     "kind": "화면 내 변경",
     "effect": "guideApproved=false, adminReview=needs_info; 준이 선택돼 있으면 미나로 변경"
   },
-  "action:confirm-cash-cancel": {
-    "target": "admin-bookings",
-    "state": "cancelled",
-    "kind": "화면 내 변경",
-    "effect": "운영 화면에서 cancellation_requested일 때 booking·request를 cancelled로 갱신; 현금 자동 환불 없음"
-  },
   "form:extract-form": {
     "target": "processing",
     "state": "loading",
@@ -296,9 +290,9 @@
   },
   "form:cancel-form": {
     "target": "booking",
-    "state": "cancel",
+    "state": "cancelled",
     "kind": "제출",
-    "effect": "확정 전: booking=cancelled, feeStatus=void, request=withdrawn. 확정 후: booking=cancellation_requested. 사유·동의 확인 후 booking으로 이동"
+    "effect": "확정 전: booking=cancelled, feeStatus=void, request=withdrawn. 확정 후: booking·request=cancelled, refundStatus=review. 예약은 즉시 취소 완료; 수수료 반환은 별도 검토."
   },
   "form:review-form": {
     "target": "booking",
@@ -453,8 +447,8 @@
   "form:mate-cancel-form": {
     "kind": "상태 변경",
     "target": null,
-    "state": null,
-    "effect": "확정 전 선택 해제 / 확정 후 취소 및 반환 검토."
+    "state": "cancelled",
+    "effect": "확정 전: booking=cancelled, feeStatus=void, request=withdrawn. 확정 후: booking·request=cancelled, refundStatus=review. 예약은 즉시 취소 완료; 수수료 반환은 별도 검토."
   },
   "form:mate-progress-form": {
     "kind": "상태 변경",
@@ -558,5 +552,11 @@
     "target": null,
     "state": null,
     "effect": "메이트 활동 정보 수정 팝업에서 변경 후 저장. 취소하면 변경 폐기."
+  },
+  "action:mate-preview-profile": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "승인된 메이트의 현재 등록 사진·활동 이름·지역·언어·자기소개로 공개 프로필 표시. 연락처·심사 정보 비공개."
   }
 }

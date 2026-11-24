@@ -55,7 +55,7 @@ for(const lang of ['ko','en']){
   assert(!rendered.includes('href="#review"'));
   assert.equal(rendered.includes('rt-booking-actions'),['awaiting_mate_fee','confirmed'].includes(status));
   if(lang==='ko'&&status==='confirmed'){
-   assert(rendered.includes('예약 일정')&&rendered.includes('취소 요청'));
+   assert(rendered.includes('예약 일정')&&rendered.includes('예약 취소'));
    assert(!rendered.includes('요청한 일정')&&!rendered.includes('예약 요청 철회'));
   }
   if(lang==='ko'&&status==='awaiting_mate_fee'){
@@ -121,7 +121,7 @@ for(const lang of ['ko','en']){
  assert(!c.nav.account().includes('class="my-current"'));
  c.nav.state.request={id:'NEW-REQUEST',status:'quoted',tripTitle:'New request',date:'2099-02-01'};
  c.nav.state.booking={id:'EXISTING-BOOKING',status:'confirmed',tripTitle:'Confirmed trip',guide:'Mina',date:'2099-01-01',time:'10:00'};
- for(const status of ['awaiting_mate_fee','confirmed','cancellation_requested','cancelled','completed']){
+ for(const status of ['awaiting_mate_fee','confirmed','cancelled','completed']){
   c.nav.state.booking.status=status;
   assert(!c.nav.account().includes('my-current'));
   assert(!c.nav.account().includes('href="#guide-earnings"'));

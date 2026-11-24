@@ -28,9 +28,15 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
   click('board-search');assert(!dialog.open);assert.equal(ctx.location.hash,'manual');ctx.location.hash='#board';
   click('board-video');assert(dialog.open);assert(dialog.innerHTML.includes('board-video-form'));assert.equal(ctx.location.hash,'#board');
   submit('board-video-form',{url:'https://example.com/video'});assert(error.textContent);assert(dialog.innerHTML.includes('board-video-form'));
-  submit('board-video-form',{url:'https://www.youtube.com/shorts/demo123'});assert(dialog.innerHTML.includes('board-video-save'));assert.equal(ctx.location.hash,'#board');
-  submit('board-video-save',{});assert(dialog.open,'Empty selection keeps the modal open');
-  submit('board-video-save',{},['forest']);assert(dialog.open,'Unknown video candidate cannot be saved');assert.equal(ctx.location.hash,'#board');
+  const videoURL='https://www.youtube.com/shorts/demo123';
+  submit('board-video-form',{url:videoURL});assert(!dialog.open,'Link dialog closes before navigation');assert.equal(ctx.location.hash,'processing');
+  let finishExtraction;ctx.setTimeout=(callback,delay)=>{if(delay===1400)finishExtraction=callback;return 0;};
+  ctx.location.hash='#processing';handlersForWindow.hashchange();assert(finishExtraction,'Processing schedules result navigation');finishExtraction();
+  assert.equal(ctx.location.hash,'results');ctx.location.hash='#results';handlersForWindow.hashchange();
+  assert(app.innerHTML.includes(videoURL),'Results preserve the submitted source URL');
+  assert(app.innerHTML.includes('data-action="board-video"'),'Empty results let the user search again');
+  assert(!dialog.open,'Results render as a page, not a modal');
+
  }
 
  if(!stored){
@@ -50,7 +56,7 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
    assert(app.innerHTML.includes('href="#'+route+'">'+ctx.window.ReelSignupCopy.keepBrowsing[['ko','en','zh-CN','ja'].indexOf(lang)]));
    ctx.location.hash='#'+route; handlersForWindow.hashchange();
   }
-  const gated=!['messages','chat','home','board','trips','planner','account','guides','results','guide','signup','signup-email','policies'].includes(route);
+  const gated=!['messages','chat','home','board','trips','planner','account','guides','results','signup','signup-email','policies'].includes(route);
   assert.equal(app.innerHTML.includes(ctx.window.ReelSignupCopy.needMember[['ko','en','zh-CN','ja'].indexOf(lang)]),gated,'guest route '+route);
   assert(!app.innerHTML.includes('class="reviewtools"'));
  }

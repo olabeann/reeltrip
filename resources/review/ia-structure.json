@@ -51,6 +51,7 @@
           "guides",
           "request",
           "requested",
+          "guide",
           "quote",
           "checkout",
           "booking",
@@ -80,6 +81,10 @@
           "cancel": {
             "parent": "booking",
             "relation": "flow"
+          },
+          "guide": {
+            "parent": "requested",
+            "relation": "menu"
           }
         }
       },
@@ -129,13 +134,6 @@
             "relation": "flow"
           }
         }
-      },
-      {
-        "label": "진입 미연결",
-        "routes": [
-          "guide"
-        ],
-        "entries": {}
       }
     ]
   },

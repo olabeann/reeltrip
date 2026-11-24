@@ -17,6 +17,10 @@ for(const [route,variants] of Object.entries(registry)){
  assert.equal(new Set(variants.map(v=>v.id)).size,variants.length,route+' duplicate state IDs');
  for(const v of variants)assert(v.condition&&v.transition&&v.fixture,route+'/'+v.id+' missing specification');
 }
+// Every customer entry must expose its actual signed-out UI in the IA.
+for(const screen of screens.filter(s=>s.role==='customer')){
+ assert(registry[screen.route].some(v=>v.fixture.guest),screen.route+' missing guest preview');
+}
 let cases=0;
 for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(registry))for(const variant of variants){
  if(process.env.REEL_SCREEN && route!==process.env.REEL_SCREEN)continue;
@@ -41,6 +45,19 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
  assert(ctx.ReelAccess.allowed(screens.find(s=>s.route===route).role,route),description+' permission');
  if(lang==='ko'&&variant.expect)assert(app.innerHTML.includes(variant.expect),description+' missing '+variant.expect);
  if(lang==='ko'&&variant.absent)assert(!app.innerHTML.includes(variant.absent),description+' unexpected '+variant.absent);
+ if(route==='guide-activity'&&fixture.activityMany){
+  if(fixture.hash.includes('tab=bookings')){
+   const links=[...app.innerHTML.matchAll(/href="#guide-activity\?record=([^"]+)"/g)].map(x=>x[1]);
+   assert.deepEqual(links,['RT-MANY-2','RT-MANY-4','RT-MANY-1','RT-MANY-0','RT-MANY-3','RT-MANY-5'],description+' urgency and date order');
+   assert.equal((app.innerHTML.match(/<section class="card pad quote-section rt-booking-card">/g)||[]).length,7,description+' booking cards');
+  }
+  if(fixture.hash.includes('tab=sent')){
+   assert.equal((app.innerHTML.match(/<article class="card pad quote-section rt-booking-card">/g)||[]).length,6,description+' individual proposal cards');
+   const links=[...app.innerHTML.matchAll(/href="#guide-activity\?proposal=([^"]+)"/g)].map(x=>x[1]);
+   assert.deepEqual(links,['QP-MANY-3','QP-MANY-2','QP-MANY-1','QP-MANY-0','QP-MANY-4','QP-MANY-5'],description+' proposal order');
+  }
+
+ }
  if(route==='requested')assert(!app.innerHTML.includes('data-action="demo-proposals"')&&!app.innerHTML.includes('demo-next'),description+' must not offer proposal generation');
  if(route==='requested'&&fixture.flow==='fee'){
   const cards=[...app.innerHTML.matchAll(/<article class="card pad proposal-card[^]*?<\/article>/g)].map(m=>m[0]);
@@ -55,6 +72,7 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
 
  if(fixture.viewedProposals&&lang==='ko')assert(!app.innerHTML.includes('새 제안 2'),description+' read offers must not be new');
  if(fixture.guest)assert.notEqual(ctx.sessionStorage.getItem('reeltrip-signup-preview-member'),'yes');
+ if(route==='guide'&&fixture.guest){assert(app.innerHTML.includes('guest-invite'),description+' requires membership');assert(!app.innerHTML.includes('rt-profile-card'),description+' must hide mate profile');}
  if(fixture.emailStep)assert(app.innerHTML.includes('id="signup-code-form"'),description);
  if(route==='chat'&&fixture.chat)assert.equal(app.innerHTML.includes('id="chat-form"'),fixture.flow!=='cancelled'&&!fixture.ended,description+' composer gating');
  if(route==='messages'&&fixture.chat==='mixed'){

@@ -25,9 +25,9 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
  const fixture=variant.fixture||{};
  let realStorageTouches=0;
  const forbidden={getItem(){realStorageTouches++;throw new Error('Real storage read');},setItem(){realStorageTouches++;throw new Error('Real storage write');}};
- const ctx={console,URL,URLSearchParams,location:{hash:'#'+(fixture.hash||route),search:'?lang='+lang+'&state='+variant.id},localStorage:forbidden,sessionStorage:forbidden,
+ const ctx={console,URL,URLSearchParams,Event:class{constructor(type){this.type=type;}},location:{hash:'#'+(fixture.hash||route),search:'?lang='+lang+'&state='+variant.id},localStorage:forbidden,sessionStorage:forbidden,
   setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},scrollTo(){},addEventListener:(name,fn)=>sessionHandlers[name]=fn,dispatchEvent(){},
-  document:{documentElement:{lang},body:{dataset:admin?{surface:'admin'}:{},classList:{add(){}}},querySelector:s=>s==='#dialog'?dialog:s==='#app'?app:s==='#main'?{focus(){}}:s==='#toast'?toast:null,querySelectorAll:()=>[],addEventListener:(name,fn)=>handlers[name]=fn}};
+  document:{documentElement:{lang},body:{dataset:admin?{surface:'admin'}:{},classList:{add(){}}},querySelector:s=>s==='#dialog'?dialog:s==='#app'?app:s==='#main'?{focus(){}}:s==='#toast'?toast:null,querySelectorAll:()=>[],addEventListener:(name,fn)=>{const previous=handlers[name];handlers[name]=previous?e=>{previous(e);fn(e);}:fn;}}};
  ctx.window=ctx;vm.createContext(ctx);
  const file=`preview${admin?'-admin':''}${lang==='en'?'-en':''}.html`;
  const html=fs.readFileSync(path.join(root,'src/frontend',file),'utf8');
@@ -61,8 +61,12 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
  if(route==='booking'&&variant.id==='fee')assert(app.innerHTML.includes(lang==='ko'?'수수료':'fee'));
  assert.equal(realStorageTouches,0,'Preview must never access normal browser storage');
 
- const original=app.innerHTML;
+ const original=app.innerHTML,originalMode=ctx.ReelAccess.mode();
+ const switchMode=mode=>handlers.click({target:{closest:selector=>selector==='[data-access-mode]'?{dataset:{accessMode:mode}}:null},preventDefault(){}});
  for(const link of new Set([...original.matchAll(/href="#([^"]+)"/g)].map(m=>m[1]))){
+  switchMode(originalMode);
+  const tag=[...original.matchAll(/<a\b[^>]*>/g)].map(m=>m[0]).find(tag=>tag.includes('href="#'+link+'"')&&tag.includes('data-access-mode='));
+  if(tag)switchMode(tag.match(/data-access-mode="([^"]+)"/)[1]);
   const destination=link.split('?')[0];if(destination==='main')continue;
   const target=screens.find(s=>s.route===destination);
   assert(target||destination==='member-required',description+' unknown target '+link);
@@ -71,7 +75,7 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
   assert(app.innerHTML.includes('<main'),description+' blank destination '+link);
   links++;
  }
- ctx.location.hash='#'+(fixture.hash||route);sessionHandlers.hashchange();
+ switchMode(originalMode);ctx.location.hash='#'+(fixture.hash||route);sessionHandlers.hashchange();
  const click=(action,id)=>handlers.click({preventDefault(){},target:{closest:selector=>selector==='[data-action]'?{dataset:{action,id}}:null}});
  if(route==='requested'&&['waiting','proposals'].includes(variant.id)){
   click('withdraw');assert(dialog.open);const requestId=dialog.innerHTML.match(/data-id="([^"]+)"/)[1];click('confirm-withdraw',requestId);assert(app.innerHTML.includes(lang==='ko'?'철회':'Withdrawn'),description+' must close request');

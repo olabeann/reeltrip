@@ -25,7 +25,7 @@ for(const lang of ['ko','en'])for(const mode of ['customer','guide']){
  click('withdraw-account');submit(false);assert.deepEqual(values,before);
  // A booking created in the other language after the dialog opens must block submission.
  const other=keys.find(k=>!k.includes(`-${lang}-`));
- for(const status of ['awaiting_mate_fee','confirmed','cancellation_requested']){
+ for(const status of ['awaiting_mate_fee','confirmed']){
   values.set(other,JSON.stringify({booking:{status}}));submit(true);assert(error.textContent);assert(sessions.has('reeltrip-signup-preview-member'));
  }
  values.set(other,JSON.stringify({bookingHistory:[{status:'confirmed'}]}));submit(true);assert(sessions.has('reeltrip-signup-preview-member'));

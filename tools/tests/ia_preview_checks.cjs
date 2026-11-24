@@ -99,7 +99,7 @@ for(const link of journeys){
  els['#ia-journey-button'].onclick();assert.equal(els['#ia-preview'].src,current.href);
 }
 // Shared My links to the corresponding chat entry, not both role copies.
-openState('booking','confirmed');
+openState('messages','active');
 assert.equal(nodes.find(n=>n.dataset.route==='chat'&&n.dataset.role==='customer').classList.contains('is-destination'),true);
 assert.equal(nodes.find(n=>n.dataset.route==='chat'&&n.dataset.role==='guide').classList.contains('is-destination'),false);
 openState('messages','mate-active');
