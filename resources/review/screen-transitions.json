@@ -14530,6 +14530,44 @@
     },
     {
       "kind": "이동",
+      "target": "guide-activity",
+      "state": "fee",
+      "destination": "#guide-activity?decline=1",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?decline=1",
+      "common": false,
+      "sourceStates": [
+        "fee"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "진행 불가"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Unable to proceed"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "#guide-activity?decline=1"
+        },
+        "en": {
+          "fee": "#guide-activity?decline=1"
+        }
+      },
+      "previewStates": {
+        "fee": "fee"
+      },
+      "trigger": "진행 불가",
+      "condition": "노출 상태: 선택받았어요!"
+    },
+    {
+      "kind": "이동",
       "target": "guide-fee",
       "state": "fee",
       "destination": "#guide-fee",
@@ -15128,6 +15166,44 @@
     },
     {
       "kind": "이동",
+      "target": "guide-activity",
+      "state": "fee",
+      "destination": "#guide-activity?decline=1",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?decline=1",
+      "common": false,
+      "sourceStates": [
+        "fee"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "진행 불가"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Unable to proceed"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "#guide-activity?decline=1"
+        },
+        "en": {
+          "fee": "#guide-activity?decline=1"
+        }
+      },
+      "previewStates": {
+        "fee": "fee"
+      },
+      "trigger": "진행 불가",
+      "condition": "노출 상태: 선택받았어요!"
+    },
+    {
+      "kind": "이동",
       "target": "guide-fee",
       "state": "fee",
       "destination": "#guide-fee",
@@ -15620,18 +15696,18 @@
       "labels": {
         "ko": {
           "fee": [
-            "예약 확정"
+            "결제하고 예약 확정"
           ],
           "failed": [
-            "예약 확정"
+            "결제하고 예약 확정"
           ]
         },
         "en": {
           "fee": [
-            "Confirmed"
+            "Pay & confirm booking"
           ],
           "failed": [
-            "Confirmed"
+            "Pay & confirm booking"
           ]
         }
       },
@@ -15650,7 +15726,7 @@
         "fee": "confirmed",
         "failed": "confirmed"
       },
-      "trigger": "예약 확정",
+      "trigger": "결제하고 예약 확정",
       "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패"
     },
     {
@@ -23180,6 +23256,54 @@
     },
     {
       "kind": "이동",
+      "target": "guide-activity",
+      "state": "fee",
+      "destination": "#guide-activity?decline=1",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?decline=1",
+      "common": false,
+      "sourceStates": [
+        "fee",
+        "many-bookings"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "진행 불가"
+          ],
+          "many-bookings": [
+            "진행 불가"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Unable to proceed"
+          ],
+          "many-bookings": [
+            "Unable to proceed"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "#guide-activity?decline=1",
+          "many-bookings": "#guide-activity?decline=1"
+        },
+        "en": {
+          "fee": "#guide-activity?decline=1",
+          "many-bookings": "#guide-activity?decline=1"
+        }
+      },
+      "previewStates": {
+        "fee": "fee",
+        "many-bookings": "fee"
+      },
+      "trigger": "진행 불가",
+      "condition": "노출 상태: 확정 대기, 여러 예약 · 혼합 상태"
+    },
+    {
+      "kind": "이동",
       "target": "guide-fee",
       "state": "fee",
       "destination": "#guide-fee",
@@ -23270,12 +23394,12 @@
       "labels": {
         "ko": {
           "many-bookings": [
-            "수수료 확인하고 결제하기"
+            "예약 보기"
           ]
         },
         "en": {
           "many-bookings": [
-            "Review fee & pay"
+            "View booking"
           ]
         }
       },
@@ -23291,7 +23415,7 @@
       "previewStates": {
         "many-bookings": "fee"
       },
-      "trigger": "수수료 확인하고 결제하기",
+      "trigger": "예약 보기",
       "condition": "노출 상태: 여러 예약 · 혼합 상태"
     },
     {

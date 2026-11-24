@@ -164,5 +164,9 @@
   "여행자가 내 제안을 선택했어요!": "The traveler selected your proposal!",
   "선택된 예약을 확인하세요.": "View your selected booking.",
   "매칭 수수료 10%를 결제하면 예약이 확정돼요.": "Pay the 10% matching fee to confirm the booking.",
-  "예약 진행 상태와 여행 상세를 바로 확인할 수 있어요.": "View your booking status and trip details directly."
+  "예약 진행 상태와 여행 상세를 바로 확인할 수 있어요.": "View your booking status and trip details directly.",
+  "예시 예약은 상세 확인만 가능해요.": "Sample bookings can only be viewed.",
+  "결제하고 예약 확정을 누르면 위 수수료가 결제돼요.": "Selecting Pay & confirm booking charges the fee shown above.",
+  "결제하고 예약 확정": "Pay & confirm booking",
+  "진행 거절하기": "Decline booking"
 }

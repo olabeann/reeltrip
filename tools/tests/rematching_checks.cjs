@@ -18,6 +18,11 @@ for(const lang of ['ko','en'])for(const reason of ['declined','expired'])for(con
  a.makeQuote(240000,'Day 1: Walk and cafe',undefined,undefined,'jun');
  a.makeQuote(260000,'Day 1: Walk and food',undefined,undefined,'mina');
  assert(a.requestBooking('Traveler','guest@example.com'));
+ for(const html of [a.guideDesk(),a.guideActivity(),a.guideQuote(),a.guideFee()]){
+  assert(html.includes('href="#guide-activity?decline=1"'),'Pending mate screen exposes decline');
+  assert(html.includes(lang==='ko'?'진행 불가':'Unable to proceed'));
+ }
+ assert(a.guideFee().includes(lang==='ko'?'결제하고 예약 확정':'Pay & confirm booking'));
  const requestId=a.state.request.id,alternative=a.proposals().find(q=>q.guideId==='jun'),expires=alternative.expires;
  if(past){a.state.request.date='2000-01-01';a.state.booking.date='2000-01-01';}
  c.window.ReelAccess.mode=()=> 'guide';
