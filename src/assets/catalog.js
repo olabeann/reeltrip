@@ -346,33 +346,16 @@ window.REEL_SCREENS = [
     "role": "admin",
     "both": true,
     "zones": [
-      "분석·오류·일정 KPI / 예약 KPI",
-      "처리 대기 목록",
+      "メ이트 등록·재심사 대기 / 예약 / 미처리 문의 / 사용자 신고",
+      "수수료 반환 검토와 문의 처리",
       "운영 화면 바로가기"
     ],
-    "action": "admin-places / admin-support / admin-guides·admin-bookings",
-    "input": "집계 이벤트, 운영 큐",
-    "rule": "데모 수치는 예시로 표시. 실서비스 집계에서 테스트·중복 이벤트 제외, 개인정보 최소 노출.",
+    "action": "admin-support / admin-guides / admin-bookings",
+    "input": "메이트 신청·재심사 상태, 예약·수수료 반환 기록, 문의·신고",
+    "rule": "현재 MVP 정책의 메이트 심사·예약 및 수수료 반환·CS와 안전 신고만 집계. 장소 일괄 검수·별도 정산은 운영 범위에서 제외. 시연 데이터와 실제 운영 실적 구분.",
     "states": "예시 집계 / 처리 대기",
     "accept": "완료되지 않은 실험 데이터가 실제 매출로 표시되지 않음.",
     "id": "B-26"
-  },
-  {
-    "route": "admin-places",
-    "name": "장소 오류 검수",
-    "role": "admin",
-    "both": true,
-    "zones": [
-      "확인 필요 장소 / 원본 출처",
-      "후보 지점과 주소 비교",
-      "수정 승인 / 반려"
-    ],
-    "action": "검수 상태 변경",
-    "input": "place_id, correction_reason",
-    "rule": "원본 추출값과 수정값 모두 보관. 기존 확정 투어에는 자동 적용하지 않고 변경 검토 큐로 전달.",
-    "states": "미검수 / 승인 / 반려",
-    "accept": "고객 장소와 검수 상태 일치. 반려 사유 기록. 출처 콘텐츠를 무단 복제하지 않음.",
-    "id": "B-27"
   },
   {
     "route": "admin-support",
@@ -380,12 +363,12 @@ window.REEL_SCREENS = [
     "role": "admin",
     "both": true,
     "zones": [
-      "문의 유형·상태·내용",
-      "처리 메모",
-      "처리 완료 / 대기"
+      "문의 검색·상태 필터와 목록",
+      "선택 문의 상세·첨부 자료·접수 위치",
+      "처리 상태·내부 메모 / 별도 신고·차단 내역"
     ],
-    "action": "로컬 문의 상태 업데이트",
-    "input": "ticket_id, status, response_note",
+    "action": "목록 상세 검토 → 내용·자료 확인 → 처리 기록 저장",
+    "input": "검색어, 상태, record=ticket_id, status, response_note",
     "rule": "문의·첨부·접수 위치·내부 처리 메모·상태 관리. 답변은 별도 이메일. 처리 이력 보존.",
     "states": "open / review / needs_info / resolved",
     "accept": "미접수 문의를 실제 문의로 표시하지 않음. 완료 상태가 저장됨.",
@@ -397,12 +380,12 @@ window.REEL_SCREENS = [
     "role": "admin",
     "both": false,
     "zones": [
-      "제출된 신청서와 비공개 심사 정보",
-      "심사 확인 체크·승인",
-      "사유 필수 보완 요청·거절"
+      "신청 검색·상태 필터와 목록",
+      "선택 신청 상세·비공개 정보",
+      "승인·보완·거절 및 활동 제한"
     ],
-    "action": "pending 신청 → 승인/보완 요청/거절",
-    "input": "verification_flags, review_note",
+    "action": "목록 상세 검토 → 신청서 확인 → 승인/보완 요청/거절",
+    "input": "검색어, 상태, record=application, verification_flags, review_note",
     "rule": "관리자만 심사. 본인·필요 자격·만 19세·이메일 수동 확인. 초기 승인과 수정본 승인을 구분. 수정 거절 시 기존 프로필 유지. 사유를 기록한 활동 제한 가능, 기존 예약은 건별 판단.",
     "states": "신청 없음 / 심사 중 / 보완 요청 / 승인 거절 / 등록 완료",
     "accept": "필수 체크 없이 승인 불가. 프로토타입 자격 자료는 가상 예시이며 진짜 검증이 아님.",
@@ -570,3 +553,5 @@ window.REEL_PLACES = [
  {id:'shop',lat:37.547097,lng:127.040925,locationNote:'사진 촬영 위치 · 매장 입구 확인 필요',name:'성수동 카메라 상점',ko:'성수동 카메라 상점 · 상호 확인 필요',type:'쇼핑',area:'성수',address:'성수동 · 상세 주소 확인 필요',duration:50,x:410,y:330,art:'shop',photo:'shop',verified:true},
  {id:'food',name:'광장시장 먹거리',ko:'광장시장 · 점포 확인 필요',type:'맛집',area:'종로',address:'광장시장 일대 · 방문 점포 확인 필요',duration:60,x:350,y:430,art:'food',photo:'food',verified:false}
 ];
+
+// Reserved legacy screen ID: B-27 (admin-places). Redirected to admin; never reuse.

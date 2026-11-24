@@ -701,3 +701,46 @@ html[lang=en] .rt-campaign-message h1{font-size:22px}
 .rt-message-review .rt-message-review-rules ul{margin:0;padding:0;list-style:none}
 .rt-message-review .rt-message-review-rules li{margin:0}
 @media(max-width:600px){.rt-message-review .rt-message-review-rules{grid-template-columns:minmax(0,1fr);gap:10px}.rt-message-review .rt-message-review-rules dd+dt{margin-top:8px}}
+
+/* Shared operations-web density; all administrative cards and controls use this scope. */
+body[data-surface=admin]{--rt-primary:#6650a0;--rt-primary-hover:#544187;--rt-selected:#eef0f4;--rt-radius-card:6px;--rt-radius-control:5px;--rt-shadow:none;color:var(--rt-ink);background:var(--rt-surface)}
+body[data-surface=admin] .page{padding:0;max-width:none;margin:0;min-height:100dvh}
+body[data-surface=admin] .adminlayout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:0;min-height:100dvh}
+.rt-admin-sidebar{background:var(--rt-subtle);border-right:1px solid var(--rt-border);padding:12px 10px;position:sticky;top:0;height:100dvh;box-sizing:border-box;display:flex;flex-direction:column}
+.rt-admin-account{display:flex;align-items:center;gap:10px;padding:0 4px 24px;font-size:12px}
+.rt-admin-account strong{font-weight:500;display:block}.rt-admin-account small{display:block;margin-top:3px;color:var(--rt-muted);font-size:11px}
+.rt-admin-avatar{display:grid;place-items:center;background:#19b89c;color:var(--rt-surface);width:38px;height:38px;border-radius:7px;font-weight:700}
+.rt-admin-group{font-size:11px;color:var(--rt-muted);display:flex;align-items:center;gap:10px;padding:0 12px 16px}.rt-admin-group:after{content:'';height:1px;background:var(--rt-border);flex:1}
+.rt-admin-menu summary{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:13px;list-style:none}.rt-admin-menu summary::-webkit-details-marker{display:none}.rt-admin-menu summary strong{flex:1;font-weight:550}
+body[data-surface=admin] .sidenav{position:static;gap:4px;padding:4px 0;overflow:visible}
+body[data-surface=admin] .sidenav a{display:flex;align-items:center;gap:10px;font-size:12px;padding:10px 12px;border-radius:5px;background:transparent;color:var(--rt-gray-600)}
+body[data-surface=admin] .sidenav a span{flex:1}body[data-surface=admin] .sidenav a:hover{background:var(--rt-gray-100)}
+body[data-surface=admin] .sidenav a.active{background:#354b60;color:var(--rt-surface)}
+.rt-admin-sidebar-foot{margin-top:auto;padding:24px 12px 8px;font-size:9px;letter-spacing:1px;color:var(--rt-muted)}.rt-admin-sidebar-foot small{display:block;letter-spacing:0;margin-top:5px}
+.rt-admin-content{padding:22px 32px 36px;min-width:0}.rt-admin-breadcrumb{display:flex;gap:10px;color:var(--rt-muted);font-size:11px;margin-bottom:20px}.rt-admin-breadcrumb span{color:var(--rt-gray-400)}
+body[data-surface=admin] .pagehead{margin:0 0 24px;display:flex;justify-content:space-between}body[data-surface=admin] h1{font-size:25px;letter-spacing:-.7px;font-weight:600}body[data-surface=admin] .pagehead p{font-size:12px;margin-top:7px;color:var(--rt-muted)}body[data-surface=admin] .eyebrow{font-size:11px;color:var(--rt-muted)}
+body[data-surface=admin] .metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:24px}
+body[data-surface=admin] .metric{padding:20px 22px;font-size:12px;color:var(--rt-muted)}.rt-admin-content .metric>span{display:flex;justify-content:space-between;align-items:center}.rt-admin-content .metric strong{font-size:30px;color:var(--rt-blue-500);margin:12px 0}.rt-admin-content .metric strong small{font-size:13px;font-weight:400;margin-left:6px}.rt-admin-content .metric em{font-size:11px;font-style:normal;display:flex;gap:6px;align-items:center}
+body[data-surface=admin] #app .card{border:1px solid var(--rt-border);box-shadow:none;border-radius:6px}.rt-admin-panel{margin-bottom:24px;overflow:hidden}.rt-admin-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;gap:12px;border-bottom:1px solid var(--rt-border)}
+body[data-surface=admin] #app h2{font-size:15px;letter-spacing:0;font-weight:600}.rt-admin-panel-head h2 span{color:var(--rt-primary);margin-left:7px}.rt-admin-panel-head .muted{font-size:12px}
+.rt-admin-tasks>a{display:flex;align-items:center;gap:18px;padding:18px 0;border-top:1px solid var(--rt-gray-100);font-size:13px}.rt-admin-tasks>a>span{flex:1}.rt-admin-tasks small{display:block;color:var(--rt-muted);font-size:12px;margin-top:4px}.rt-admin-tasks b{font-size:12px;color:var(--rt-primary)}
+body[data-surface=admin] .tablewrap{border:0;border-radius:0}body[data-surface=admin] table{min-width:720px}body[data-surface=admin] th{font-size:12px;color:var(--rt-ink);background:var(--rt-subtle);font-weight:600;white-space:nowrap}body[data-surface=admin] td{font-size:12px;vertical-align:middle}body[data-surface=admin] :is(td,th){padding:15px 20px;border-color:var(--rt-gray-100)}body[data-surface=admin] tbody tr:hover{background:var(--rt-subtle)}body[data-surface=admin] td strong{font-weight:550}
+body[data-surface=admin] #app .btn{min-height:34px;padding:6px 15px;font-size:12px;border-radius:5px}body[data-surface=admin] #app .btn.secondary{background:var(--rt-surface);border-color:var(--rt-border);color:var(--rt-ink)}body[data-surface=admin] #app .textbtn{display:inline-flex;align-items:center;gap:5px;font-size:12px;min-height:34px;padding:6px;color:var(--rt-primary)}
+body[data-surface=admin] #app .rt-admin-filter{display:flex;align-items:end;gap:14px;margin-bottom:24px;padding:20px;flex-wrap:wrap}.rt-admin-filter label{min-width:160px;font-size:12px;font-weight:400}.rt-admin-filter label:first-of-type{width:280px}
+body[data-surface=admin] :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:13px;min-height:36px;padding:7px 12px;border:1px solid var(--rt-border);border-radius:5px;background-color:var(--rt-surface)}body[data-surface=admin] input[type=search]{padding-left:42px!important}body[data-surface=admin] select{padding-right:40px}
+.rt-admin-row-actions{display:flex;gap:10px;white-space:nowrap}.rt-admin-table-foot{padding:14px 20px;border-top:1px solid var(--rt-border);font-size:11px;color:var(--rt-muted)}body[data-surface=admin] td.rt-admin-empty{text-align:center;padding:54px;color:var(--rt-muted)}
+body[data-surface=admin] .badge{font-size:11px;padding:3px 7px;border-radius:4px;background:var(--rt-blue-50);color:var(--rt-blue-600)}body[data-surface=admin] .badge.warm{background:var(--rt-red-50);color:var(--rt-red-800)}
+.rt-admin-footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--rt-gray-100);color:var(--rt-muted);font-size:11px}body[data-surface=admin] .notice{font-size:12px;border-radius:5px;background:var(--rt-subtle);border-left-color:var(--rt-border)}
+body[data-surface=admin] form[id^=operations-booking-form]{display:grid;grid-template-columns:1fr 1fr;gap:16px}body[data-surface=admin] form[id^=operations-booking-form]>:is(h2,p,.btn){grid-column:1/-1}body[data-surface=admin] #verify-form{max-width:none}body[data-surface=admin] .stack{margin-bottom:24px}
+@media(min-width:1600px){.rt-admin-content{padding:26px 40px}}
+@media(max-width:1000px){body[data-surface=admin] .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.rt-admin-content{padding:22px}}
+@media(max-width:760px){body[data-surface=admin] .adminlayout{grid-template-columns:1fr}.rt-admin-sidebar{height:auto;position:static;border-right:0;border-bottom:1px solid var(--rt-border)}.rt-admin-account{padding-bottom:12px}.rt-admin-group,.rt-admin-sidebar-foot{display:none}body[data-surface=admin] .sidenav{flex-direction:row;overflow:auto}body[data-surface=admin] .sidenav a{flex-shrink:0}.rt-admin-content{padding:20px 16px}.rt-admin-breadcrumb{margin-bottom:16px}body[data-surface=admin] .metric{padding:16px}body[data-surface=admin] form[id^=operations-booking-form]{grid-template-columns:1fr}.rt-admin-filter label:first-of-type{width:100%}}
+/* Admin controls opt out of the mobile glass theme. */
+body[data-surface=admin] #app .rt-admin-filter{justify-content:flex-start!important;align-items:flex-end!important}
+body[data-surface=admin] #app .rt-admin-filter>*{flex:0 0 auto;margin:0}
+body[data-surface=admin] #app .rt-admin-filter label{display:block}
+body[data-surface=admin] #app .btn{background:var(--rt-primary)!important;color:var(--rt-surface)!important;box-shadow:none!important;border:1px solid transparent!important;min-height:34px!important;backdrop-filter:none!important}
+body[data-surface=admin] #app .btn.secondary{background:var(--rt-surface)!important;color:var(--rt-ink)!important;border-color:var(--rt-border)!important}
+body[data-surface=admin] #app :is(input:not([type=checkbox]):not([type=radio]),select,textarea){box-shadow:none!important;border-radius:5px!important;min-height:36px!important;background-color:var(--rt-surface)!important}
+body[data-surface=admin] #app .rt-admin-filter input{margin-top:7px}
+body[data-surface=admin] #app .rt-admin-filter select{margin-top:7px}
