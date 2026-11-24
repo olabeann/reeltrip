@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>릴트립 문서 안내</title><link rel="stylesheet" href="../src/assets/docs.css"><style>
+.document-hub{max-width:1080px;margin:auto;padding:48px 24px 80px}.document-hub h1{font-size:36px;margin:8px 0 16px}.document-hub h2{font-size:22px;margin:0 0 16px}.document-hub h3{font-size:18px;margin:0 0 8px}.document-hub .hub-intro{color:var(--muted);max-width:720px}.document-hub .hub-status{font-size:13px;color:var(--muted)}.document-hub .hub-search{display:grid;gap:8px;margin:32px 0 24px}.document-hub input{box-sizing:border-box;width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:12px 16px;background:white;color:var(--ink)}.document-hub .hub-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.document-hub .hub-group{padding:24px;background:white;border:1px solid var(--line);border-radius:14px;min-width:0}.document-hub .hub-group>p{color:var(--muted);font-size:14px;margin:0 0 16px}.document-hub .hub-entry{padding:12px 0;border-top:1px solid var(--line)}.document-hub .hub-entry a{font-weight:600;font-size:15px}.document-hub .hub-entry p{font-size:13px;color:var(--muted);margin:4px 0 0}.document-hub .hub-more{margin-top:32px}.document-hub summary{font-weight:600;cursor:pointer;padding:12px 0}.document-hub .hub-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}.document-hub [hidden]{display:none!important}.document-hub a:focus-visible,.document-hub summary:focus-visible,.document-hub input:focus-visible{outline:3px solid #245fe0;outline-offset:3px}.document-hub .hub-rule{margin:28px 0 0;padding:20px 0;border-top:1px solid var(--line);font-size:14px}.document-hub #hub-results{font-size:13px;color:var(--muted);margin-bottom:16px}
+@media(max-width:640px){.document-hub{padding:28px 16px 48px}.document-hub h1{font-size:28px}.document-hub .hub-groups,.document-hub .hub-secondary{grid-template-columns:1fr}.document-hub .hub-group{padding:20px}}
+</style></head><body><main class="document-hub"><header><p class="eyebrow">REELTRIP / DOCUMENTATION</p><h1>릴트립 문서 안내</h1><p class="hub-intro">화면을 확인하거나, 정책을 결정하거나, 개발 기준을 찾을 때 필요한 문서부터 열어보세요.</p><p class="hub-status">기획·개발 공유용 · 현재 홈페이지는 시제품이며 실제 인증·결제·이메일 발송은 연결 전입니다.</p></header>
+<div class="hub-search"><label for="document-search">무엇을 찾으세요?</label><input id="document-search" type="search" placeholder="예: 알림, 취소, 결제, 회원가입, 버튼" autocomplete="off" aria-controls="document-links"></div><p id="hub-results" role="status" aria-live="polite">목적에 맞는 문서부터 확인하세요.</p>
+<div id="document-links"><div class="hub-groups">
+<section class="hub-group"><h2>01 화면 확인</h2><p>실제 이용 흐름과 화면별 상태를 확인할 때</p>
+<div class="hub-entry" data-keywords="앱 홈페이지 고객 여행자 회원가입 로그인 메이트 한국어 영어"><a href="../src/app/index.html">홈페이지 열기</a> · <a href="../src/app/english.html" lang="en">English</a><p>여행자·메이트가 사용하는 통합 홈페이지</p></div>
+<div class="hub-entry" data-keywords="IA 화면 목록 화면 흐름 상태 빈화면 에러 예시 미리보기"><a href="../src/frontend/index.html">화면 구조와 상태 모음</a><p>역할별 화면 연결과 읽음·빈 상태 등 예시 확인</p></div>
+<div class="hub-entry" data-keywords="관리자 운영 웹 심사 신고 문의"><a href="../src/admin/index.html">운영 웹 열기</a><p>메이트 심사, 문의와 예약 처리 화면</p></div></section>
+<section class="hub-group"><h2>02 운영 정책</h2><p>언제 무엇을 허용하고 어떻게 처리할지 찾을 때</p>
+<div class="hub-entry" data-keywords="MVP 정책 예약 취소 결제 수수료 환불 반환 노쇼 지각 탈퇴 심사 나이 채팅"><a href="mvp-policy.html">MVP 운영 정책</a><p>예약·결제·취소·노쇼·심사·CS의 우선 적용 기준</p></div>
+<div class="hub-entry" data-keywords="알림 이메일 메일 트리거 스케줄러 주기 동의 마케팅 광고 재시도 중복"><a href="notification-policy.html">알림 트리거와 발송 정책</a><p>누구에게 언제 보내는지, 묶음·예약 발송·실패 처리 기준</p></div>
+<div class="hub-entry" data-keywords="이용약관 법률 동의 계약"><a href="service-terms-draft.md">서비스 이용약관 초안</a><p>서비스 이용 조건과 책임 범위 · 검토용</p></div>
+<div class="hub-entry" data-keywords="개인정보 동의 보관 삭제 처리방침"><a href="privacy-policy-draft.md">개인정보처리방침 초안</a><p>개인정보 처리·보관·삭제 기준 · 검토용</p></div></section>
+<section class="hub-group"><h2>03 개발 명세</h2><p>화면의 동작과 구현할 범위를 확인할 때</p>
+<div class="hub-entry" data-keywords="기능 화면 명세 스펙 회원가입 로그인 여행 제안 예약"><a href="specification.html">화면별 기능 명세</a><p>화면 ID별 입력·행동·상태와 연결 확인</p></div>
+<div class="hub-entry" data-keywords="개발 인계 서버 API DB 인증 PG 결제 미구현 미확정 저장 키"><a href="developer-handoff.html">개발 인계</a><p>현재 시제품과 서버 연결 작업, 구현 시 지킬 기준</p></div>
+<div class="hub-entry" data-keywords="QA 테스트 검사 검수 검증"><a href="qa.html">검수 기준</a><p>기능과 흐름이 올바르게 연결되는지 확인</p></div></section>
+<section class="hub-group"><h2>04 디자인 기준</h2><p>공통 UI 규칙과 표현을 확인할 때</p>
+<div class="hub-entry" data-keywords="디자인 시스템 버튼 카드 팝업 모달 간격 색상 아이콘 토큰"><a href="design-guide.html">디자인 시스템</a><p>버튼·카드·팝업·간격·색상·아이콘의 공통 기준</p></div>
+<div class="hub-entry" data-keywords="문구 카피 UX writing 표현 톤"><a href="ux-writing.html">화면 문구 기준</a><p>사용자에게 보여주는 제목·설명·버튼 문구</p></div></section>
+</div>
+<details class="hub-more"><summary>전체 기획과 참고 자료</summary><p>처음부터 모두 읽을 필요는 없습니다. 상세 맥락이나 연결 설정이 필요할 때 확인하세요.</p><div class="hub-secondary">
+<div class="hub-entry" data-keywords="전체 통합 기획 서비스 기능 명세"><a href="product.html">전체 기획·명세 모음</a><p>기획·화면·정책·개발 내용을 한 문서로 보기</p></div>
+<div class="hub-entry" data-keywords="개발자 주요 기능 개요 요약"><a href="DEVELOPER_OVERVIEW.md">주요 기능 개요</a><p>서비스 기능을 빠르게 훑는 참고 요약</p></div>
+<div class="hub-entry" data-keywords="서비스 기획 방향 범위"><a href="plan.html">서비스 기획 상세</a><p>서비스 구성과 사용자 흐름의 배경</p></div>
+<div class="hub-entry" data-keywords="공통 정책 상세 기존 참고"><a href="policies.html">공통 정책 상세</a><p>상세 맥락 확인용 · 충돌 시 MVP 운영 정책 우선</p></div>
+<div class="hub-entry" data-keywords="기술 개발 설계 저장 데이터"><a href="technical.html">개발 설계 참고</a><p>데이터와 기술 구성의 상세 설명</p></div>
+<div class="hub-entry" data-keywords="지도 구글 Google API 키 연결 설정"><a href="google-maps-setup.html">Google 지도 연결 안내</a><p>지도 API 설정과 연동 시 확인 사항</p></div>
+<div class="hub-entry" data-keywords="인증 이메일 메일 HTML 템플릿"><a href="../src/emails/index.html">인증 이메일 미리보기</a><p>가입 인증번호 이메일의 실제 HTML</p></div>
+<div class="hub-entry" data-keywords="미확정 법률 검토 출시"><a href="legal.html">미확정 운영 사항</a><p>출시 전 검토해야 할 항목</p></div>
+</div></details></div>
+<p id="hub-empty" hidden>일치하는 문서가 없어요. ‘알림’, ‘취소’, ‘화면’, ‘디자인’처럼 짧은 단어로 찾아보세요.</p>
+<p class="hub-rule"><strong>문서 적용 순서</strong><br>예약·취소 등 운영 규칙은 MVP 운영 정책, 알림 세부 규칙은 알림 정책을 먼저 확인하세요. 화면 동작은 기능 명세, 공통 UI는 디자인 시스템을 기준으로 합니다. 전체 기획과 참고 문서의 이전 설명이 충돌하면 이 기준 문서를 우선합니다. 알림 주기와 재시도 숫자는 운영 제안이며, 약관·개인정보처리방침은 검토용 초안입니다.</p>
+</main><script>
+(()=>{const input=document.getElementById('document-search'),entries=[...document.querySelectorAll('.hub-entry')],groups=[...document.querySelectorAll('.hub-group')],more=document.querySelector('.hub-more');let previousOpen=more.open;
+input.addEventListener('input',()=>{const query=input.value.trim().toLocaleLowerCase(),words=query.split(/\s+/).filter(Boolean);let count=0;for(const row of entries){const text=(row.textContent+' '+row.dataset.keywords).toLocaleLowerCase();row.hidden=!words.every(word=>text.includes(word));if(!row.hidden)count++;}for(const group of groups)group.hidden=![...group.querySelectorAll('.hub-entry')].some(row=>!row.hidden);const secondary=[...more.querySelectorAll('.hub-entry')].some(row=>!row.hidden);more.hidden=!secondary;if(query){if(!input.dataset.searching)previousOpen=more.open;input.dataset.searching='yes';more.open=secondary;}else{more.open=previousOpen;delete input.dataset.searching;}document.getElementById('hub-empty').hidden=count!==0;document.getElementById('hub-results').textContent=query?count+'개 자료를 찾았어요.':'목적에 맞는 문서부터 확인하세요.';});})();
+</script></body></html>

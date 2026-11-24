@@ -29,7 +29,14 @@ for path in files:
    if route not in [s['route'] for s in screens]:fail.append(f'Invalid preview screen: {link}')
    if 'state' in params and params['state'][0] not in [s['id'] for s in registry.get(route,[])]:fail.append(f'Invalid preview state: {link}')
    continue
-  if target in [ROOT/'src/frontend/preview.html',ROOT/'src/frontend/preview-en.html',ROOT/'src/frontend/preview-admin.html',ROOT/'src/frontend/preview-admin-en.html'] and u.fragment=='main':continue
+  if target in [ROOT/'src/frontend/preview.html',ROOT/'src/frontend/preview-en.html',ROOT/'src/frontend/preview-admin.html',ROOT/'src/frontend/preview-admin-en.html'] and u.fragment:
+   if u.fragment=='main':continue
+   registry=json.loads((ROOT/'resources/review/screen-states.json').read_text())
+   route=u.fragment.split('?')[0];params=parse_qs(u.query)
+   if route not in registry:fail.append(f'Invalid preview route: {link}')
+   if 'screen' in params and params['screen'][0]!=route:fail.append(f'Mismatched preview route: {link}')
+   if 'state' in params and params['state'][0] not in [s['id'] for s in registry.get(route,[])]:fail.append(f'Invalid preview state: {link}')
+   continue
   if u.fragment and target.suffix=='.html' and target.parent not in (ROOT/'src/app',ROOT/'src/admin'):
    if u.fragment not in Document(target.read_text()).ids:fail.append(f'{path.name} → missing anchor {link}')
 for file in ['assets/app.js','assets/catalog.js','assets/google-map.js','assets/maps-config.js','frontend/states.js','frontend/preview-storage.js','frontend/state-catalog.js','frontend/preview-map-config.js','frontend/ia.js']:

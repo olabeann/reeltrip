@@ -1,0 +1,54 @@
+<link rel="stylesheet" href="../src/assets/design-system.css">
+<style>
+.notification-document{--preview-border:#dde0e3;max-width:980px;margin:auto}
+.notification-document .notification-tabs{display:flex;flex-wrap:wrap;gap:24px;border-bottom:1px solid var(--preview-border);margin:24px 0}
+.notification-document .notification-tabs button{font:inherit;font-weight:600;color:#626970;background:none;border:0;border-bottom:3px solid transparent;padding:12px 4px;cursor:pointer;min-height:48px}
+.notification-document .notification-tabs button[aria-selected=true]{color:#245fe0;border-bottom-color:#245fe0}
+.notification-document button:focus-visible,.notification-document select:focus-visible{outline:3px solid #245fe0;outline-offset:3px}
+.notification-document [hidden]{display:none!important}
+.notification-document .notification-layout{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:32px;align-items:start}
+.notification-document .notification-frame{display:block;width:100%;height:740px;border:1px solid var(--preview-border);border-radius:24px;background:#f6f7f8;box-sizing:border-box}
+.notification-document .notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.notification-document select{font:inherit;max-width:100%;padding:10px;border:1px solid var(--preview-border);border-radius:8px;background:white}
+.notification-document .notification-notes h3{margin-top:0}
+.notification-document .notification-notes p,.notification-document .notification-notes li{line-height:1.7}
+.notification-document .notification-meta{color:#626970;font-size:13px}
+.notification-policy-table-wrap{overflow-x:auto;margin:20px 0}
+.notification-document .notification-table{width:100%;border-collapse:collapse;font-size:14px}
+.notification-document .notification-table th,.notification-document .notification-table td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--preview-border);vertical-align:top}
+.notification-document .notification-table th{background:#f6f7f8}
+.notification-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 24px}.notification-message{min-width:0}.notification-document .notification-message h3{font-size:16px;margin:0 0 8px}.notification-message details{margin-top:12px;font-size:13px;overflow-wrap:anywhere}.notification-message summary{cursor:pointer}.notification-message details p{line-height:1.7}
+@media(max-width:720px){.notification-message-grid{grid-template-columns:minmax(0,1fr)}.notification-document .notification-layout{grid-template-columns:minmax(0,1fr)}.notification-document .notification-frame{max-width:430px;margin:auto;height:680px}.notification-document .notification-table th,.notification-document .notification-table td{padding:10px 6px}}
+</style>
+<div class="notification-document">
+<p>홈페이지에서 알림이 어떻게 쌓이고 보이는지 확인하는 문서입니다. 메시지별 제목·본문·날짜를 카드로 확인하고, 알림함 예시와 발송 기준을 함께 살펴보세요.</p>
+<div class="notification-tabs" role="tablist" aria-label="알림 문서">
+<button id="notification-copy-tab" role="tab" aria-selected="true" aria-controls="notification-copy-panel" tabindex="0">메시지별 문구</button>
+<button id="notification-example-tab" role="tab" aria-selected="false" aria-controls="notification-example-panel" tabindex="-1">알림함 예시</button>
+<button id="notification-rules-tab" role="tab" aria-selected="false" aria-controls="notification-rules-panel" tabindex="-1">발송 기준</button>
+</div>
+<section id="notification-copy-panel" role="tabpanel" aria-labelledby="notification-copy-tab">
+<h2>알림 메시지 전체 문구</h2><p>상황과 수신자별 39개 메시지입니다. 파란 점·제목·본문·날짜 순서로 표시하며, 긴 본문도 생략 없이 확인할 수 있습니다.</p><p class="notification-meta">운영 구현용 문구 초안입니다. 날짜·이름·금액은 예시이며 실제 알림을 발송하지 않습니다. 이메일 전용·문의 기록·운영팀 메시지도 문구 확인용으로 같은 형태를 사용합니다. 화살표는 표현 예시이며 카드는 이동하지 않습니다. 이메일 발송 여부와 예외는 발송 기준을 따릅니다.</p>
+<!-- notification-message-catalog -->
+</section>
+<section hidden id="notification-example-panel" role="tabpanel" aria-labelledby="notification-example-tab">
+<div class="notification-toolbar"><label for="notification-scenario">알림함 상태</label><select id="notification-scenario"><option value="mixed">읽은 알림과 새 알림</option><option value="unread">새 제안 도착</option><option value="read">읽은 알림</option><option value="empty">알림 없음</option></select></div>
+<div class="notification-layout">
+<iframe class="notification-frame" id="notification-example-frame" title="홈페이지 알림함 예시" src="../src/frontend/preview.html?screen=notifications&amp;state=mixed#notifications"></iframe>
+<aside class="notification-notes"><h3>실제 알림함처럼 확인하세요</h3><p>제안 도착, 예약 확정, 여행 완료와 취소 알림이 최신순으로 표시됩니다. 각 알림에서 제목·여행 정보·날짜를 함께 확인할 수 있습니다.</p><ul><li>파란 점은 읽지 않은 알림입니다.</li><li>읽은 알림도 목록에 남습니다.</li><li>알림을 누르면 읽음 처리 후 관련 화면으로 이동합니다.</li></ul><p>다른 상태를 선택하면 해당 예시를 새로 불러옵니다. 알림을 누른 뒤에는 아래 링크로 목록으로 돌아올 수 있습니다.</p><p><a id="notification-reset" href="../src/frontend/preview.html?screen=notifications&amp;state=mixed#notifications" target="notification-preview">알림함 예시 다시 보기</a></p><p class="notification-meta">여행자 화면의 예시 데이터입니다. 이전 여행 알림은 당시 예약을 재현하지 않고 현재 예시 화면으로 연결합니다. 기존 회원 데이터와 분리되며 실제 알림·이메일을 발송하지 않습니다.</p><p><a href="notification-policy.md">전체 알림 정책 원문</a> · <a href="mvp-policy.html">홈페이지 MVP 정책</a></p></aside>
+</div>
+</section>
+<section id="notification-rules-panel" role="tabpanel" aria-labelledby="notification-rules-tab" hidden tabindex="0">
+<!-- notification-policy-content -->
+</section>
+</div>
+<script>
+(()=>{
+ const tabs=[...document.querySelectorAll('.notification-tabs [role=tab]')];
+ function selectTab(tab){for(const item of tabs){const selected=item===tab;item.setAttribute('aria-selected',String(selected));item.tabIndex=selected?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;}}
+ tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>selectTab(tab));tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();selectTab(tabs[next]);tabs[next].focus();});});
+ const frame=document.getElementById('notification-example-frame'),selector=document.getElementById('notification-scenario'),reset=document.getElementById('notification-reset');
+ frame.name='notification-preview';
+ selector.addEventListener('change',()=>{const url='../src/frontend/preview.html?screen=notifications&state='+encodeURIComponent(selector.value)+'#notifications';frame.src=url;reset.href=url;});
+})();
+</script>
