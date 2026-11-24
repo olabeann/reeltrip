@@ -1,5 +1,19 @@
 /* Sign-up copy in Korean, English, Simplified Chinese and Japanese. */
 window.ReelSignupCopy = {
+  marketingEmailDetail: ["[선택] 광고성 이메일 수신 동의", "[Optional] Consent to promotional emails", "[可选] 同意接收推广邮件", "[任意] 広告メールの受信に同意"],
+  marketingEmailTitle: ["이벤트·혜택", "Events and offers", "活动和优惠", "イベント・特典"],
+  serviceEmailDetail: ["제안·예약·채팅 알림", "Proposal, booking and chat updates", "提案、预订和聊天通知", "提案・予約・チャットの通知"],
+  serviceEmailTitle: ["여행 소식", "Trip updates", "旅行消息", "旅行のお知らせ"],
+  notificationIntro: ["이메일로 받을 소식을 선택해 주세요.", "Choose which emails to receive.", "选择希望接收的邮件。", "受け取るメールを選んでください。"],
+  marketingConsent: ["[선택] 이벤트·혜택 등 광고성 이메일 수신 동의", "[Optional] Receive promotional emails about events and offers", "[可选] 同意接收活动和优惠推广邮件", "[任意] イベントや特典などの広告メールを受け取る"],
+  notificationSettings: ["알림 설정", "Notification settings", "通知设置", "通知設定"],
+  serviceEmail: ["제안·예약·채팅 소식 이메일 받기", "Receive proposal, booking and chat emails", "接收提案、预订和聊天邮件", "提案・予約・チャットのお知らせメールを受け取る"],
+  notificationHint: ["알림함은 그대로 유지되며, 인증 메일은 별도로 발송돼요.", "Your inbox stays available. Verification emails are separate.", "通知列表保持不变，验证邮件单独发送。", "通知一覧は引き続き利用できます。認証メールは別途送信されます。"],
+  notificationCancel: ["취소", "Cancel", "取消", "キャンセル"],
+  notificationSave: ["저장", "Save", "保存", "保存"],
+  notificationSaved: ["알림 설정을 저장했어요.", "Notification settings saved.", "通知设置已保存。", "通知設定を保存しました。"],
+  notificationError: ["설정을 저장하지 못했어요. 다시 시도해 주세요.", "Could not save settings. Please try again.", "无法保存设置，请重试。", "設定を保存できませんでした。もう一度お試しください。"],
+
   signInPreview: ["", "", "", ""],
   signInTitle: ["로그인", "Sign in", "登录", "ログイン"],
   signInChoose: ["가입한 방법으로 로그인해 주세요.", "Sign in with the method you used to sign up.", "请使用注册时的方式登录。", "登録した方法でログインしてください。"],

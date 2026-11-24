@@ -1,0 +1,251 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>알림 종류와 발송 정책 · 릴트립</title><link rel="stylesheet" href="../src/assets/docs.css"><link rel="stylesheet" href="../src/assets/spec-explorer.css"><script defer src="../src/assets/spec-explorer.js"></script><script defer src="../src/assets/spec-inline-preview.js"></script></head><body class="readable-doc"><a class="doc-skip" href="#document">본문으로 이동</a><header class="reader-bar"><a href="index.html"><strong>reeltrip</strong> 문서</a><nav aria-label="문서 메뉴"><a href="product.html">전체 기획</a><a href="specification.html">화면 명세</a><a href="policies.html">공통 정책</a><a href="design-guide.html">디자인 시스템</a><a href="developer-handoff.html">개발 인계</a><a href="../src/frontend/index.html">화면 탐색</a></nav></header><main class="hub" id="document"><header class="reader-title"><p class="spec-kicker">REELTRIP / DOCUMENTATION</p><h1>알림 종류와 발송 정책</h1></header><link rel="stylesheet" href="../src/assets/design-system.css">
+<style>
+.notification-document{--preview-border:#dde0e3;max-width:980px;margin:auto}
+.notification-document .notification-tabs{display:flex;flex-wrap:wrap;gap:24px;border-bottom:1px solid var(--preview-border);margin:24px 0}
+.notification-document .notification-tabs button{font:inherit;font-weight:600;color:#626970;background:none;border:0;border-bottom:3px solid transparent;padding:12px 4px;cursor:pointer;min-height:48px}
+.notification-document .notification-tabs button[aria-selected=true]{color:#245fe0;border-bottom-color:#245fe0}
+.notification-document button:focus-visible,.notification-document select:focus-visible{outline:3px solid #245fe0;outline-offset:3px}
+.notification-document [hidden]{display:none!important}
+.notification-document .notification-layout{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:32px;align-items:start}
+.notification-document .notification-frame{display:block;width:100%;height:740px;border:1px solid var(--preview-border);border-radius:24px;background:#f6f7f8;box-sizing:border-box}
+.notification-document .notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.notification-document select{font:inherit;max-width:100%;padding:10px;border:1px solid var(--preview-border);border-radius:8px;background:white}
+.notification-document .notification-notes h3{margin-top:0}
+.notification-document .notification-notes p,.notification-document .notification-notes li{line-height:1.7}
+.notification-document .notification-meta{color:#626970;font-size:13px}
+.notification-policy-table-wrap{overflow-x:auto;margin:20px 0}
+.notification-document .notification-table{width:100%;border-collapse:collapse;font-size:14px}
+.notification-document .notification-table th,.notification-document .notification-table td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--preview-border);vertical-align:top}
+.notification-document .notification-table th{background:#f6f7f8}
+.notification-role-filter{margin:20px 0 12px}.notification-message-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}.notification-document .notification-intro{font-size:16px;line-height:1.7;margin:0 0 16px}.notification-document .notification-usage{font-size:14px;color:var(--rt-muted);line-height:1.7;margin:0 0 20px}.notification-document .notification-guide{margin:0 0 20px;font-size:14px;line-height:1.7}.notification-document summary{cursor:pointer}.notification-document summary:focus-visible{outline:3px solid var(--rt-primary);outline-offset:4px}.notification-document #notification-copy-panel>h2{font-size:24px;margin:0 0 8px}.notification-document #notification-role-count{margin:0 0 16px;font-size:14px}
+@media(max-width:720px){.notification-message-grid{grid-template-columns:minmax(0,1fr)}.notification-document .notification-layout{grid-template-columns:minmax(0,1fr)}.notification-document .notification-frame{max-width:430px;margin:auto;height:680px}.notification-document .notification-table th,.notification-document .notification-table td{padding:10px 6px}}
+</style>
+<div class="notification-document">
+<p class="notification-intro">누가, 어떤 상황에서, 어떤 알림을 받는지 확인하세요.</p>
+<div class="notification-tabs" role="tablist" aria-label="알림 문서">
+<button id="notification-copy-tab" role="tab" aria-selected="true" aria-controls="notification-copy-panel" tabindex="0">메시지별 문구</button>
+<button id="notification-rules-tab" role="tab" aria-selected="false" aria-controls="notification-rules-panel" tabindex="-1">발송 기준</button>
+</div>
+<section id="notification-copy-panel" role="tabpanel" aria-labelledby="notification-copy-tab">
+<h2>수신자별 알림</h2>
+<p class="notification-usage">카드에는 실제 목록처럼 2줄까지 표시합니다. 각 알림 아래에서 발송 시점과 수신 조건을 확인하세요. 문구는 한 벌만 사용합니다. 생략된 내용은 ‘문구 확인’에서 볼 수 있어요.</p>
+<p class="notification-usage"><strong>여행자·메이트 알림 12종.</strong> 선택·취소 등 본인이 한 행동과 단순 종료는 해당 화면에서 확인합니다. 서비스 알림은 알림함에 표시합니다. 현재 서버 알림·푸시는 미연결입니다.</p><p class="notification-usage">새 제안·예약 변경은 즉시 알림함에 기록합니다. 채팅은 미읽음 표시만 사용합니다.</p>
+<div class="ds-preview notification-role-filter"><div class="rt-filter-chips" role="group" aria-label="알림 수신자"><button type="button" class="rt-filter-chip" data-recipient-filter="traveler" aria-pressed="true">여행자</button><button type="button" class="rt-filter-chip" data-recipient-filter="mate" aria-pressed="false">메이트</button><button type="button" class="rt-filter-chip" data-recipient-filter="all" aria-pressed="false">전체</button></div></div>
+<p id="notification-role-count" class="notification-meta" role="status" aria-live="polite"></p>
+<div class="notification-message-grid"><section class="notification-message rt-message-review" data-recipients="traveler" aria-labelledby="message-1">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 01</p><h3 id="message-1">제안 도착</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">여행자</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 도착한 제안</p></header>
+<article class="rt-notification-preview" aria-label="제안 도착 문구 미리보기"><div><strong>메이트의 제안이 도착했어요</strong><p>2026-12-01 여행에 새 제안이 있어요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>유효한 공개 여행 요청에 메이트의 새 제안이 저장됐을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">요청한 여행자의 알림함에 새 제안별로 즉시 1회 기록.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>메이트의 제안이 도착했어요</dd><dt>본문 템플릿</dt><dd>{여행일} 여행에 새 제안이 있어요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{여행일}</code></dt><dd>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시<br>예시: 2026-12-01 또는 2026-12-01 ~ 2026-12-03</dd><dt>치환 후 표시 예시</dt><dd>메이트의 제안이 도착했어요<br>2026-12-01 여행에 새 제안이 있어요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-2">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 02</p><h3 id="message-2">제안 선택</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 예약 수수료</p></header>
+<article class="rt-notification-preview" aria-label="제안 선택 문구 미리보기"><div><strong>여행자가 제안을 선택했어요</strong><p>2026-11-25 13:00 (한국 시간)까지 수수료 24,000원을 결제해 예약을 확정해 주세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>여행자가 제안을 선택하고 결제 대기 예약 생성이 성공했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">선택된 메이트에게 1회.</li><li class="rt-info-chip">여행자 본인에게는 발송하지 않음.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>여행자가 제안을 선택했어요</dd><dt>본문 템플릿</dt><dd>{결제기한}까지 수수료 {수수료}원을 결제해 예약을 확정해 주세요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{결제기한}</code></dt><dd>해당 선택에 저장된 고정 수수료 결제 마감 시각. YYYY-MM-DD HH:mm (한국 시간) 형식과 24시간제로 표시. 화면 접속 시 재계산하거나 연장하지 않음<br>예시: 2026-11-25 13:00 (한국 시간)</dd><dt><code>{수수료}</code></dt><dd>결제 안내는 해당 예약의 확정 청구 수수료, 반환 완료는 PG 성공 확인된 실제 반환 금액. 정수 원화에 천 단위 쉼표만 적용하며 ‘원’은 템플릿에 있으므로 중복 추가하지 않음<br>예시: 24,000</dd><dt>치환 후 표시 예시</dt><dd>여행자가 제안을 선택했어요<br>2026-11-25 13:00 (한국 시간)까지 수수료 24,000원을 결제해 예약을 확정해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="traveler mate" aria-labelledby="message-3">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 03</p><h3 id="message-3">예약 확정</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">여행자</span><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 확정 예약 상세</p></header>
+<article class="rt-notification-preview" aria-label="예약 확정 문구 미리보기"><div><strong>예약이 확정됐어요</strong><p>2026-12-01 여행이 확정됐어요. 대화를 시작해보세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>메이트 수수료 결제 성공을 서버에서 검증하고 예약을 확정 저장했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">여행자·메이트에게 각 1회.</li><li class="rt-info-chip">결제 완료 알림을 별도로 만들지 않음.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>예약이 확정됐어요</dd><dt>본문 템플릿</dt><dd>{여행일} 여행이 확정됐어요. 대화를 시작해보세요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{여행일}</code></dt><dd>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시<br>예시: 2026-12-01 또는 2026-12-01 ~ 2026-12-03</dd><dt>치환 후 표시 예시</dt><dd>예약이 확정됐어요<br>2026-12-01 여행이 확정됐어요. 대화를 시작해보세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="traveler mate" aria-labelledby="message-4">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 04</p><h3 id="message-4">선택 해제</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">여행자</span><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 요청 현재 상태</p></header>
+<article class="rt-notification-preview" aria-label="선택 해제 문구 미리보기"><div><strong>예약이 성사되지 않았어요</strong><p>2026-12-01 여행의 예약이 확정되지 않았어요. 요청 상태를 확인해 주세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>메이트의 진행 거절 또는 수수료 결제 기한 만료로 선택 해제가 저장됐을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">여행자에게 1회.</li><li class="rt-info-chip">결제 기한 만료인 경우에만 메이트도 수신.</li><li class="rt-info-chip">직접 거절한 메이트는 제외.</li><li class="rt-info-chip">시작 전에는 재모집, 시작 후에는 모집 종료 상태로 연결.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>예약이 성사되지 않았어요</dd><dt>본문 템플릿</dt><dd>{여행일} 여행의 예약이 확정되지 않았어요. 요청 상태를 확인해 주세요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{여행일}</code></dt><dd>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시<br>예시: 2026-12-01 또는 2026-12-01 ~ 2026-12-03</dd><dt>치환 후 표시 예시</dt><dd>예약이 성사되지 않았어요<br>2026-12-01 여행의 예약이 확정되지 않았어요. 요청 상태를 확인해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="traveler mate" aria-labelledby="message-5">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 05</p><h3 id="message-5">예약 취소</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">여행자</span><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 예약 취소 결과</p></header>
+<article class="rt-notification-preview" aria-label="예약 취소 문구 미리보기"><div><strong>예약이 취소됐어요</strong><p>2026-12-01 예약이 취소됐어요. 상세에서 취소 사유를 확인해 주세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>확정된 예약의 취소가 서버에 저장됐을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">취소한 사람의 상대방에게 1회.</li><li class="rt-info-chip">본인 취소는 제외하며 운영팀 취소는 양쪽에 발송.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>예약이 취소됐어요</dd><dt>본문 템플릿</dt><dd>{여행일} 예약이 취소됐어요. 상세에서 취소 사유를 확인해 주세요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{여행일}</code></dt><dd>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시<br>예시: 2026-12-01 또는 2026-12-01 ~ 2026-12-03</dd><dt>치환 후 표시 예시</dt><dd>예약이 취소됐어요<br>2026-12-01 예약이 취소됐어요. 상세에서 취소 사유를 확인해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-6">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 06</p><h3 id="message-6">수수료 반환 완료</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 반환 내역</p></header>
+<article class="rt-notification-preview" aria-label="수수료 반환 완료 문구 미리보기"><div><strong>수수료 반환이 완료됐어요</strong><p>2026-12-01 예약의 수수료 24,000원 반환이 완료됐어요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>운영팀이 실제 PG 반환 성공을 확인하고 반환 완료를 저장했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">수수료를 결제한 메이트에게 1회.</li><li class="rt-info-chip">접수·심사 승인 단계에서는 완료 알림을 보내지 않음.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>수수료 반환이 완료됐어요</dd><dt>본문 템플릿</dt><dd>{여행일} 예약의 수수료 {수수료}원 반환이 완료됐어요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{여행일}</code></dt><dd>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시<br>예시: 2026-12-01 또는 2026-12-01 ~ 2026-12-03</dd><dt><code>{수수료}</code></dt><dd>결제 안내는 해당 예약의 확정 청구 수수료, 반환 완료는 PG 성공 확인된 실제 반환 금액. 정수 원화에 천 단위 쉼표만 적용하며 ‘원’은 템플릿에 있으므로 중복 추가하지 않음<br>예시: 24,000</dd><dt>치환 후 표시 예시</dt><dd>수수료 반환이 완료됐어요<br>2026-12-01 예약의 수수료 24,000원 반환이 완료됐어요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-7">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 07</p><h3 id="message-7">등록 승인</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 본인 신청 결과</p></header>
+<article class="rt-notification-preview" aria-label="등록 승인 문구 미리보기"><div><strong>메이트 등록이 승인됐어요</strong><p>이제 함께 여행을 만들어 보세요!</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>운영팀이 메이트 신청의 심사 결과를 승인으로 저장했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">신청한 메이트에게 결과 버전별 1회.</li><li class="rt-info-chip">재심사 승인에도 같은 문구 사용.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>메이트 등록이 승인됐어요</dd><dt>본문 템플릿</dt><dd>이제 함께 여행을 만들어 보세요!</dd><dt>치환 변수</dt><dd>없음 · 고정 문구를 그대로 사용합니다.</dd><dt>치환 후 표시 예시</dt><dd>메이트 등록이 승인됐어요<br>이제 함께 여행을 만들어 보세요!</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-8">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 08</p><h3 id="message-8">신청 보완</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 본인 신청 결과</p></header>
+<article class="rt-notification-preview" aria-label="신청 보완 문구 미리보기"><div><strong>메이트 신청 내용을 보완해 주세요</strong><p>신청 결과에서 보완할 내용을 확인하고 다시 제출해 주세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>운영팀이 메이트 신청의 보완 요청과 사유를 저장했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">신청한 메이트에게 결과 버전별 1회.</li><li class="rt-info-chip">재심사에도 같은 문구 사용.</li><li class="rt-info-chip">보완할 내용은 신청 결과에서 확인.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>메이트 신청 내용을 보완해 주세요</dd><dt>본문 템플릿</dt><dd>신청 결과에서 보완할 내용을 확인하고 다시 제출해 주세요.</dd><dt>치환 변수</dt><dd>없음 · 고정 문구를 그대로 사용합니다.</dd><dt>치환 후 표시 예시</dt><dd>메이트 신청 내용을 보완해 주세요<br>신청 결과에서 보완할 내용을 확인하고 다시 제출해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-9">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 09</p><h3 id="message-9">신청 반려</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 본인 신청 결과</p></header>
+<article class="rt-notification-preview" aria-label="신청 반려 문구 미리보기"><div><strong>메이트 등록이 승인되지 않았어요</strong><p>신청 결과에서 심사 사유를 확인해 주세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>운영팀이 메이트 신청의 반려 결과와 사유를 저장했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">신청한 메이트에게 결과 버전별 1회.</li><li class="rt-info-chip">재심사에도 같은 문구 사용.</li><li class="rt-info-chip">사유는 신청 결과에서 확인.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>메이트 등록이 승인되지 않았어요</dd><dt>본문 템플릿</dt><dd>신청 결과에서 심사 사유를 확인해 주세요.</dd><dt>치환 변수</dt><dd>없음 · 고정 문구를 그대로 사용합니다.</dd><dt>치환 후 표시 예시</dt><dd>메이트 등록이 승인되지 않았어요<br>신청 결과에서 심사 사유를 확인해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-10">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 10</p><h3 id="message-10">활동 제한</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 제한 상태 · 문의</p></header>
+<article class="rt-notification-preview" aria-label="활동 제한 문구 미리보기"><div><strong>메이트 활동이 제한됐어요</strong><p>제한 사유와 문의 방법을 확인해 주세요.</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>운영팀이 메이트 활동 제한을 확정했을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">해당 메이트에게 1회.</li><li class="rt-info-chip">신고 접수만으로는 보내지 않음.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>메이트 활동이 제한됐어요</dd><dt>본문 템플릿</dt><dd>제한 사유와 문의 방법을 확인해 주세요.</dd><dt>치환 변수</dt><dd>없음 · 고정 문구를 그대로 사용합니다.</dd><dt>치환 후 표시 예시</dt><dd>메이트 활동이 제한됐어요<br>제한 사유와 문의 방법을 확인해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="mate" aria-labelledby="message-11">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 11</p><h3 id="message-11">결제 마감 안내</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 예약 수수료</p></header>
+<article class="rt-notification-preview" aria-label="결제 마감 안내 문구 미리보기"><div><strong>수수료 결제 마감이 다가와요</strong><p>2026-11-25 13:00 (한국 시간)까지 수수료 24,000원을 결제해 주세요.</p><time datetime="2026-11-25">2026-11-25</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>선택 시 고정된 수수료 결제 기한의 1시간 전이 됐을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">선택이 유지되고 미결제인 메이트에게 1회.</li><li class="rt-info-chip">선택 당시 남은 기한이 1시간 이하면 생성하지 않음.</li><li class="rt-info-chip">결제·거절·선택 해제 시 취소.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>수수료 결제 마감이 다가와요</dd><dt>본문 템플릿</dt><dd>{결제기한}까지 수수료 {수수료}원을 결제해 주세요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{결제기한}</code></dt><dd>해당 선택에 저장된 고정 수수료 결제 마감 시각. YYYY-MM-DD HH:mm (한국 시간) 형식과 24시간제로 표시. 화면 접속 시 재계산하거나 연장하지 않음<br>예시: 2026-11-25 13:00 (한국 시간)</dd><dt><code>{수수료}</code></dt><dd>결제 안내는 해당 예약의 확정 청구 수수료, 반환 완료는 PG 성공 확인된 실제 반환 금액. 정수 원화에 천 단위 쉼표만 적용하며 ‘원’은 템플릿에 있으므로 중복 추가하지 않음<br>예시: 24,000</dd><dt>치환 후 표시 예시</dt><dd>수수료 결제 마감이 다가와요<br>2026-11-25 13:00 (한국 시간)까지 수수료 24,000원을 결제해 주세요.</dd></dl></details></section>
+<section class="notification-message rt-message-review" data-recipients="traveler mate" aria-labelledby="message-12">
+<div class="rt-message-review-main">
+<header><p class="rt-message-review-number">알림 12</p><h3 id="message-12">여행 전날</h3><div class="rt-info-chip-list" aria-label="수신자 및 채널"><span class="rt-info-chip rt-info-chip--primary">여행자</span><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span></div><p class="rt-message-review-destination">연결 · 예약 상세 · 채팅</p></header>
+<article class="rt-notification-preview" aria-label="여행 전날 문구 미리보기"><div><strong>내일의 여행을 준비해 주세요!</strong><p>2026-12-01 여행을 앞두고 채팅으로 만남 장소와 준비사항을 확인해 보세요.</p><time datetime="2026-11-30">2026-11-30</time></div><span aria-hidden="true">›</span></article>
+</div>
+<dl class="rt-message-review-rules"><dt><span class="rt-info-chip rt-info-chip--primary">발송 시점</span></dt><dd>확정 예약 첫날의 여행 시작 시각 24시간 전이 됐을 때</dd><dt><span class="rt-info-chip rt-info-chip--primary">수신·발송 조건</span></dt><dd><ul class="rt-info-chip-list"><li class="rt-info-chip">예약이 여전히 확정 상태인 여행자·메이트에게 각 1회.</li><li class="rt-info-chip">확정 당시 시작까지 24시간 이하면 생성하지 않음.</li><li class="rt-info-chip">여러 날 여행도 첫날 기준 1회.</li></ul></dd></dl>
+<details class="rt-message-review-details"><summary>문구 확인</summary><dl><dt>제목 템플릿</dt><dd>내일의 여행을 준비해 주세요!</dd><dt>본문 템플릿</dt><dd>{여행일} 여행을 앞두고 채팅으로 만남 장소와 준비사항을 확인해 보세요.</dd><dt>치환 기준</dt><dd>아래 변수만 실제 사건의 값으로 바꿉니다. 필수 값 누락 시 예시 값으로 대체하지 않습니다.</dd><dt><code>{여행일}</code></dt><dd>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시<br>예시: 2026-12-01 또는 2026-12-01 ~ 2026-12-03</dd><dt>치환 후 표시 예시</dt><dd>내일의 여행을 준비해 주세요!<br>2026-12-01 여행을 앞두고 채팅으로 만남 장소와 준비사항을 확인해 보세요.</dd></dl></details></section></div>
+</section>
+<section id="notification-rules-panel" role="tabpanel" aria-labelledby="notification-rules-tab" hidden tabindex="0">
+<p>작성일: 2026-11-24</p>
+<p><a href="notification-policy.html">알림 문서 열기</a></p>
+<p><strong>제안·예약·취소·결제 기한 등 서비스 알림은 앱 안 알림함에 표시한다.</strong></p>
+<p>현재는 브라우저 시제품이다. 서버 사건 이력·예약 작업은 미연결이며 아래는 구현 기준이다. 앱·브라우저 푸시와 SMS도 미운영이다. 인증 메일과 사용자가 요청한 CS 답변 메일은 서비스 알림과 별개의 기존 업무 절차다.</p>
+<h2>1 알림을 만드는 기본 원칙</h2>
+<ul>
+<li>서버에서 성공적으로 저장된 사건만 알림으로 기록한다. 실패한 클릭·요청으로 완료 알림을 만들지 않는다.</li>
+<li>여행자 선택만으로 예약이 확정되지 않는다. 메이트 수수료 10% 결제 성공 검증과 예약 확정 저장 후 확정 알림을 만든다. 여행비는 현장에서 현금으로 직접 지급한다.</li>
+<li>현재 모드와 관계없이 사건 당사자에게만 기록하며, 같은 계정·사건은 중복 기록하지 않는다.</li>
+<li>알림함 원문과 읽음 상태는 유지한다. 목록 방문 때마다 새 알림을 만들지 않는다.</li>
+<li>날짜·기한은 한국 시간으로 표시하고 서버에는 UTC로 저장한다.</li>
+</ul>
+<h2>2 채널 구분</h2>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">구분</th><th scope="col">제공 방식</th></tr></thead><tbody>
+<tr><td>서비스 알림 12종</td><td>알림함과 관련 상세 화면</td></tr>
+<tr><td>채팅</td><td>채팅방·목록의 미읽음 표시</td></tr>
+<tr><td>문의 답변·자료 요청·반환 심사 상담</td><td>운영팀의 개별 답변 이메일</td></tr>
+<tr><td>운영팀 새 접수</td><td>운영 웹 목록·Slack</td></tr>
+</tbody></table></div>
+<p>기존 내부 저장 키는 호환성을 위해 보존한다.</p>
+<h2>3 사건별 기록 시점</h2>
+<p>각 메시지 카드의 ‘발송 시점’과 ‘수신·발송 조건’이 세부 기준이다. 여기서 서비스 알림의 ‘발송’은 알림함 기록을 뜻한다.</p>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">사건</th><th scope="col">기록 시점과 대상</th></tr></thead><tbody>
+<tr><td>새 제안</td><td>유효한 공개 요청에 제안 저장 성공 시 요청한 여행자에게 즉시 1회</td></tr>
+<tr><td>메이트 선택</td><td>선택과 결제 대기 예약 생성 성공 시 선택된 메이트에게 1회</td></tr>
+<tr><td>예약 확정</td><td>PG 성공 검증 후 확정 저장 시 양쪽에 각 1회. 결제 완료를 별도로 기록하지 않음</td></tr>
+<tr><td>선택 해제</td><td>거절 시 여행자에게, 결제 기한 만료 시 양쪽에 각 1회. 직접 거절한 메이트 제외</td></tr>
+<tr><td>예약 취소</td><td>확정 예약 취소 저장 시 상대방에게 1회. 운영팀 취소는 양쪽, 본인 취소는 제외</td></tr>
+<tr><td>수수료 반환 완료</td><td>실제 PG 반환 성공 확인 후 완료 저장 시 결제한 메이트에게 1회</td></tr>
+<tr><td>등록 승인·신청 보완·반려</td><td>심사 결과 저장 시 신청자에게 결과 버전별 1회. 재심사도 같은 문구</td></tr>
+<tr><td>활동 제한</td><td>운영팀의 제한 확정 시 해당 메이트에게 1회. 신고 접수만으로 생성하지 않음</td></tr>
+</tbody></table></div>
+<p>본인 선택·거절·취소, 제안 철회·모집 종료, 여행 완료는 화면 상태로 확인한다. 별도 알림을 추가하지 않는다. 채팅은 읽지 않은 상태만 표시하고 메시지별 알림함 항목을 만들지 않는다.</p>
+<h2>4 예약 알림은 두 종류만 운영</h2>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">알림</th><th scope="col">생성 시점</th><th scope="col">알림함 기록 시점</th><th scope="col">대상·조건</th></tr></thead><tbody>
+<tr><td>결제 마감 안내</td><td>메이트 선택 시</td><td>고정 결제 기한 1시간 전</td><td>선택이 유지되고 결제 대기인 메이트에게 1회</td></tr>
+<tr><td>여행 전날 안내</td><td>예약 확정 시</td><td>첫날 여행 시작 24시간 전</td><td>예약이 여전히 확정 상태인 양쪽에 각 1회</td></tr>
+</tbody></table></div>
+<p>결제 기한은 메이트 선택 시각 + 24시간과 예약 첫날 시작 시각 중 빠른 시각으로 고정한다. 방문 시 연장하지 않는다. 선택 당시 기한까지 1시간 이하면 마감 안내를 생성하지 않는다. 확정 당시 여행 시작까지 24시간 이하면 지난 전날 안내를 생성하지 않는다. 여러 날 여행도 첫날 기준 1회다.</p>
+<h2>5 예약 작업</h2>
+<p>1분 주기 서버 작업은 결제 기한 만료와 예정된 알림함 기록만 처리한다. 브라우저가 닫혀 있어도 서버에서 처리해야 한다. 예정 시각 이하의 미처리 건을 조회하며 동시에 실행돼도 같은 작업은 한 번만 처리한다.</p>
+<h2>6 읽음 처리</h2>
+<p>알림을 누르면 읽음 처리 후 관련 상세 화면으로 이동한다. 읽은 알림도 남는다. 채팅은 해당 대화의 읽음 위치로 판단한다. 탭이 열려 있다는 이유만으로 읽음으로 보지 않는다. 읽지 않았다는 이유로 반복 알림을 만들지 않는다.</p>
+<h2>7 취소와 오래된 알림</h2>
+<ul>
+<li>결제·거절·선택 해제·기한 만료 시 해당 마감 안내를 취소한다.</li>
+<li>예약 취소·완료 시 전날 안내를 취소한다. 탈퇴하거나 해당 기록의 소유·열람 권한을 잃으면 관련 새 알림 기록을 중단한다. 메이트 활동 제한은 계정 접근 권한 상실과 구분한다.</li>
+<li>예정 알림 기록 직전에 현재 상태·수신자·권한을 재확인한다.</li>
+<li>예정 시각보다 30분 넘게 지연된 리마인더는 폐기한다. 결제 기한·여행 시작 시각이 먼저 오면 그 시각에 폐기한다.</li>
+<li>과거 알림은 남기되 현재 상태로 연결한다. 취소된 예약의 결제·채팅을 다시 활성화하지 않는다.</li>
+</ul>
+<p>활동이 제한된 메이트도 본인의 알림함·활동 제한 사유·문의 화면에는 접근할 수 있다. 제한 확정 알림을 정상 기록하고 읽을 수 있게 한다. 이 접근이 제안·결제·여행 진행 권한을 다시 부여하지는 않는다.</p>
+<h2>8 개발 구현 기준</h2>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">항목</th><th scope="col">확정 기준</th></tr></thead><tbody>
+<tr><td>수신자와 연결 대상</td><td>각 알림에 수신자 ID·알림 종류·대상 유형·대상 ID를 저장한다. 예약·요청·신청 등 실제 사건의 대상을 지정하고 현재 선택된 예약이나 앱 모드로 추정하지 않는다. 상세 진입 시 서버에서 본인 권한을 확인한다. 대상이 삭제되거나 열람할 수 없으면 안내 후 목록으로 돌아간다.</td></tr>
+<tr><td>결제와 기한 만료의 경합</td><td>결제 검증과 만료 작업은 같은 선택·예약 버전에 대해 잠금 또는 조건부 갱신으로 상태를 한 번만 확정한다. 알림은 상태 확정과 함께 기록하며 실패한 갱신에서는 생성하지 않는다. 동일 경합에서 예약 확정·선택 해제 알림이 함께 만들어지지 않게 한다. PG 검증 결과와 이미 저장된 만료 상태가 불일치하면 자동으로 확정을 되살리지 않고 운영 확인으로 넘긴다.</td></tr>
+<tr><td>발생 당시 문구 보존</td><td>알림 생성 시 사건 발생 시각·치환된 제목/본문·사용한 변수 값·문구 버전·언어를 함께 저장한다. 날짜·금액·템플릿이 나중에 바뀌어도 과거 알림을 다시 치환하지 않는다. 클릭한 상세 화면은 현재 상태를 보여준다.</td></tr>
+<tr><td>활동 제한 계정의 접근</td><td>활동 권한과 본인 알림 열람 권한을 분리한다. 활동 제한 중에도 본인 알림함·제한 사유·문의는 제공한다. 다른 사용자의 기록은 볼 수 없다.</td></tr>
+<tr><td>양쪽 수신자의 공통 문구</td><td>여행자·메이트가 함께 받는 문구는 역할에 치우치지 않게 작성한다. 선택 해제 제목은 ‘예약이 성사되지 않았어요’로 통일한다.</td></tr>
+</tbody></table></div>
+<p>사건 저장과 알림 기록을 같은 서버 트랜잭션으로 처리하거나 동일 사건 키로 복구한다. 사건 ID·수신자·알림 종류를 중복 키로 사용한다. 예약 작업은 예약 ID·선택 또는 예약 버전·종류·수신자로 중복을 막는다. 저장 오류를 복구할 때도 새 알림을 중복 생성하지 않는다.</p>
+<h2>9 서비스 알림과 별개인 업무</h2>
+<p>인증 링크와 만료 시각은 인증 시스템이 제공한다. CS 답변 이메일에는 운영자가 작성한 실제 답변·요청 자료·심사 사유·회신 방법을 포함한다. 반환 완료·활동 제한 알림 자체는 알림함에만 기록하고, 사용자가 문의한 경우에만 CS 절차로 답변한다.</p>
+<p>새 문의·신고·노쇼·반환 요청은 운영 웹과 Slack에 접수당 1회 표시한다. Slack에는 접수 번호·유형·보호된 운영 상세 링크만 포함한다. 사용자 연락처·문의 본문·첨부 파일을 넣지 않는다.</p>
+<h2>10 MVP 제외 항목</h2>
+<p>앱·브라우저 푸시, SMS, 광고 캠페인, 반복 독촉, 후기 요청, 전체 메이트 추천 발송은 제외한다. 별도 조용한 시간·세부 유형별 설정도 추가하지 않는다.</p>
+<h2>11 검수 기준</h2>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">상황</th><th scope="col">기대 결과</th></tr></thead><tbody>
+<tr><td>새 제안 저장</td><td>여행자 알림함에 즉시 1건</td></tr>
+<tr><td>같은 PG 웹훅 3회</td><td>예약 확정 1회, 양쪽 알림함 각 1건</td></tr>
+<tr><td>채팅을 읽지 않음</td><td>채팅 미읽음 표시만 유지</td></tr>
+<tr><td>이메일 주소가 없는 계정</td><td>서비스 알림함 정상 제공</td></tr>
+<tr><td>결제 마감 직전 결제 성공</td><td>마감 안내 취소, 확정 알림만 기록</td></tr>
+<tr><td>선택 시 기한이 40분 뒤</td><td>선택 알림만 기록, 1시간 전 안내 없음</td></tr>
+<tr><td>여행 20시간 전 확정</td><td>확정 알림만 기록, 전날 안내 없음</td></tr>
+<tr><td>서버 중복 실행</td><td>같은 알림 중복 기록 없음</td></tr>
+<tr><td>결제 성공 검증과 기한 만료가 동시에 실행</td><td>같은 선택 버전에서 하나의 상태 전이만 성공하고 해당 결과의 알림만 생성</td></tr>
+<tr><td>만료 후 PG 성공 결과가 뒤늦게 확인됨</td><td>자동 예약 복원·확정 알림 없이 운영 확인</td></tr>
+<tr><td>같은 날짜의 다른 예약 알림 열기</td><td>알림에 저장된 대상 ID의 예약으로 연결</td></tr>
+<tr><td>알림 생성 후 날짜·금액·문구 수정</td><td>기존 알림 문구는 보존하고 상세는 현재 상태로 표시</td></tr>
+<tr><td>메이트 활동 제한 후 알림 열기</td><td>본인 알림·제한 사유·문의 접근 가능, 활동 권한은 제한 유지</td></tr>
+<tr><td>취소 후 과거 확정 알림 열기</td><td>현재 취소 상태로 연결</td></tr>
+<tr><td>문의 답변 발송</td><td>실제 답변 이메일 1건만 제공</td></tr>
+</tbody></table></div>
+<h2>12 문구는 하나만 관리한다</h2>
+<ul>
+<li>알림 종류마다 제목·본문 한 벌을 확정한다. 전체용·짧은용·향후 푸시용 문구를 따로 만들지 않는다. 제목은 상태 변화, 본문은 필요한 행동과 예약 식별 정보를 간결하게 적는다.</li>
+<li>제목 25자·본문 80자 이내를 작성 목표로 삼되, 날짜·금액 등 필수 정보를 잘라 맞추지 않는다. 변수 치환 후 검수하고 긴 사유·개인정보는 관련 상세 또는 개별 이메일 본문에 둔다. 별도 자동 요약이나 길이 초과 발송 차단 기능은 MVP에 추가하지 않는다.</li>
+<li>알림함 목록은 제목·본문 각각 최대 2줄, 초과 부분은 …으로 표시한다. 저장한 문구는 보존한다. 문서의 ‘문구 확인’에서 생략 없는 동일 문구를 볼 수 있다.</li>
+<li>인증 메일과 사용자가 요청한 CS 답변 메일은 별도 업무 절차로 유지한다.</li>
+<li>앱·브라우저 푸시는 MVP 미운영이다. OS별 페이로드·펼침 설계는 도입 시 다루며 현재 문구 문서에 별도 푸시 미리보기를 만들지 않는다.</li>
+<li>여행일과 알림 발생 날짜는 YYYY-MM-DD, 여행 날짜 범위는 YYYY-MM-DD ~ YYYY-MM-DD로 통일한다. 결제기한은 YYYY-MM-DD HH:mm (한국 시간)으로 표시하며 시간은 24시간제를 사용한다. 실제 저장값은 바꾸지 않는다. 긴 값은 화면에서만 말줄임한다.</li>
+</ul>
+<p>변수명은 문서용 치환 키이며 실제 DB 필드명은 구현 시 매핑한다. 원문 템플릿은 한 벌로 유지하고 아래 값만 치환한다. 예시 값을 운영 기본값으로 사용하지 않는다. 필수 값이 없으면 빈 문자열이나 중괄호를 그대로 발송하지 않고 데이터 오류로 확인한다. 사용자 입력은 텍스트로 이스케이프하며, 표시 날짜는 한국 시간 기준이다.</p>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">변수</th><th scope="col">치환할 값과 표시 형식</th><th scope="col">예시</th></tr></thead><tbody>
+<tr><td>{여행일}</td><td>해당 요청·예약에 저장된 여행 날짜. 하루는 YYYY-MM-DD, 여러 날은 시작일 ~ 종료일로 표시</td><td>2026-12-01 또는 2026-12-01 ~ 2026-12-03</td></tr>
+<tr><td>{결제기한}</td><td>해당 선택에 저장된 고정 수수료 결제 마감 시각. YYYY-MM-DD HH:mm (한국 시간) 형식과 24시간제로 표시. 화면 접속 시 재계산하거나 연장하지 않음</td><td>2026-11-25 13:00 (한국 시간)</td></tr>
+<tr><td>{수수료}</td><td>결제 안내는 해당 예약의 확정 청구 수수료, 반환 완료는 PG 성공 확인된 실제 반환 금액. 정수 원화에 천 단위 쉼표만 적용하며 ‘원’은 템플릿에 있으므로 중복 추가하지 않음</td><td>24,000</td></tr>
+<tr><td>{예약번호}</td><td>해당 채팅방이 연결된 예약의 사용자 표시용 번호. 내부 DB 식별자나 다른 예약 번호를 노출하지 않음</td><td>RT-1201</td></tr>
+</tbody></table></div>
+<h2>13 메시지별 문구 전체</h2>
+<p>여행자·메이트의 서비스 알림함 12종을 정리한다. 채팅은 채팅방의 미읽음 표시만 사용한다. 여행자·메이트 공통 알림은 두 필터에 포함하지만 해당 사건의 당사자에게만 보낸다. 아래는 MVP 구현 기준이며 실제 서버 발송은 미연결이다.</p>
+<div class="notification-policy-table-wrap"><table class="notification-table"><thead><tr><th scope="col">상황</th><th scope="col">수신자</th><th scope="col">채널</th><th scope="col">제목</th><th scope="col">본문</th><th scope="col">연결 화면</th><th scope="col">발송 트리거</th><th scope="col">수신·발송 조건</th></tr></thead><tbody>
+<tr><td>제안 도착</td><td>여행자</td><td>알림함</td><td>메이트의 제안이 도착했어요</td><td>{여행일} 여행에 새 제안이 있어요.</td><td>도착한 제안</td><td>유효한 공개 여행 요청에 메이트의 새 제안이 저장됐을 때</td><td>요청한 여행자의 알림함에 새 제안별로 즉시 1회 기록.</td></tr>
+<tr><td>제안 선택</td><td>메이트</td><td>알림함</td><td>여행자가 제안을 선택했어요</td><td>{결제기한}까지 수수료 {수수료}원을 결제해 예약을 확정해 주세요.</td><td>예약 수수료</td><td>여행자가 제안을 선택하고 결제 대기 예약 생성이 성공했을 때</td><td>선택된 메이트에게 1회. 여행자 본인에게는 발송하지 않음.</td></tr>
+<tr><td>예약 확정</td><td>여행자 · 메이트</td><td>알림함</td><td>예약이 확정됐어요</td><td>{여행일} 여행이 확정됐어요. 대화를 시작해보세요.</td><td>확정 예약 상세</td><td>메이트 수수료 결제 성공을 서버에서 검증하고 예약을 확정 저장했을 때</td><td>여행자·메이트에게 각 1회. 결제 완료 알림을 별도로 만들지 않음.</td></tr>
+<tr><td>선택 해제</td><td>여행자 · 메이트</td><td>알림함</td><td>예약이 성사되지 않았어요</td><td>{여행일} 여행의 예약이 확정되지 않았어요. 요청 상태를 확인해 주세요.</td><td>요청 현재 상태</td><td>메이트의 진행 거절 또는 수수료 결제 기한 만료로 선택 해제가 저장됐을 때</td><td>여행자에게 1회. 결제 기한 만료인 경우에만 메이트도 수신. 직접 거절한 메이트는 제외. 시작 전에는 재모집, 시작 후에는 모집 종료 상태로 연결.</td></tr>
+<tr><td>예약 취소</td><td>여행자 · 메이트</td><td>알림함</td><td>예약이 취소됐어요</td><td>{여행일} 예약이 취소됐어요. 상세에서 취소 사유를 확인해 주세요.</td><td>예약 취소 결과</td><td>확정된 예약의 취소가 서버에 저장됐을 때</td><td>취소한 사람의 상대방에게 1회. 본인 취소는 제외하며 운영팀 취소는 양쪽에 발송.</td></tr>
+<tr><td>수수료 반환 완료</td><td>메이트</td><td>알림함</td><td>수수료 반환이 완료됐어요</td><td>{여행일} 예약의 수수료 {수수료}원 반환이 완료됐어요.</td><td>반환 내역</td><td>운영팀이 실제 PG 반환 성공을 확인하고 반환 완료를 저장했을 때</td><td>수수료를 결제한 메이트에게 1회. 접수·심사 승인 단계에서는 완료 알림을 보내지 않음.</td></tr>
+<tr><td>등록 승인</td><td>메이트</td><td>알림함</td><td>메이트 등록이 승인됐어요</td><td>이제 함께 여행을 만들어 보세요!</td><td>본인 신청 결과</td><td>운영팀이 메이트 신청의 심사 결과를 승인으로 저장했을 때</td><td>신청한 메이트에게 결과 버전별 1회. 재심사 승인에도 같은 문구 사용.</td></tr>
+<tr><td>신청 보완</td><td>메이트</td><td>알림함</td><td>메이트 신청 내용을 보완해 주세요</td><td>신청 결과에서 보완할 내용을 확인하고 다시 제출해 주세요.</td><td>본인 신청 결과</td><td>운영팀이 메이트 신청의 보완 요청과 사유를 저장했을 때</td><td>신청한 메이트에게 결과 버전별 1회. 재심사에도 같은 문구 사용. 보완할 내용은 신청 결과에서 확인.</td></tr>
+<tr><td>신청 반려</td><td>메이트</td><td>알림함</td><td>메이트 등록이 승인되지 않았어요</td><td>신청 결과에서 심사 사유를 확인해 주세요.</td><td>본인 신청 결과</td><td>운영팀이 메이트 신청의 반려 결과와 사유를 저장했을 때</td><td>신청한 메이트에게 결과 버전별 1회. 재심사에도 같은 문구 사용. 사유는 신청 결과에서 확인.</td></tr>
+<tr><td>활동 제한</td><td>메이트</td><td>알림함</td><td>메이트 활동이 제한됐어요</td><td>제한 사유와 문의 방법을 확인해 주세요.</td><td>제한 상태 · 문의</td><td>운영팀이 메이트 활동 제한을 확정했을 때</td><td>해당 메이트에게 1회. 신고 접수만으로는 보내지 않음.</td></tr>
+<tr><td>결제 마감 안내</td><td>메이트</td><td>알림함</td><td>수수료 결제 마감이 다가와요</td><td>{결제기한}까지 수수료 {수수료}원을 결제해 주세요.</td><td>예약 수수료</td><td>선택 시 고정된 수수료 결제 기한의 1시간 전이 됐을 때</td><td>선택이 유지되고 미결제인 메이트에게 1회. 선택 당시 남은 기한이 1시간 이하면 생성하지 않음. 결제·거절·선택 해제 시 취소.</td></tr>
+<tr><td>여행 전날</td><td>여행자 · 메이트</td><td>알림함</td><td>내일의 여행을 준비해 주세요!</td><td>{여행일} 여행을 앞두고 채팅으로 만남 장소와 준비사항을 확인해 보세요.</td><td>예약 상세 · 채팅</td><td>확정 예약 첫날의 여행 시작 시각 24시간 전이 됐을 때</td><td>예약이 여전히 확정 상태인 여행자·메이트에게 각 1회. 확정 당시 시작까지 24시간 이하면 생성하지 않음. 여러 날 여행도 첫날 기준 1회.</td></tr>
+</tbody></table></div>
+</section>
+</div>
+<script>
+(()=>{
+ const filters=[...document.querySelectorAll('[data-recipient-filter]')],cards=[...document.querySelectorAll('.notification-message')];
+ const names={traveler:'여행자',mate:'메이트',all:'전체'};
+ function filterRecipient(role){let count=0;for(const card of cards){const visible=role==='all'||card.dataset.recipients.split(' ').includes(role);card.hidden=!visible;if(visible)count++;}for(const button of filters)button.setAttribute('aria-pressed',String(button.dataset.recipientFilter===role));document.getElementById('notification-role-count').textContent=names[role]+' 알림 '+count+'개';}
+ for(const button of filters){const role=button.dataset.recipientFilter;const count=cards.filter(card=>role==='all'||card.dataset.recipients.split(' ').includes(role)).length;button.textContent=names[role]+' '+count;button.addEventListener('click',()=>filterRecipient(role));}
+ filterRecipient('traveler');
+ const tabs=[...document.querySelectorAll('.notification-tabs [role=tab]')];
+ function selectTab(tab){for(const item of tabs){const selected=item===tab;item.setAttribute('aria-selected',String(selected));item.tabIndex=selected?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;}}
+ tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>selectTab(tab));tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();selectTab(tabs[next]);tabs[next].focus();});});
+})();
+</script>
+</main></body></html>

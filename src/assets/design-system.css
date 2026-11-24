@@ -413,9 +413,11 @@ body:has(#dialog.rt-bottom-sheet[open]){overflow:hidden}
 :is(#app,#dialog,.ds-preview) .rt-card-compact > .btn{margin-top:var(--rt-space-1);margin-bottom:0}
 
 /* Booking navigation: primary return action and accessible secondary withdrawal. */
-:is(#app,.ds-preview) .rt-booking-actions{display:flex;flex-direction:column;align-items:stretch;gap:var(--rt-space-3);margin:var(--rt-space-5) 0}
-:is(#app,.ds-preview) .rt-booking-actions>.btn{width:100%;margin:0;min-height:48px}
-:is(#app,.ds-preview) .rt-booking-actions>.btn.secondary{align-self:center;width:auto;background:transparent;box-shadow:none;color:var(--rt-muted)}
+:is(#app,.ds-preview) :is(.rt-booking-actions,.rt-detail-actions){display:flex;flex-direction:column;align-items:stretch;gap:var(--rt-space-3);margin:var(--rt-space-5) 0}
+:is(#app,.ds-preview) :is(.rt-booking-actions,.rt-detail-actions)>.btn{display:flex;width:100%;box-sizing:border-box;margin:0;min-height:48px;padding:var(--rt-space-3) var(--rt-space-4);border-radius:var(--rt-radius-control);font-size:14px;line-height:1.5}
+:is(#app,.ds-preview) :is(.rt-booking-actions,.rt-detail-actions)>.btn.secondary{align-self:stretch;background:var(--rt-surface);border:1px solid var(--rt-border);box-shadow:none;color:var(--rt-ink)}
+:is(#app,.ds-preview) :is(.rt-booking-actions,.rt-detail-actions)>.btn.secondary:hover{background:var(--rt-subtle)}
+:is(#app,.ds-preview) .rt-card-stack>.rt-detail-actions{margin:var(--rt-space-2) 0 0}
 
 /* Chat identity shares a single-line header with a trailing menu action. */
 :is(#app,.ds-preview) .chat-person>div{flex:1;min-width:0}
@@ -451,12 +453,12 @@ body:has(#dialog.rt-bottom-sheet[open]){overflow:hidden}
 
 /* Shared profile and compact information cards. */
 .rt-card-stack{display:grid;gap:var(--rt-space-4);min-width:0}
-:is(#app,.ds-preview) .rt-profile-card,:is(#app,.ds-preview) .rt-info-card{margin:0;background:var(--rt-surface);border:1px solid var(--rt-border);box-shadow:none}
+:is(#app,#dialog,.ds-preview) .rt-profile-card,:is(#app,#dialog,.ds-preview) .rt-info-card{margin:0;background:var(--rt-surface);border:1px solid var(--rt-border);box-shadow:none}
 .rt-profile-identity{display:flex;align-items:center;gap:var(--rt-space-4)}
 .rt-profile-identity>div{min-width:0}
 .rt-profile-label{display:block;font-size:12px;line-height:1.5;color:var(--rt-muted);margin-bottom:var(--rt-space-1)}
 :is(#app,.ds-preview) .rt-profile-identity h2{margin:0;font-size:22px;line-height:1.4;color:var(--rt-ink);overflow-wrap:anywhere}
-:is(#app,.ds-preview) .rt-profile-bio{margin:var(--rt-space-4) 0 0;font-size:14px;line-height:1.75;color:var(--rt-muted);white-space:pre-wrap;overflow-wrap:anywhere}
+:is(#app,#dialog,.ds-preview) .rt-profile-bio{margin:var(--rt-space-4) 0 0;font-size:14px;line-height:1.75;color:var(--rt-muted);white-space:pre-wrap;overflow-wrap:anywhere}
 :is(#app,.ds-preview) .rt-info-card h2{display:flex;align-items:center;gap:var(--rt-space-2);margin:0 0 var(--rt-space-2);font-size:16px;line-height:1.5;color:var(--rt-ink)}
 .rt-fact-list{margin:0}
 .rt-fact-list>div{display:grid;grid-template-columns:minmax(72px,auto) minmax(0,2fr);gap:var(--rt-space-4);padding:var(--rt-space-3) 0;align-items:baseline}
@@ -473,10 +475,6 @@ body:has(#dialog.rt-bottom-sheet[open]){overflow:hidden}
 :is(#app,.ds-preview) .rt-review-section{display:grid;gap:var(--rt-space-3);min-width:0}
 :is(#app,.ds-preview) .rt-review-section>h2{margin:0;font-size:18px;line-height:1.5}
 :is(#app,.ds-preview) .rt-review-section>.badge{justify-self:start;margin:0}
-:is(#app,.ds-preview) .rt-profile-card--review{display:grid;gap:var(--rt-space-4);min-width:0}
-:is(#app,.ds-preview) .rt-profile-card--review>h3{margin:0;font-size:16px;line-height:1.5}
-:is(#app,.ds-preview) .rt-profile-card--review>.rt-profile-bio{margin:calc(-1 * var(--rt-space-2)) 0 0}
-:is(#app,.ds-preview) .rt-profile-card--review .my-avatar{flex-shrink:0;overflow:hidden}
 :is(#app,.ds-preview) .rt-review-stack .rt-fact-list>div{grid-template-columns:72px minmax(0,1fr)}
 :is(#app,.ds-preview) .rt-review-section>.rt-fact-list>div:first-child{padding-top:0}
 
@@ -528,7 +526,8 @@ html[lang=en] .rt-campaign-message h1{font-size:22px}
 :is(#app,.ds-preview) .rt-place-card-body h3{margin:0 0 var(--rt-space-2);font-size:16px;line-height:1.4;overflow-wrap:anywhere}
 :is(#app,.ds-preview) .rt-place-card-body p{margin:var(--rt-space-1) 0 0;color:var(--rt-muted);font-size:13px;line-height:1.5;overflow-wrap:anywhere}
 :is(#app,.ds-preview) .rt-save-action{width:44px;height:44px;padding:0;margin:0;border:1px solid var(--rt-border);background:var(--rt-surface);color:var(--rt-primary);box-shadow:none}
-:is(#app,.ds-preview) .rt-save-action:disabled{opacity:1;background:var(--rt-selected);border-color:var(--rt-blue-200);color:var(--rt-primary)}
+:is(#app,.ds-preview) .rt-save-action[aria-pressed="true"]{opacity:1;background:var(--rt-selected);border-color:var(--rt-blue-200);color:var(--rt-primary)}
+:is(#app,.ds-preview) .rt-save-action[aria-pressed="true"] .rt-icon{fill:currentColor}
 
 /* Shared map and selectable place list. Mobile stacks the two panels. */
 :is(#app,.ds-preview) .rt-map-browser{display:grid;gap:var(--rt-space-3)}
@@ -554,10 +553,10 @@ html[lang=en] .rt-campaign-message h1{font-size:22px}
 :is(#app,.ds-preview) .rt-page-action>.btn>.rt-icon{flex:none}
 
 /* Shared public mate profile and proposal identity link. */
-:is(#app,.ds-preview) .rt-profile-card--public{padding:0;overflow:hidden}
+:is(#app,#dialog,.ds-preview) .rt-profile-card--public{padding:0;overflow:hidden}
 .rt-profile-cover{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--rt-space-6);background:linear-gradient(145deg,var(--rt-blue-50),var(--rt-blue-100))}
-:is(#app,.ds-preview) .rt-profile-cover .my-avatar{width:88px;height:88px;margin-bottom:var(--rt-space-4);border:4px solid var(--rt-surface);background:var(--rt-surface);color:var(--rt-primary)}
-:is(#app,.ds-preview) .rt-profile-cover h2{margin:0;font-size:26px;line-height:1.4;overflow-wrap:anywhere;max-width:100%}
+:is(#app,#dialog,.ds-preview) .rt-profile-cover .my-avatar{width:88px;height:88px;margin-bottom:var(--rt-space-4);border:4px solid var(--rt-surface);background:var(--rt-surface);color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) .rt-profile-cover h2{margin:0;font-size:26px;line-height:1.4;overflow-wrap:anywhere;max-width:100%}
 .rt-profile-cover .rt-profile-label{color:var(--rt-blue-600)}
 .rt-profile-body{padding:var(--rt-space-6)}
 .rt-profile-details{display:grid;gap:var(--rt-space-5);margin:0}
@@ -566,8 +565,8 @@ html[lang=en] .rt-campaign-message h1{font-size:22px}
 .rt-profile-details dt .rt-icon{color:var(--rt-primary);flex-shrink:0}
 .rt-profile-details dd{margin:var(--rt-space-2) 0 0 28px;font-size:15px;font-weight:600;color:var(--rt-ink);overflow-wrap:anywhere}
 .rt-profile-story{margin-top:var(--rt-space-6);padding-top:var(--rt-space-6);border-top:1px solid var(--rt-border)}
-:is(#app,.ds-preview) .rt-profile-story h3{margin:0;font-size:15px}
-:is(#app,.ds-preview) .rt-profile-story .rt-profile-bio{margin-top:var(--rt-space-3);color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) .rt-profile-story h3{margin:0;font-size:15px}
+:is(#app,#dialog,.ds-preview) .rt-profile-story .rt-profile-bio{margin-top:var(--rt-space-3);color:var(--rt-ink)}
 :is(#app,.ds-preview) .rt-profile-link{display:flex;align-items:center;gap:var(--rt-space-3);color:var(--rt-ink);text-decoration:none;border-radius:var(--rt-radius-control);min-height:64px}
 .rt-profile-link>div{flex:1;min-width:0}
 .rt-profile-link> .rt-icon{flex-shrink:0;color:var(--rt-muted)}
@@ -576,3 +575,129 @@ html[lang=en] .rt-campaign-message h1{font-size:22px}
 
 /* Booking cards separate the status chip from the trip heading. */
 :is(#app,.ds-preview) .rt-booking-card > h2{margin-top:var(--rt-space-3)}
+
+/* Shared compact navigation card: one destination, no nested action buttons. */
+:is(#app,.ds-preview) .rt-card-link{display:flex;align-items:center;gap:var(--rt-space-3);padding:var(--rt-space-4);text-decoration:none;color:inherit}
+:is(#app,.ds-preview) .rt-card-link-content{flex:1;min-width:0}
+:is(#app,.ds-preview) .rt-card-link h2{margin:var(--rt-space-3) 0 var(--rt-space-1);font-size:16px;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-card-link p{margin:0 0 var(--rt-space-2);color:var(--rt-muted)}
+:is(#app,.ds-preview) .rt-card-link-arrow{display:flex;flex:none;color:var(--rt-muted)}
+:is(#app,.ds-preview) .rt-card-link:focus-visible{outline:2px solid var(--rt-primary);outline-offset:3px}
+
+/* Shared status filters: aligned labels/counts and a single selected color. */
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chips,.chips,.notification-filters,.day-tabs){display:flex;flex-wrap:nowrap;align-items:center;gap:var(--rt-space-2);margin:0;padding:0 0 var(--rt-space-1);overflow-x:auto;min-width:0;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chip,.chip,.notification-filter,.library-filter,.day-tabs button){display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;gap:var(--rt-space-2);min-height:44px;padding:var(--rt-space-2) var(--rt-space-3);border:1px solid var(--rt-border);border-radius:999px;background:var(--rt-surface);color:var(--rt-gray-600);font-size:14px;font-weight:600;line-height:20px;white-space:nowrap;text-decoration:none;box-sizing:border-box;box-shadow:none;text-shadow:none}
+:is(#app,#dialog,.ds-preview) .rt-filter-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 var(--rt-space-1);box-sizing:border-box;border-radius:999px;background:var(--rt-gray-100);color:var(--rt-gray-600);font-size:12px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chip,.chip,.notification-filter,.library-filter,.day-tabs button):is([aria-current=page],[aria-pressed=true],.active,.is-active){background:var(--rt-primary);border-color:var(--rt-primary);color:var(--rt-surface);box-shadow:none}
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chip,.chip,.notification-filter,.library-filter,.day-tabs button):is([aria-current=page],[aria-pressed=true],.active,.is-active) .rt-filter-count{background:var(--rt-surface);color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chip,.chip,.notification-filter,.library-filter,.day-tabs button):hover:not(:is([aria-current=page],[aria-pressed=true],.active,.is-active)){background:var(--rt-blue-50);border-color:var(--rt-blue-200);color:var(--rt-primary)}
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chip,.chip,.notification-filter,.library-filter,.day-tabs button):focus-visible{outline:3px solid var(--rt-primary);outline-offset:-3px}
+:is(#app,#dialog,.ds-preview) .rt-card-stack>.hint{margin:0}
+
+
+:is(#app,#dialog,.ds-preview) :is(.rt-filter-chips,.chips,.notification-filters,.day-tabs)::-webkit-scrollbar{display:none}
+
+:is(#app,#dialog,.ds-preview) .rt-filter-chips.library-filters{margin-bottom:var(--rt-space-5)}
+
+/* The profile preview uses the same public card in pages and dialogs. */
+:is(#dialog,.ds-preview) .rt-profile-cover .my-avatar{display:grid;place-items:center;flex-shrink:0;overflow:hidden;border-radius:50%}
+:is(#dialog,.ds-preview) .rt-profile-cover .my-avatar img{width:100%;height:100%;object-fit:cover}
+:is(#dialog,.ds-preview) .rt-profile-cover .my-avatar svg{width:30px;height:30px}
+:is(#dialog,.ds-preview) .rt-profile-card--public{border-radius:var(--rt-radius-card)}
+
+:is(#app,#dialog,.ds-preview) .day-tabs button small{margin:0;line-height:inherit;opacity:1}
+
+/* Compound fields share a fixed control height; inner inputs add no outer spacing. */
+:is(#app,#dialog,.ds-preview) .rt-field{height:48px;min-height:48px;box-sizing:border-box;align-items:center}
+:is(#app,#dialog,.ds-preview) label>.rt-field{margin-top:var(--field-label-gap,8px)}
+:is(#app,#dialog,.ds-preview) .rt-field input{height:46px;min-height:0;margin:0;padding:0;line-height:20px;align-self:center}
+:is(#app,#dialog,.ds-preview) .rt-field svg.rt-icon{display:block;flex-shrink:0;align-self:center}
+
+/* Compact agreement group shared by review forms. */
+:is(#app,#dialog,.ds-preview) .rt-consent-list{display:grid;gap:var(--rt-space-2);margin:0}
+:is(#app,#dialog,.ds-preview) .rt-consent-list .check{display:flex;align-items:flex-start;gap:var(--rt-space-2);margin:0;padding:var(--rt-space-2) 0;min-height:44px;box-sizing:border-box;font-size:13px;font-weight:400;line-height:1.5}
+:is(#app,#dialog,.ds-preview) .rt-consent-list .check input{flex-shrink:0;margin:3px 0 0}
+
+/* Shared detail action shape, including two-action rows and fixed footers. */
+:is(#app,.ds-preview) .rt-card-actions.rt-card-actions-equal>.btn.secondary,
+:is(#app,.ds-preview) .journey-action>.btn.secondary{background:var(--rt-surface);border:1px solid var(--rt-border);color:var(--rt-ink);box-shadow:none}
+:is(#app,.ds-preview) .journey-action>.btn{width:100%;flex-basis:100%;box-sizing:border-box;margin:0;min-height:48px;border-radius:var(--rt-radius-control);font-size:14px;white-space:normal}
+:is(#app,.ds-preview) .rt-feedback-card{margin:0 0 var(--rt-space-5);padding:var(--rt-space-5);border:1px solid var(--rt-border);box-shadow:none}
+:is(#app,.ds-preview) .rt-feedback-card--error{background:var(--rt-danger-bg);border-color:var(--rt-red-200)}
+:is(#app,.ds-preview) .rt-feedback-card h2{margin:0 0 var(--rt-space-2);font-size:18px;line-height:1.5;color:var(--rt-danger)}
+:is(#app,.ds-preview) .rt-feedback-card p{margin:var(--rt-space-2) 0 0;font-size:14px;line-height:1.6;color:var(--rt-ink)}
+
+/* Error state emphasis and compact payment facts. */
+:is(#app,.ds-preview) .rt-feedback-card--compact{display:flex;align-items:flex-start;gap:var(--rt-space-3);text-align:left;padding:var(--rt-space-4);margin-bottom:var(--rt-space-4);background:var(--rt-surface);border-color:var(--rt-border)}
+:is(#app,.ds-preview) .rt-feedback-symbol{display:grid;place-items:center;width:32px;height:32px;flex-shrink:0;border-radius:50%;background:var(--rt-danger-bg);color:var(--rt-danger);margin:0}
+:is(#app,.ds-preview) .rt-feedback-card--compact h2{margin:0 0 var(--rt-space-1);font-size:16px;line-height:1.5;color:var(--rt-ink);overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-feedback-card--compact p{margin:0;font-size:13px;line-height:1.5;color:var(--rt-muted)}
+.rt-feedback-copy{min-width:0}
+:is(#app,.ds-preview) .rt-payment-deadline{margin:var(--rt-space-3) 0 var(--rt-space-5);font-size:14px;line-height:1.6;color:var(--rt-ink)}
+:is(#app,.ds-preview) .rt-payment-deadline small{font-size:12px;color:var(--rt-muted)}
+
+/* Shared preference dialog: heading, grouped choices, secondary notes, actions. */
+:is(#dialog,.ds-preview) .rt-preference-dialog{display:grid;gap:var(--rt-space-4)}
+:is(#dialog,.ds-preview) .rt-preference-dialog header{display:grid;gap:var(--rt-space-2)}
+:is(#dialog,.ds-preview) .rt-preference-dialog header h2{margin:0;font-size:18px;line-height:1.4}
+:is(#dialog,.ds-preview) .rt-preference-dialog header p{margin:0;color:var(--rt-muted);font-size:13px;line-height:1.5}
+:is(#dialog,.ds-preview) .rt-preference-list{display:grid;border-top:1px solid var(--rt-border);border-bottom:1px solid var(--rt-border)}
+:is(#dialog,.ds-preview) .rt-preference-row{display:flex;align-items:center;gap:var(--rt-space-3);margin:0;padding:var(--rt-space-4) 0;min-height:64px;box-sizing:border-box;cursor:pointer}
+:is(#dialog,.ds-preview) .rt-preference-row+.rt-preference-row{border-top:1px solid var(--rt-border)}
+:is(#dialog,.ds-preview) .rt-preference-row input{flex-shrink:0;width:18px;height:18px;margin:0;accent-color:var(--rt-primary)}
+:is(#dialog,.ds-preview) .rt-preference-row span{display:grid;gap:var(--rt-space-1);min-width:0}
+:is(#dialog,.ds-preview) .rt-preference-row strong{font-size:14px;font-weight:600;line-height:1.5;color:var(--rt-ink)}
+:is(#dialog,.ds-preview) .rt-preference-row small{margin:0;font-size:12px;font-weight:400;line-height:1.5;color:var(--rt-muted)}
+:is(#dialog,.ds-preview) .rt-preference-notes{display:grid;gap:var(--rt-space-2)}
+:is(#dialog,.ds-preview) .rt-preference-notes p{margin:0;color:var(--rt-muted);font-size:12px;line-height:1.5}
+:is(#dialog,.ds-preview) .rt-preference-dialog>.error:empty{display:none}
+:is(#dialog,.ds-preview) .rt-preference-dialog>.buttons{margin:var(--rt-space-2) 0 0}
+
+/* Floating paired actions reuse the app footer positioning and safe-area inset. */
+.rt-floating-actions-space{padding-top:calc(100px + env(safe-area-inset-bottom))}
+:is(#app,.ds-preview) .rt-floating-actions>.rt-card-actions{width:100%;margin:0;gap:var(--rt-space-3)}
+:is(#app,.ds-preview) .rt-floating-actions .btn{white-space:normal;min-height:48px;font-size:14px;border-radius:var(--rt-radius-control)}
+
+/* Shared two-line notification preview; full copy remains in document disclosure. */
+.rt-notification-preview{display:grid;grid-template-columns:minmax(0,1fr) 12px;gap:var(--rt-space-3);padding:20px 24px 24px 32px;background:var(--rt-blue-50);border:0;border-radius:0;box-sizing:border-box;text-align:left}
+.rt-notification-preview>div{min-width:0}
+.rt-notification-preview strong{display:block;position:relative;color:var(--rt-blue-800);font-size:16px;font-weight:700;line-height:1.5;overflow-wrap:anywhere}
+.rt-notification-preview>div{position:relative}
+.rt-notification-preview>div::before{content:"";position:absolute;left:-12px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--rt-primary)}
+.rt-notification-preview p{margin:8px 0!important;font-size:14px!important;font-weight:400;line-height:1.6!important;color:var(--rt-muted);overflow-wrap:anywhere}
+.rt-notification-preview time{display:block;font-size:12px;line-height:1.5;color:var(--rt-gray-500)}
+.rt-notification-preview>span{color:var(--rt-gray-400);font-size:16px;line-height:21px}
+
+.rt-notification-preview :is(strong,p){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+
+/* Shared notification review card: context, preview, and progressive disclosure. */
+.rt-message-review{min-width:0;background:var(--rt-surface);border:1px solid var(--rt-border);border-radius:var(--rt-radius-card);padding:24px;box-sizing:border-box;color:var(--rt-ink)}
+.rt-message-review .rt-message-review-main{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,390px);gap:32px;align-items:center}
+.rt-message-review .rt-message-review-number{margin:0 0 8px;color:var(--rt-muted);font-size:12px;font-weight:600;letter-spacing:.04em}
+.rt-message-review h3{margin:0 0 12px;font-size:18px;line-height:1.5;color:var(--rt-ink)}
+.rt-message-review .rt-message-review-recipient{margin:0 0 4px;font-size:15px;font-weight:600;line-height:1.6}
+.rt-message-review .rt-message-review-channel,.rt-message-review .rt-message-review-destination{margin:0;font-size:14px;line-height:1.7;color:var(--rt-muted)}
+.rt-message-review .rt-message-review-destination{margin-top:8px}
+.rt-message-review .rt-notification-preview{width:100%;max-width:390px}
+.rt-message-review .rt-message-review-details{margin-top:20px;border-top:1px solid var(--rt-border)}
+.rt-message-review summary{padding:14px 0 0;min-height:30px;font-size:14px;font-weight:600;line-height:1.6;cursor:pointer;color:var(--rt-primary)}
+.rt-message-review .rt-message-review-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;padding-top:24px}
+.rt-message-review h4{margin:0 0 16px;font-size:16px;line-height:1.5;color:var(--rt-ink)}
+.rt-message-review dl{margin:0;overflow-wrap:anywhere}
+.rt-message-review dt{margin:16px 0 6px;font-size:13px;font-weight:600;color:var(--rt-muted)}
+.rt-message-review dt span{float:right;font-weight:400}
+.rt-message-review dd{margin:0;font-size:15px;line-height:1.8;color:var(--rt-ink)}
+.rt-message-review .rt-message-review-note{margin:0 0 12px;font-size:13px;line-height:1.7;color:var(--rt-muted)}
+.rt-message-review .rt-message-review-variables{margin-top:24px;border-top:1px solid var(--rt-border)}
+@media(max-width:720px){.rt-message-review{padding:20px}.rt-message-review .rt-message-review-main,.rt-message-review .rt-message-review-columns{grid-template-columns:minmax(0,1fr);gap:20px}.rt-message-review .rt-message-review-main{align-items:start}.rt-message-review .rt-notification-preview{justify-self:center}}
+
+/* Non-interactive metadata chips: wrap full text and retain condition meaning. */
+.rt-info-chip-list{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin:0;padding:0;list-style:none}
+.rt-info-chip{display:inline-flex;align-items:center;max-width:100%;box-sizing:border-box;padding:6px 12px;border:1px solid var(--rt-border);border-radius:12px;background:var(--rt-gray-50);color:var(--rt-gray-800);font-size:13px;font-weight:500;line-height:1.7;white-space:normal;overflow-wrap:anywhere;text-align:left}
+.rt-info-chip--primary{background:var(--rt-blue-50);border-color:var(--rt-blue-100);color:var(--rt-blue-800);font-weight:600}
+.rt-message-review .rt-message-review-rules{margin-top:24px;padding-top:20px;border-top:1px solid var(--rt-border);display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:start}
+.rt-message-review .rt-message-review-rules dt{margin:0}
+.rt-message-review .rt-message-review-rules dd{margin:0;padding-top:3px;font-size:14px}
+.rt-message-review .rt-message-review-rules ul{margin:0;padding:0;list-style:none}
+.rt-message-review .rt-message-review-rules li{margin:0}
+@media(max-width:600px){.rt-message-review .rt-message-review-rules{grid-template-columns:minmax(0,1fr);gap:10px}.rt-message-review .rt-message-review-rules dd+dt{margin-top:8px}}
