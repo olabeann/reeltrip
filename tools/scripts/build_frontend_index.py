@@ -111,7 +111,7 @@ short_names = {'guide-activity':'내 활동',
  'checkout':'메이트 선택','booking':'예약 상세','cancel':'예약 취소','review':'후기 작성',
  'messages':'채팅 목록','chat':'대화방','account':'마이','upcoming':'예정된 일정','settings':'설정','notifications':'알림','support':'도움말·문의','policies':'이용 안내',
  'signup':'회원가입','signup-email':'이메일 가입','guide-desk':'여행 찾기','guide-activity':'내 활동','guide-quote':'제안 작성','guide-calendar':'일정',
- 'mate-register':'메이트 등록','guide-fee':'수수료 결제','guide-earnings':'수수료 내역','admin':'운영 대시보드','admin-support':'문의 관리','admin-guides':'메이트 심사','admin-bookings':'예약·취소 관리'
+ 'mate-register':'메이트 등록','guide-fee':'수수료 결제','guide-earnings':'수수료 내역','admin':'운영 시작 · 메이트 관리','admin-support':'문의 관리','admin-guides':'메이트 심사','admin-bookings':'예약·취소 관리'
 }
 from build_transition_catalog import build as build_transitions
 transitions, _ = build_transitions()

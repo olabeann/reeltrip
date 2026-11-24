@@ -65,8 +65,10 @@ def build_design_system():
  html = html.replace('DESIGN_STYLE_VERSION', hashlib.sha256(styles.encode()).hexdigest()[:12])
  html = html.replace('SCREEN_OPTIONS', ''.join(options))
  html = html.replace('TOKEN_ROWS', ''.join(token_rows))
- # Operations web reuses these registered compact panel, filter and navigation variants.
- components = sorted(set(components) | {'rt-admin-panel', 'rt-admin-filter', 'rt-admin-sidebar', 'rt-admin-row-actions'})
+ # Operations web: subtle gray sidebar and white content surface with shared tokens.
+ # Register the compact panel, filter and navigation variants.
+ # rt-admin-filter shares a 44px control height and 80px action width via tokens.
+ components = sorted(set(components) | {'rt-admin-panel', 'rt-admin-filter', 'rt-admin-sidebar', 'rt-admin-content', 'rt-admin-detail', 'rt-admin-info', 'rt-admin-review-form', 'rt-status-badge', 'rt-admin-dialog', 'rt-admin-row-actions'})
  html = html.replace('COMPONENT_LIST', ''.join(f'<li><code>{name}</code></li>' for name in components))
  html = html.replace('ICON_SAMPLES', ''.join(f'<div class="icon-sample">{icon(name)}<code>{name}</code></div>' for name in shapes))
  # Native form fields reuse the icon registry, without changing form semantics.

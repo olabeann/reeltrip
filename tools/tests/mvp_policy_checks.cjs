@@ -34,18 +34,18 @@ for(const lang of ['ko','en']){
  c.storage.set('reeltrip-prototype-access-v1',JSON.stringify({profile:'guide',mode:'guide'}));assert(a.withdrawalBlocked(),'Same account with mate fee refund cannot delete');
  a.state.booking.refundStatus='completed';a.save();assert(!a.withdrawalBlocked());a.state.booking.disputeStatus='open';assert(a.withdrawalBlocked());a.state.booking.disputeStatus='closed';a.save();
  c.window.ReelAccess.isAdmin=true;a.state.booking.refundStatus='approved';
- const update={bookingId:firstBooking.id,refundStatus:'completed',refundAmount:20000,note:'Verified in PG',reference:'PG-123',pgConfirmed:true};
- assert(!a.saveOperationsBooking({...update,pgConfirmed:false}));assert(!a.saveOperationsBooking({...update,refundAmount:60001}));assert(a.saveOperationsBooking(update));assert.equal(a.state.booking.refundAmount,20000);
+ const update={bookingId:firstBooking.id,operation:'refund',note:'Verified in PG',reference:'PG-123',pgConfirmed:true};
+ assert(!a.saveOperationsBooking({...update,pgConfirmed:false}));assert(!a.saveOperationsBooking({...update,refundAmount:60001}));assert(a.saveOperationsBooking(update));assert.equal(a.state.booking.refundAmount,60000);assert(!a.saveOperationsBooking(update),'Duplicate completion rejected');
  c.window.ReelAccess.isAdmin=false;assert(!a.saveOperationsBooking(update));
  a.state.booking.status='confirmed';a.state.booking.date='2000-01-01';assert(!a.canCancelBooking(a.state.booking));assert(!a.cancelBooking('customer','After start'));
  assert(a.validEmail('mate@example.com'));assert(!a.validEmail('broken'));assert(a.mateEmailVerified({fields:{email:'mate@example.com',emailVerified:'mate@example.com'}}));assert(!a.mateEmailVerified({fields:{email:'changed@example.com',emailVerified:'mate@example.com'}}));
  // Exercise real admin submit handlers, not only the pure update function.
- c.window.ReelAccess.isAdmin=true;const opForm=new c.HTMLFormElement();Object.assign(opForm,{id:'operations-booking-form-'+firstBooking.id,values:{...update,resolution:'end'}});c.handlers.submit({target:opForm,preventDefault(){}});assert.equal(a.state.booking.status,'cancelled');
+ c.window.ReelAccess.isAdmin=true;a.state.booking.refundStatus='none';const opForm=new c.HTMLFormElement();Object.assign(opForm,{id:'operations-booking-confirm-form',values:{bookingId:firstBooking.id,operation:'cancel',reasonCode:'customer',note:'Verified cancellation'}});c.handlers.submit({target:opForm,preventDefault(){}});assert.equal(a.state.booking.status,'cancelled');
  const beforeTickets=a.state.tickets.length;assert(!a.storeSupport({email:'bad',body:'A valid long message'}));assert(!a.storeSupport({email:'t@example.com',body:'No traveler arrived',type:'no_show',meeting:'Exit 4 at 10:00',waited:true}),'No-show needs location or evidence');assert.equal(a.state.tickets.length,beforeTickets);assert(a.storeSupport({email:'t@example.com',body:'A valid long message',type:'general'}));
  const ticket=a.state.tickets.at(-1);Object.assign(opForm,{id:'operations-ticket-form-'+ticket.id,values:{ticketId:ticket.id,status:'review',note:'Email reply pending'}});c.handlers.submit({target:opForm,preventDefault(){}});assert.equal(ticket.status,'review');assert.equal(ticket.history.length,1);
  c.window.ReelAccess.isAdmin=false;
  // Email verification binds to the address, requires a request and cannot be reused after editing it.
  const emailForm={elements:[{name:'email',type:'email',value:'mate@example.com'},{name:'emailCode',type:'text',value:'482916'}]};const originalQuery=c.document.querySelector;c.document.querySelector=x=>x==='#mate-form'?emailForm:originalQuery(x);a.saveMate({status:'draft',step:3,fields:{}});assert(!a.mateEmailAction('verify'));assert(a.mateEmailAction('send'));assert(a.mateEmailAction('verify'));assert(a.mateEmailVerified(a.mateApplication()));emailForm.elements[0].value='changed@example.com';assert(!a.mateEmailAction('verify'));
- a.save();const restored=setup(lang,c.storage).api;assert.equal(restored.matchingContexts().length,2);assert.equal(restored.allBookings()[0].refundAmount,20000);
+ a.save();const restored=setup(lang,c.storage).api;assert.equal(restored.matchingContexts().length,2);assert.equal(restored.allBookings()[0].refundAmount,60000);
  console.log('PASS '+lang+': multiple dates, overlap holds, withdrawal, first chat, cancellation boundary, refund ownership and PG confirmation records.');
 }

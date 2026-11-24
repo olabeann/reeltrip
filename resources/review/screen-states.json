@@ -1500,12 +1500,36 @@
   ],
   "admin": [
     {
+      "id": "populated",
+      "label": "운영 예시 데이터",
+      "condition": "메이트 신청 · 예약 · 문의 · 신고 · 차단 각 3건",
+      "transition": "메이트·예약·문의 목록에서 상세 확인 및 처리",
+      "fixture": {
+        "flow": "none",
+        "activityMany": false,
+        "adminSamples": true,
+        "mateApplication": {
+          "status": "pending",
+          "step": 4,
+          "fields": {
+            "name": "하늘 · 예시",
+            "email": "mate@example.com",
+            "contact": "010-0000-0000",
+            "phoneVerified": true
+          },
+          "submittedAt": 1795474800000
+        }
+      },
+      "expect": "메이트 관리",
+      "note": "기존 데이터와 분리된 예시입니다. 새로고침하면 초기 상태로 돌아갑니다."
+    },
+    {
       "id": "empty",
-      "label": "예약·문의 없음",
-      "condition": "예약·문의 0건",
-      "transition": "검수 또는 문의 접수",
+      "label": "메이트 신청 없음",
+      "condition": "제출된 메이트 신청 없음",
+      "transition": "메이트 신청 접수 또는 운영 메뉴 선택",
       "fixture": {},
-      "expect": "운영 현황",
+      "expect": "메이트 관리",
       "note": ""
     },
     {
@@ -1517,8 +1541,8 @@
         "flow": "cancel",
         "ticket": "open"
       },
-      "expect": "운영 현황",
-      "note": ""
+      "expect": "메이트 관리",
+      "note": "메이트 신청 목록으로 시작하며 문의 처리 대기 건수는 메뉴에 표시한다."
     }
   ],
   "admin-support": [

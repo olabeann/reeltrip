@@ -86,3 +86,19 @@ node tools/tests/tower_seed_checks.cjs
 배포 없이 확인하려면 `python3 tools/scripts/build_site.py --output /tmp/reeltrip-site-preview`를 실행합니다. 출력 폴더는 비어 있어야 합니다.
 
 [공유 앱](https://olabeann.github.io/reeltrip/app/) · [프로젝트 안내](https://olabeann.github.io/reeltrip/project.html)
+
+## 다른 컴퓨터에서 이어서 작업하기
+
+처음에는 `git clone https://github.com/olabeann/reeltrip.git`으로 내려받습니다. 기존 체크아웃에서는 작업 내용을 저장한 뒤 아래 명령을 실행합니다.
+
+```sh
+git switch main
+git pull --ff-only origin main
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+한국어 원본·영어 생성 파일·공통 스타일·생성 문서·화면 탐색 파일을 함께 커밋하므로 별도 빌드 없이 동일한 화면을 실행할 수 있습니다. 운영 웹은 `http://127.0.0.1:8765/src/admin/`, 화면 모음은 `http://127.0.0.1:8765/src/frontend/`에서 확인합니다.
+
+브라우저 localStorage의 예약·사용자 입력·심사 결과는 Git에 포함되지 않아 컴퓨터나 사이트 주소가 달라지면 공유되지 않습니다. 새 브라우저에는 동일한 규칙의 예시 데이터가 생성되지만, 생성 시점·무작위 예약번호는 다를 수 있습니다. 실제 인증·PG 결제·환불 서버는 연결되어 있지 않습니다.
+
+공유 주소: [운영 웹](https://olabeann.github.io/reeltrip/src/admin/) · [화면 모음](https://olabeann.github.io/reeltrip/src/frontend/) · [개발 인계](https://olabeann.github.io/reeltrip/docs/developer-handoff.html)

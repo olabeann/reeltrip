@@ -203,7 +203,7 @@ body{background:var(--rt-gray-50);color:var(--rt-ink)}
  --rt-primary-glow:0 7px 16px color-mix(in srgb,var(--rt-blue-500) 28%,transparent),inset 0 1px 2px color-mix(in srgb,var(--rt-surface) 55%,transparent);
 }
 body:has(#app){background:var(--rt-canvas)}
-body[data-surface=admin]:has(#app){background:var(--rt-gray-50)}
+body[data-surface=admin]:has(#app){background:var(--rt-surface)}
 :is(#app,#dialog,.ds-preview) .btn:not(.secondary,.light,.danger,:disabled,[aria-disabled=true]){background:var(--rt-primary-fill);box-shadow:var(--rt-primary-glow)}
 :is(#app,#dialog,.ds-preview) .btn:not(.secondary,.light,.danger,:disabled):is(:hover,[data-preview-state=hover]){background:linear-gradient(145deg,var(--rt-blue-500),var(--rt-blue-600));box-shadow:0 9px 20px color-mix(in srgb,var(--rt-blue-500) 34%,transparent),inset 0 1px 2px color-mix(in srgb,var(--rt-surface) 50%,transparent)}
 :is(#app,#dialog,.ds-preview) .btn.secondary{border-color:transparent;background:linear-gradient(145deg,var(--rt-gray-50),var(--rt-gray-100));box-shadow:0 4px 10px color-mix(in srgb,var(--rt-gray-800) 7%,transparent)}
@@ -717,7 +717,7 @@ body[data-surface=admin] .sidenav a{display:flex;align-items:center;gap:10px;fon
 body[data-surface=admin] .sidenav a span{flex:1}body[data-surface=admin] .sidenav a:hover{background:var(--rt-gray-100)}
 body[data-surface=admin] .sidenav a.active{background:#354b60;color:var(--rt-surface)}
 .rt-admin-sidebar-foot{margin-top:auto;padding:24px 12px 8px;font-size:9px;letter-spacing:1px;color:var(--rt-muted)}.rt-admin-sidebar-foot small{display:block;letter-spacing:0;margin-top:5px}
-.rt-admin-content{padding:22px 32px 36px;min-width:0}.rt-admin-breadcrumb{display:flex;gap:10px;color:var(--rt-muted);font-size:11px;margin-bottom:20px}.rt-admin-breadcrumb span{color:var(--rt-gray-400)}
+.rt-admin-content{padding:22px 32px 36px;min-width:0;background:var(--rt-surface)}.rt-admin-breadcrumb{display:flex;gap:10px;color:var(--rt-muted);font-size:11px;margin-bottom:20px}.rt-admin-breadcrumb span{color:var(--rt-gray-400)}
 body[data-surface=admin] .pagehead{margin:0 0 24px;display:flex;justify-content:space-between}body[data-surface=admin] h1{font-size:25px;letter-spacing:-.7px;font-weight:600}body[data-surface=admin] .pagehead p{font-size:12px;margin-top:7px;color:var(--rt-muted)}body[data-surface=admin] .eyebrow{font-size:11px;color:var(--rt-muted)}
 body[data-surface=admin] .metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:24px}
 body[data-surface=admin] .metric{padding:20px 22px;font-size:12px;color:var(--rt-muted)}.rt-admin-content .metric>span{display:flex;justify-content:space-between;align-items:center}.rt-admin-content .metric strong{font-size:30px;color:var(--rt-blue-500);margin:12px 0}.rt-admin-content .metric strong small{font-size:13px;font-weight:400;margin-left:6px}.rt-admin-content .metric em{font-size:11px;font-style:normal;display:flex;gap:6px;align-items:center}
@@ -744,3 +744,50 @@ body[data-surface=admin] #app .btn.secondary{background:var(--rt-surface)!import
 body[data-surface=admin] #app :is(input:not([type=checkbox]):not([type=radio]),select,textarea){box-shadow:none!important;border-radius:5px!important;min-height:36px!important;background-color:var(--rt-surface)!important}
 body[data-surface=admin] #app .rt-admin-filter input{margin-top:7px}
 body[data-surface=admin] #app .rt-admin-filter select{margin-top:7px}
+
+/* Shared filter controls align to one control height. */
+body[data-surface=admin] #app .rt-admin-filter{--rt-admin-filter-height:44px;--rt-admin-filter-action-width:80px}
+body[data-surface=admin] #app .rt-admin-filter :is(input:not([type=hidden]),select,.btn){box-sizing:border-box;height:var(--rt-admin-filter-height);min-height:var(--rt-admin-filter-height)!important;font-size:13px;line-height:1.4}
+body[data-surface=admin] #app .rt-admin-filter>.btn{display:inline-flex;align-items:center;justify-content:center;width:var(--rt-admin-filter-action-width);padding:0 12px}
+
+/* Readable width for administrative detail and review forms. */
+body[data-surface=admin] .rt-admin-detail{--rt-admin-detail-width:840px;width:100%;max-width:var(--rt-admin-detail-width);margin-inline:auto;min-width:0}
+
+/* Shared administrative information card: identity and labeled records. */
+body[data-surface=admin] .rt-admin-info-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--rt-border)}
+body[data-surface=admin] .rt-admin-info-identity{display:flex;align-items:center;gap:20px;padding:24px 0}
+body[data-surface=admin] .rt-admin-info-identity .my-avatar{width:72px;height:72px;flex:0 0 72px;background:var(--rt-subtle);margin:0;border-radius:50%;overflow:hidden;display:grid;place-items:center}
+body[data-surface=admin] .rt-admin-info-identity .my-avatar img{width:100%;height:100%;object-fit:cover}
+body[data-surface=admin] .rt-admin-info-identity strong{font-size:18px;overflow-wrap:anywhere}
+body[data-surface=admin] .rt-admin-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0;border:1px solid var(--rt-border);border-radius:var(--rt-radius-card);overflow:hidden;gap:0}
+body[data-surface=admin] .rt-admin-info-row{display:grid;grid-template-columns:110px minmax(0,1fr);border-bottom:1px solid var(--rt-border);min-width:0}
+body[data-surface=admin] .rt-admin-info-row:nth-child(odd):not(.rt-admin-info-row--wide){border-right:1px solid var(--rt-border)}
+body[data-surface=admin] .rt-admin-info-row--wide{grid-column:1/-1}
+body[data-surface=admin] .rt-admin-info-row:last-child{border-bottom:0}
+body[data-surface=admin] .rt-admin-info-row dt,body[data-surface=admin] .rt-admin-info-row dd{margin:0;padding:16px;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+body[data-surface=admin] .rt-admin-info-row dt{background:var(--rt-subtle);color:var(--rt-muted);font-weight:500;border-right:1px solid var(--rt-border)}
+body[data-surface=admin] .rt-admin-info-row dd{background:var(--rt-surface);color:var(--rt-ink);white-space:pre-wrap}
+body[data-surface=admin] .rt-admin-review-form{margin-top:24px;padding-top:0;border-top:0}
+@media(max-width:600px){body[data-surface=admin] .rt-admin-info-grid{grid-template-columns:minmax(0,1fr)}body[data-surface=admin] .rt-admin-info-row{grid-template-columns:90px minmax(0,1fr)}body[data-surface=admin] .rt-admin-info-row:nth-child(odd):not(.rt-admin-info-row--wide){border-right:0}body[data-surface=admin] .rt-admin-info-row dt,body[data-surface=admin] .rt-admin-info-row dd{padding:12px}}
+
+/* Semantic application status badges, shared by admin list and detail. */
+:root{--rt-status-success-bg:#EAF7EF;--rt-status-success-ink:#17663B;--rt-status-warning-bg:#FFF4E5;--rt-status-warning-ink:#915000}
+body[data-surface=admin] #app .badge.rt-status-badge{background:var(--rt-subtle)!important;color:var(--rt-muted)!important;font-weight:600}
+body[data-surface=admin] #app .rt-status-badge[data-status=pending]{background:var(--rt-blue-50)!important;color:var(--rt-blue-800)!important}
+body[data-surface=admin] #app .rt-status-badge[data-status=needs_info]{background:var(--rt-status-warning-bg)!important;color:var(--rt-status-warning-ink)!important}
+body[data-surface=admin] #app .rt-status-badge[data-status=rejected]{background:var(--rt-red-50)!important;color:var(--rt-red-800)!important}
+body[data-surface=admin] #app .rt-status-badge[data-status=approved]{background:var(--rt-status-success-bg)!important;color:var(--rt-status-success-ink)!important}
+
+/* Operations dialogs share the compact, flat administrative controls. */
+body[data-surface=admin] #dialog.rt-admin-dialog{--rt-admin-dialog-width:480px;max-width:var(--rt-admin-dialog-width);padding:24px;border:1px solid var(--rt-border);border-radius:var(--rt-radius-card)!important;background:var(--rt-surface)!important;box-shadow:0 12px 36px color-mix(in srgb,var(--rt-gray-900) 16%,transparent)!important;backdrop-filter:none!important}
+body[data-surface=admin] #dialog.rt-admin-dialog::backdrop{background:color-mix(in srgb,var(--rt-gray-900) 36%,transparent);backdrop-filter:none}
+body[data-surface=admin] #dialog.rt-admin-dialog h2{font-size:18px;font-weight:600;letter-spacing:0;padding-bottom:16px;margin:0 0 18px;border-bottom:1px solid var(--rt-border)}
+body[data-surface=admin] #dialog.rt-admin-dialog p{font-size:13px;line-height:1.7;margin:0 0 18px}
+body[data-surface=admin] #dialog.rt-admin-dialog label{font-size:13px;font-weight:500}
+body[data-surface=admin] #dialog.rt-admin-dialog :is(input:not([type=hidden]),select,textarea){background:var(--rt-surface)!important;border:1px solid var(--rt-border)!important;border-radius:var(--rt-radius-control)!important;box-shadow:none!important;font-size:13px;padding:10px 12px;line-height:1.6}
+body[data-surface=admin] #dialog.rt-admin-dialog textarea{min-height:112px;resize:vertical;margin-top:8px}
+body[data-surface=admin] #dialog.rt-admin-dialog :is(input,select,textarea):focus{border-color:var(--rt-primary)!important;outline:2px solid color-mix(in srgb,var(--rt-primary) 20%,transparent);outline-offset:1px}
+body[data-surface=admin] #dialog.rt-admin-dialog .buttons{justify-content:flex-end;gap:8px;border-top:1px solid var(--rt-border);padding-top:16px;margin-top:24px}
+body[data-surface=admin] #dialog.rt-admin-dialog .buttons>.btn{flex:0 0 auto;min-width:80px;min-height:38px;padding:8px 18px;font-size:13px;font-weight:500;border:1px solid transparent!important;border-radius:var(--rt-radius-control)!important;background:var(--rt-primary)!important;color:var(--rt-surface)!important;box-shadow:none!important;backdrop-filter:none!important}
+body[data-surface=admin] #dialog.rt-admin-dialog .buttons>.btn.secondary{background:var(--rt-surface)!important;color:var(--rt-ink)!important;border-color:var(--rt-border)!important}
+body[data-surface=admin] #dialog.rt-admin-dialog .error:empty{display:none}

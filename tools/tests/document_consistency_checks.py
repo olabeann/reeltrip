@@ -19,7 +19,8 @@ assert "handoff_path.read_text()" not in source, 'Generated handoff must not be 
 policy = (docs / 'notification-policy.md').read_text()
 assert '| 해당 문의 |' not in policy, 'MVP has no user ticket-detail page'
 assert '문의 본문·연락처·위치·첨부는 Slack에 넣지 않는다' in source
-assert '여행 소식 이메일' in policy and '1분마다' in policy
+assert '서비스 알림 12종' in policy and '1분 주기 서버 작업' in policy
+assert '서비스 알림의 ‘발송’은 알림함 기록' in policy
 screens = {s['route']:s for s in json.loads((docs / 'screen-spec.json').read_text())}
 assert '광고 OFF' in screens['signup']['rule']
 assert '브라우저에 저장' in screens['signup-email']['rule']

@@ -331,10 +331,10 @@
     "effect": "입력 검증 후 다음 단계. 마지막 단계에서 pending으로 제출; 승인 전 활동 불가"
   },
   "form:mate-review-form": {
-    "kind": "상태 변경",
+    "kind": "모달",
     "target": null,
     "state": null,
-    "effect": "운영자가 확인 체크 후 pending 신청을 approved로 변경; 메이트 권한 부여"
+    "effect": "승인 확인 모달 열기. 확인 전에는 신청 상태를 변경하지 않음"
   },
   "action:mate-back": {
     "kind": "상태 변경",
@@ -343,10 +343,10 @@
     "effect": "저장된 이전 입력 단계로 이동"
   },
   "action:mate-review": {
-    "kind": "상태 변경",
+    "kind": "모달",
     "target": null,
     "state": null,
-    "effect": "사유 필수. pending 신청을 보완 요청 또는 거절 상태로 변경"
+    "effect": "거절 또는 보완 요청 모달에서 사유 입력 후 최종 확인"
   },
   "action:board-video": {
     "kind": "모달",
@@ -618,5 +618,11 @@
     "state": null,
     "kind": "검색",
     "effect": "검색어와 상태를 URL에 반영하고 현재 운영 목록을 필터링. 데이터 변경 없음."
+  },
+  "form:mate-review-confirm-form": {
+    "kind": "상태 변경",
+    "target": null,
+    "state": null,
+    "effect": "선택한 신청의 현재 심사 상태와 사유를 확인한 후 승인·거절·보완 처리. 취소 시 유지"
   }
 }
