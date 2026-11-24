@@ -75,8 +75,12 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
   assert(app.innerHTML.includes('href="#signup-email"'));
   assert.equal([...app.innerHTML.matchAll(/data-action="signup-provider"/g)].length,3);
   assert(app.innerHTML.includes('english.html?lang=en#signup') && app.innerHTML.includes('index.html?lang=ko#signup'));
+  assert(!app.innerHTML.includes('id="signup-marketing"'),'Provider selection has no consent checkbox');
+  // A stale email-signup draft must never opt a social signup into advertising.
+  if(stored)handlers.change({target:{id:'signup-marketing',checked:true}});
   const provider={dataset:{action:'signup-provider'}};
   handlers.click({target:{closest:selector=>selector==='[data-action]'?provider:null},preventDefault(){}});
+  assert.equal(JSON.parse(values.get('reeltrip-notification-preferences-v1')).marketingEmail,false);
   assert.equal(sessionValues.get('reeltrip-signup-preview-member'),'yes');
   const assigned=values.get('reeltrip-preview-nickname-v1');
   assert(ctx.window.ReelNicknameBases[lang].some(base=>assigned.startsWith(base+' ')) && / \d{4}$/.test(assigned) && assigned.length<=20);
@@ -93,7 +97,8 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
  if(route==='signup-email'){
   assert(app.innerHTML.includes('id="signup-email-form"')&&app.innerHTML.includes('type="email"'));
   const submit=(id,fields)=>handlers.submit({target:new HTMLFormElement(id,fields),preventDefault(){}});
-  submit('signup-email-form',{email:'traveler@example.com'});
+  assert(app.innerHTML.includes('id="signup-marketing"'));
+  submit('signup-email-form',{email:'traveler@example.com',...(stored?{marketingEmail:'on'}:{})});
   const demoCode=app.innerHTML.match(/<strong>(\d{6})<\/strong>/)?.[1];
   assert(demoCode&&app.innerHTML.includes('id="signup-code-form"'));
   assert(!app.innerHTML.includes(`../emails/index.html?lang=${lang}`), 'Email preview link must stay out of the product flow');
@@ -111,7 +116,31 @@ for(const stored of [false,true])for(const lang of ['ko','en','zh-CN','ja'])for(
   ctx.location.hash='#'+ctx.location.hash;handlersForWindow.hashchange();
   assert(!app.innerHTML.includes('class="signup-screen"'));
   assert(!app.innerHTML.includes('class="guest-account-actions"'));
-  assert(![...values.values()].some(value=>value.includes('traveler@example.com')));
+  const prefKey='reeltrip-notification-preferences-v1';
+  assert.equal(JSON.parse(values.get(prefKey)).marketingEmail,stored,'Unchecked signup is not consent; checked signup is retained');
+  const dialog={open:false,dataset:{},innerHTML:'',setAttribute(){},removeAttribute(){},showModal(){this.open=true},close(){this.open=false}};
+  const error={textContent:''},toast={textContent:'',classList:{add(){},remove(){}}};
+  const query=ctx.document.querySelector;
+  ctx.document.querySelector=s=>s==='#dialog'?dialog:s==='#notification-settings-error'?error:s==='#toast'?toast:query(s);
+  ctx.location.hash='#settings';handlersForWindow.hashchange();
+  assert(app.innerHTML.includes('data-action="notification-settings"'));
+  const click=action=>handlers.click({target:{closest:s=>s==='[data-action]'?{dataset:{action}}:null},preventDefault(){}});
+  click('notification-settings');assert(dialog.open);assert(dialog.innerHTML.includes('notification-settings-form'));
+  submit('notification-settings-form',{});assert(!dialog.open);
+  assert.equal(JSON.parse(values.get(prefKey)).serviceEmail,false);
+  assert.equal(JSON.parse(values.get(prefKey)).marketingEmail,false);
+  click('notification-settings');assert(!/name="serviceEmail" checked/.test(dialog.innerHTML));
+  submit('notification-settings-form',{serviceEmail:'on',marketingEmail:'on'});
+  const before=values.get(prefKey);click('notification-settings');click('close');assert.equal(values.get(prefKey),before,'Cancel preserves preferences');
+  ctx.location.hash='#signup-email?mode=signin';handlersForWindow.hashchange();
+  assert(!app.innerHTML.includes('id="signup-marketing"'),'Login never re-requests consent');
+  submit('signup-email-form',{email:'traveler@example.com'});submit('signup-code-form',{code:demoCode});
+  assert.equal(values.get(prefKey),before,'Login preserves consent and timestamp');
+  ctx.location.hash='#settings';handlersForWindow.hashchange();click('notification-settings');
+  const setItem=ctx.localStorage.setItem;ctx.localStorage.setItem=(k,v)=>{if(k===prefKey)throw Error('quota');setItem(k,v);};
+  submit('notification-settings-form',{});assert(dialog.open&&error.textContent,'Storage failures do not claim success');assert.equal(values.get(prefKey),before);ctx.localStorage.setItem=setItem;
+  // Verified demo email is retained for mate notification email reuse.
+  assert(!app.innerHTML.includes('traveler@example.com'));
  }
 }
 console.log('PASS: complete KO/EN entry scripts and Chinese/Japanese sign-up initialize main navigation and sign-up on customer/mate routes.');

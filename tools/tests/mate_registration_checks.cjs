@@ -51,7 +51,7 @@ for(const lang of ['ko','en']){
  assert.equal(JSON.stringify(reloaded.m.mateApplication().fields.regions),JSON.stringify(mixedRegions));
  assert(reloaded.m.validMateRegions(reloaded.m.mateApplication().fields.regions));
  if(lang==='ko')assert.equal(app.m.mateRegionText(mixedRegions),'서울 노원구, 부산 해운대구, 경기 수원시 장안구, 제주 서귀포시, 인천 전체');
- const a={status:'draft',step:4,fields:{photo:'data:image/png;base64,demo',specialty:'0',region:'Seoul',regions:[{city:0,district:3}],languages:'en',name:'Test mate',bio:'A friendly local with many years of neighborhood walking experience.',contact:'010-1234-5678',experience:'Local walking experience',policy:true,consent:true}};
+ const a={status:'draft',step:4,fields:{photo:'data:image/png;base64,demo',specialty:'0',region:'Seoul',regions:[{city:0,district:3}],languages:'en',name:'Test mate',bio:'A friendly local with many years of neighborhood walking experience.',contact:'010-1234-5678',experience:'Local walking experience',policy:true,consent:true,adult:true,email:'mate@example.com',emailVerified:'mate@example.com'}};
  const multi={...a,fields:{...a.fields,languages:['en','ja']}};
  assert(app.m.validMate(multi));assert(!app.m.validMate({...multi,fields:{...multi.fields,photo:''}}));assert(!app.m.validMate({...multi,fields:{...multi.fields,bio:'x'.repeat(1001)}}));
  for(const languages of [[],['bad'],['en','bad'],['en','en'],true])assert(!app.m.validMate({...a,fields:{...a.fields,languages}}));

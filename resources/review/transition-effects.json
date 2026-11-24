@@ -274,7 +274,7 @@
     "target": "requested",
     "state": "waiting",
     "kind": "제출",
-    "effect": "필수 입력·동의·출발 48시간 이후 검증 → request=requested, 이전 제안·예약·후기 초기화 → requested; 오류는 현재 화면"
+    "effect": "날짜별 중복 요청 검사 후 새 요청 저장. 기존 다른 날짜의 요청·예약 보존."
   },
   "form:checkout-form": {
     "target": "booking",
@@ -558,5 +558,77 @@
     "target": null,
     "state": null,
     "effect": "승인된 메이트의 현재 등록 사진·활동 이름·지역·언어·자기소개로 공개 프로필 표시. 연락처·심사 정보 비공개."
+  },
+  "action:open-matching": {
+    "target": "requested",
+    "state": null,
+    "kind": "상태 변경",
+    "effect": "선택한 로컬 요청·제안·예약 컨텍스트를 보존·전환한다."
+  },
+  "action:withdraw-proposal": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "선택 전 유효 제안의 철회 확인. 취소 또는 제안 철회."
+  },
+  "action:mate-email-send": {
+    "target": "mate-register",
+    "state": null,
+    "kind": "상태 변경",
+    "effect": "이메일 인증 시연 코드 요청, 실제 발송 없음."
+  },
+  "action:mate-email-verify": {
+    "target": "mate-register",
+    "state": null,
+    "kind": "상태 변경",
+    "effect": "3분·5회 제한 안에서 이메일 시연 인증."
+  },
+  "action:support-location": {
+    "target": "support",
+    "state": null,
+    "kind": "상태 변경",
+    "effect": "사용자 동의 후 접수 시 현재 위치 1회 첨부. 실패 시 자료 첨부 안내."
+  },
+  "form:operations-booking-form": {
+    "target": "admin-bookings",
+    "state": null,
+    "kind": "제출",
+    "effect": "반환·분쟁 운영 기록. PG 성공 확인 및 금액 검증 후 완료 기록. 실제 PG 취소는 하지 않음."
+  },
+  "form:operations-ticket-form": {
+    "target": "admin-support",
+    "state": null,
+    "kind": "제출",
+    "effect": "문의 처리 상태·내부 메모 저장. 메일은 별도 발송."
+  },
+  "form:activity-restriction-form": {
+    "target": "admin-guides",
+    "state": null,
+    "kind": "제출",
+    "effect": "운영팀 사유와 신규 제안·확정 제한 상태 기록. 기존 예약은 별도 판단."
+  },
+  "form:mate-edit-form": {
+    "target": "account",
+    "state": null,
+    "kind": "제출",
+    "effect": "수정본 심사 요청. 승인 전 기존 프로필 유지, 거절 후 재신청 가능."
+  },
+  "action:confirm-withdraw-proposal": {
+    "target": "guide-activity",
+    "state": null,
+    "kind": "상태 변경",
+    "effect": "현재 상태 재검사 후 제안 철회, 보낸 제안 목록으로 복귀."
+  },
+  "action:notification-settings": {
+    "target": null,
+    "state": null,
+    "kind": "모달",
+    "effect": "이메일 소식·광고 수신 선택 설정 열기; 저장 시 공통 브라우저 설정 변경, 취소 시 유지; 실제 발송 없음"
+  },
+  "form:notification-settings-form": {
+    "target": null,
+    "state": null,
+    "kind": "화면 내 변경",
+    "effect": "수신 여부·시각·출처·채널·정책 버전을 저장; 실패 시 오류 표시; 홈페이지 알림함 유지"
   }
 }

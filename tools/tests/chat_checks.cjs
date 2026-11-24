@@ -7,7 +7,7 @@ function setup(lang,saved,member=true){
  vm.createContext(ctx);
  for(const file of ['assets/nickname-bases.js','assets/signup-copy.js','assets/access.js',`assets/catalog${lang==='en'?'.en':''}.js`])vm.runInContext(fs.readFileSync(root+file,'utf8'),ctx);
  const code=fs.readFileSync(root+`assets/app${lang==='en'?'.en':''}.js`,'utf8').split('window.ReelBookingTools.init(')[0];
- vm.runInContext(code+'globalThis.chatAPI={state,adminSafetyRecords,adminSafetyPanel,setUserBlock,reportUser,conversationBlocked,ensureConversation,syncConversations,conversationRoute,conversationOpen,chatContext,sendChatMessage,markChatRead,unreadChats,messages,chat,requestBooking,makeQuote,save,layout};})();',ctx);
+ vm.runInContext(code+'globalThis.chatAPI={guideFee,state,adminSafetyRecords,adminSafetyPanel,setUserBlock,reportUser,conversationBlocked,ensureConversation,syncConversations,conversationRoute,conversationOpen,chatContext,sendChatMessage,markChatRead,unreadChats,messages,chat,requestBooking,makeQuote,save,layout};})();',ctx);
  return {...ctx,storage};
 }
 for(const lang of ['ko','en']){
@@ -19,8 +19,12 @@ for(const lang of ['ko','en']){
  assert(a.requestBooking('Jamie','demo@example.com'));assert.equal(room.messages.length,0);
  assert(!a.sendChatMessage('Unpaid customer'));assert(!a.chat().includes('id="chat-form"'));
  c.window.ReelAccess.mode=()=> 'guide';assert(!a.sendChatMessage('Unpaid mate'));
+ assert.equal(a.chatContext(),null);assert(!a.guideFee().includes('href="#chat'));assert(!a.messages().includes('conversation-item'));
+ a.state.booking.feeStatus='failed';assert.equal(a.chatContext(),null);assert(!a.guideFee().includes('href="#chat'));assert(!a.sendChatMessage('Failed payment'));
+ a.state.booking.status='confirmed';assert(!a.sendChatMessage('Confirmed without payment'));assert(!a.guideFee().includes('href="#chat'));
  a.state.booking.status='confirmed';a.state.booking.feeStatus='paid';
- c.window.ReelAccess.mode=()=> 'customer';assert(!a.sendChatMessage('Customer cannot start'));assert(!a.chat().includes('id="chat-form"'));
+ assert(a.guideFee().includes('href="#'+a.conversationRoute(room)+'"'));
+ c.window.ReelAccess.mode=()=> 'customer';assert(a.sendChatMessage('Customer can start after payment'));assert(a.chat().includes('id="chat-form"'));room.messages.pop(); // Isolate the following unread-count scenario.
  c.window.ReelAccess.mode=()=> 'guide';assert(a.sendChatMessage('First greeting'));
  c.window.ReelAccess.mode=()=> 'customer';a.markChatRead();
  assert(a.sendChatMessage('<Hello>'));assert(a.chat().includes('&lt;Hello&gt;'));
@@ -60,7 +64,10 @@ for(const lang of ['ko','en']){
  assert.equal(a.adminSafetyRecords().reports.length,3);assert(a.adminSafetyPanel().includes('Other language report'));c.storage.delete(otherKey);
  c.window.ReelAccess.isAdmin=false;a.setUserBlock(room,false);c.window.ReelAccess.mode=()=> 'customer';
 
- a.state.booking.status='completed';assert(a.conversationOpen(room),'early completion must not close the full itinerary');
+ a.state.booking.status='completed';assert(!a.conversationOpen(room),'Completed trips are read-only even before the end date');
+ assert(!a.guideFee().includes('href="#'+a.conversationRoute(room)+'"'),'Completed trip detail has no chat action');
+ for(const mode of ['customer','guide']){c.window.ReelAccess.mode=()=>mode;assert(!a.sendChatMessage('Completed trip'));assert(!a.chat().includes('id="chat-form"'));}
+ c.window.ReelAccess.mode=()=> 'customer';a.state.booking.status='confirmed';
  a.state.booking.date='2020-01-01';a.state.booking.endDate='2099-12-03';assert(a.sendChatMessage('Still traveling'));
  room.read.customer=0;assert.equal(a.unreadChats(),2);
  a.state.booking.endDate='2020-01-03';assert(!a.sendChatMessage('Too late'));assert(!a.chat().includes('id="chat-form"'));

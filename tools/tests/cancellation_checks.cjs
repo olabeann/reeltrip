@@ -22,7 +22,7 @@ for(const lang of ['ko','en'])for(const mode of ['customer','guide']){
   if(status==='confirmed')assert(a.conversationOpen(room));
   submit();assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,status==='confirmed'?'cancelled':'withdrawn');
   assert.equal(a.state.booking.feeStatus,status==='confirmed'?'paid':'void');
-  if(status==='confirmed')assert.equal(a.state.booking.refundStatus,'review');
+  if(status==='confirmed')assert.equal(a.state.booking.refundStatus,mode==='guide'?'not_eligible':'review');
   assert(!a.conversationOpen(room),'Cancellation closes chat immediately');
   const snapshot=JSON.stringify(a.state.booking);submit();assert.equal(JSON.stringify(a.state.booking),snapshot);
   assert.equal(setup(lang,c.storage).api.state.booking.status,'cancelled');

@@ -7,7 +7,7 @@ function setup(lang,storage=new Map()){
  vm.createContext(ctx);
  for(const file of ['assets/nickname-bases.js','assets/signup-copy.js','assets/access.js',`assets/catalog${lang==='en'?'.en':''}.js`,'assets/revenue.js'])vm.runInContext(fs.readFileSync(root+file,'utf8'),ctx);
  const code=fs.readFileSync(root+`assets/app${lang==='en'?'.en':''}.js`,'utf8').split('window.ReelBookingTools.init(')[0];
- vm.runInContext(code+'globalThis.api={results,requestItineraryMap,getMapPlaces:()=>mapPlaces,setQuoteMapDay:n=>quoteMapDay=n,publicTravelRequests,publicRequestMatch,expireMateFee,reopenMatching,guideActivity,guideFee,requestAvailable,layout,board,saveSelectedPlaces,saveRecommendation,loadRecommendations,getRecommendations:()=>({rows:recommendationRows,status:recommendationStatus}),saveAPIPlace,setPendingPlace:p=>pendingAPIPlace=p,pinEligible,tripRangeDays,chooseTripDate,setTripDraft:v=>tripDraft=v,getTripDraft:()=>tripDraft,moveTripPlace,removeTripPlace,updateTripDay,updateTripInfo,addTripPlace,createTrip,selectTrip,trips,tripDetailRoute,state,stashDay,submitTravelRequest,request,makeQuote,proposals,requestBooking,confirmMateFee,quote,requested,guideDesk,guideQuote,booking,save,ensureConversation};})();',ctx);
+ vm.runInContext(code+'globalThis.api={mateBookingList,restoreSampleBookingContexts,mateBookingCard,activateMatching,results,requestItineraryMap,getMapPlaces:()=>mapPlaces,setQuoteMapDay:n=>quoteMapDay=n,publicTravelRequests,publicRequestMatch,expireMateFee,reopenMatching,guideActivity,guideFee,requestAvailable,layout,board,saveSelectedPlaces,saveRecommendation,loadRecommendations,getRecommendations:()=>({rows:recommendationRows,status:recommendationStatus}),saveAPIPlace,setPendingPlace:p=>pendingAPIPlace=p,pinEligible,tripRangeDays,chooseTripDate,setTripDraft:v=>tripDraft=v,getTripDraft:()=>tripDraft,moveTripPlace,removeTripPlace,updateTripDay,updateTripInfo,addTripPlace,createTrip,selectTrip,trips,tripDetailRoute,state,stashDay,submitTravelRequest,request,makeQuote,proposals,requestBooking,confirmMateFee,quote,requested,guideDesk,guideQuote,booking,save,ensureConversation};})();',ctx);
  ctx.window.ReelRevenue.init({state:()=>ctx.api.state,save:ctx.api.save});
  return {...ctx,handlers,storage};
 }
@@ -52,7 +52,7 @@ for(const lang of ['ko','en']){
  assert(cards.saveRecommendation(card));assert(cards.saveRecommendation(card));
  assert.equal(cards.state.library.filter(id=>id==='google-card').length,1);
  assert.deepEqual(plain(cards.state.board),originalBoard);
- const collection=cards.board();assert(collection.includes('Live place'));assert(!collection.includes('data-action="resolve-place"'));assert(!collection.includes('data-id="forest"'));
+ const collection=cards.board();assert(collection.includes('Live place'));assert(!collection.includes('data-action="resolve-place"'));for(const id of cards.state.library)assert(collection.includes('data-id="'+id+'"'),'Existing saved places remain visible alongside new live results');
  const savedCard=cards.state.places.find(p=>p.id==='google-card');delete savedCard.lat;delete savedCard.lng;assert(cards.board().includes('Live place'),'Saved Google IDs remain visible while details reload');
  assert(!cards.saveRecommendation({...card,lat:null}));
  const calendar=setup(lang).api;
@@ -90,7 +90,7 @@ for(const lang of ['ko','en']){
  assert.equal(a.state.library.filter(id=>id==='food').length,1);
  // A result row saves only its own place and keeps the list open.
  a.state.library=a.state.library.filter(id=>id!=='food');c.location.hash='#results';
- const individual={dataset:{action:'save-result-place',id:'food'}};
+ const individual={setAttribute(){},dataset:{action:'save-result-place',id:'food'}};
  assert(a.results().includes('data-action="save-result-place"'));
  assert(!a.results().includes('bottomaction'));assert(a.results().includes('map-workspace'));assert(!a.results().includes('class="map-selected"'));assert.deepEqual(plain(a.getMapPlaces()).map(p=>p.id),plain(a.state.places).filter(p=>!p.recommended).map(p=>p.id));
  c.handlers.click({target:{closest:s=>s==='[data-action]'?individual:null},preventDefault(){}});
@@ -127,7 +127,7 @@ for(const lang of ['ko','en']){
  }
  assert(!a.makeQuote(240000,' '));
  assert.equal(c.window.ReelRevenue.quoteAmount(2),480000);assert(c.window.ReelRevenue.calculator(2).includes('max="8"'));
- const id=r.id;assert.equal(a.submitTravelRequest({...fields,party:'99'},{free:true}).route,'requested');assert.equal(a.state.request.party,99);assert.equal(a.state.request.id,id);
+ const id=r.id;assert(a.submitTravelRequest({...fields,party:'99'},{free:true}).error);assert.equal(a.state.request.party,99);assert.equal(a.state.request.id,id);
  assert(a.makeQuote(480000,'Day 1: Walk\nDay 2: Food','Custom route',{rate:60000,hours:8,extra:10000},'mina'));
  assert(a.makeQuote(420000,'Day 1: Food\nDay 2: Walk','Alternative route',{rate:60000,hours:7,extra:10000},'jun'));
  assert.equal(a.proposals().length,2);assert.equal(a.state.quote.pricing.hours,8);assert(!a.guideQuote().includes('id="quote-form"'));assert(!a.makeQuote(480000,'Changed itinerary',undefined,undefined,'mina'));assert.equal(a.state.quote.endDate,r.endDate);assert.equal(a.state.quote.dayCount,2);
@@ -136,7 +136,7 @@ for(const lang of ['ko','en']){
  // Reopening a selected proposal leads directly to its booking, never another mate's fee.
  assert(a.guideQuote().includes('href="#guide-desk"'));assert(!a.guideQuote().includes('href="#guide-fee"'));
  const selectedGuide=a.state.booking.guideId;a.state.booking.guideId='mina';
- assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'수수료 확인하고 결제하기':'Review fee & pay'));
+ assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'예약 확정':'Confirm booking'));
  a.state.booking.status='confirmed';assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'예약 보기':'View booking'));
  a.state.booking.status='awaiting_mate_fee';a.state.booking.guideId=selectedGuide;
  // Exercise real submit handlers without re-seeding between matching stages.
@@ -227,31 +227,71 @@ for(const lang of ['ko','en']){
  const alternative=a.proposals().find(q=>q.guideId!==selected);
  assert(alternative.expires>Date.now());a.state.quote=alternative;assert(a.requestBooking('Traveler','guest@example.com'));
  c.window.ReelAccess.mode=()=> 'guide';assert(a.confirmMateFee('success'));
- assert(a.guideFee().includes('data-action="mate-cash"'));
- assert(a.guideActivity().includes('href="#guide-fee"'));
+ assert(!a.guideFee().includes('data-action="mate-cash"'));
+ assert(a.guideFee().includes('href="#guide-activity?cancel=1"'));
+ {const originalHash=c.location.hash,originalStatus=a.state.booking.status;
+ for(const [status,param] of [['awaiting_mate_fee','decline'],['confirmed','cancel']]){
+  a.state.booking.status=status;c.location.hash='#guide-activity?'+param+'=1';
+  const html=a.guideActivity();assert(html.includes('id="mate-cancel-form"'));
+  assert(!html.includes('rt-segmented-tabs'));assert(!html.includes('rt-filter-chips'));
+  assert(html.includes('href="#guide-fee"'));assert(html.includes('name="reason"'));
+ }
+ a.state.booking.status=originalStatus;c.location.hash=originalHash;
+ assert(!a.guideActivity().includes('id="mate-cancel-form"'));
+ }
+ assert(a.guideActivity().includes('href="#guide-fee?request='));
  {const activityHash=c.location.hash;
  c.location.hash='#guide-activity?tab=sent';
  assert(a.guideActivity().includes('aria-current="page">'+(lang==='en'?'Sent proposal':'보낸 제안')));
- assert(!a.guideActivity().includes('href="#guide-fee"'));
+ assert(!a.guideActivity().includes('href="#guide-fee?request='));
  c.location.hash='#guide-activity?tab=bookings';
- assert(a.guideActivity().includes('href="#guide-fee"'));
+ assert(a.guideActivity().includes('href="#guide-fee?request='));
  c.location.hash=activityHash;}
 
- assert(a.guideActivity().includes('href="#guide-fee"'));
+ assert(a.guideActivity().includes('href="#guide-fee?request='));
  {const activityHash=c.location.hash;
  c.location.hash='#guide-activity?tab=sent';
  assert(a.guideActivity().includes('aria-current="page">'+(lang==='en'?'Sent proposal':'보낸 제안')));
- assert(!a.guideActivity().includes('href="#guide-fee"'));
+ assert(!a.guideActivity().includes('href="#guide-fee?request='));
  c.location.hash='#guide-activity?tab=bookings';
- assert(a.guideActivity().includes('href="#guide-fee"'));
+ assert(a.guideActivity().includes('href="#guide-fee?request='));
  c.location.hash=activityHash;}
 
  c.location.hash='#guide-activity';const nav=a.layout('content');assert(nav.includes('href="#guide-activity" class="active"'));assert(!nav.match(/<nav class="mobiletabs"[^]*href="#guide-earnings"/));
  const submit=(id,values)=>{const form=new c.HTMLFormElement();Object.assign(form,{id,values});c.handlers.submit({target:form,preventDefault(){}});};
  submit('mate-progress-form',{kind:'mate-complete',ack:'on'});assert.equal(a.state.booking.status,'confirmed','Cannot complete a future trip');
- submit('mate-progress-form',{kind:'mate-cash',ack:'on'});assert.equal(a.state.booking.cashStatus,'collected');assert.equal(a.state.booking.status,'confirmed');
- submit('mate-cancel-form',{reason:'Cannot attend'});assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,'cancelled');assert.equal(a.state.booking.refundStatus,'review');assert.equal(a.state.booking.feeStatus,'paid');
- assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.booking.refundStatus,'review');assert.equal(a.state.booking.feeStatus,'paid');
- const reload=setup(lang,c.storage);assert.equal(reload.api.state.bookingHistory.length,1);assert.equal(reload.api.state.booking.refundStatus,'review');
- console.log('PASS '+lang+': expiry, alternative selection, date availability, activity navigation, cash collection and refund separation.');
+ const cashStatus=a.state.booking.cashStatus;
+ submit('mate-progress-form',{kind:'mate-cash',ack:'on'});assert.equal(a.state.booking.cashStatus,cashStatus);assert.equal(a.state.booking.status,'confirmed');
+ submit('mate-cancel-form',{reason:'Cannot attend'});assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,'cancelled');assert.equal(a.state.booking.refundStatus,'not_eligible');assert.equal(a.state.booking.feeStatus,'paid');
+ assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.booking.refundStatus,'not_eligible');assert.equal(a.state.booking.feeStatus,'paid');
+ const reload=setup(lang,c.storage);assert.equal(reload.api.state.bookingHistory.length,1);assert.equal(reload.api.state.booking.refundStatus,'not_eligible');
+ console.log('PASS '+lang+': expiry, alternative selection, date availability, activity navigation, no cash confirmation and refund separation.');
+}
+
+for(const lang of ['ko','en']){
+ const c=setup(lang),a=c.api;
+ c.window.ReelAccess.mode=()=> 'guide';
+ const b={id:'RT-MANY-2',requestId:'RQ-MANY-2',guideId:'mina',status:'awaiting_mate_fee',feeStatus:'pending',date:'2099-01-01',endDate:'2099-01-01',time:'13:00',feeDeadline:Date.now()+3600000,amount:220000,feeAmount:22000,plan:[]};
+ a.state.bookingHistory=[b];a.restoreSampleBookingContexts();a.restoreSampleBookingContexts();
+ assert.equal(a.state.matchingContexts.length,1);assert.equal(a.state.bookingHistory.length,0);
+ const card=a.mateBookingCard(b);
+ assert(card.includes('href="#guide-fee?request=RQ-MANY-2"'));
+ assert(card.includes(lang==='ko'?'예약 확정':'Confirm booking'));
+ assert(!card.includes(' disabled'));assert(!card.includes('rt-booking-actions'));
+ assert(a.activateMatching(b.requestId));assert(a.confirmMateFee('success'));
+ assert.equal(a.state.booking.status,'confirmed');assert.equal(a.state.request.status,'booked');
+ console.log(`PASS: ${lang} pending sample shares booking actions and fee confirmation flow.`);
+}
+
+for(const lang of ['ko','en']){
+ const a=setup(lang).api;
+ for(const filter of ['upcoming','pending','history','invalid']){
+  const html=a.mateBookingList([],new URLSearchParams({filter}));
+  const selected=filter==='invalid'?'upcoming':filter;
+  assert(html.includes('filter='+selected+'" aria-current="page"'));
+  assert(html.includes('rt-empty-card'));
+  assert(!html.includes(lang==='ko'?'여행을 함께해요!':'Let’s travel together!'));
+ }
+ assert(a.mateBookingList([],new URLSearchParams()).includes('filter=upcoming" aria-current="page"'));
+ console.log(`PASS: ${lang} booking filters default, fallback and empty states.`);
 }

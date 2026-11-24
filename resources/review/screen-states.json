@@ -562,7 +562,8 @@
               }
             ],
             "languages": "en",
-            "contact": "mate@example.com",
+            "contact": "010-0000-0000",
+            "email": "mate@example.com",
             "experience": "동네 산책 안내 경험",
             "localContext": "성수에서 3년째 살고 있어요.",
             "pace": "천천히 걸으며 쉬어가요.",
@@ -596,7 +597,8 @@
               }
             ],
             "languages": "en",
-            "contact": "mate@example.com",
+            "contact": "010-0000-0000",
+            "email": "mate@example.com",
             "experience": "동네 산책 안내 경험",
             "localContext": "성수에서 3년째 살고 있어요.",
             "pace": "천천히 걸으며 쉬어가요.",
@@ -630,7 +632,8 @@
               }
             ],
             "languages": "en",
-            "contact": "mate@example.com",
+            "contact": "010-0000-0000",
+            "email": "mate@example.com",
             "experience": "동네 산책 안내 경험",
             "localContext": "성수에서 3년째 살고 있어요.",
             "pace": "천천히 걸으며 쉬어가요.",
@@ -665,7 +668,8 @@
               }
             ],
             "languages": "en",
-            "contact": "mate@example.com",
+            "contact": "010-0000-0000",
+            "email": "mate@example.com",
             "experience": "동네 산책 안내 경험",
             "localContext": "성수에서 3년째 살고 있어요.",
             "pace": "천천히 걸으며 쉬어가요.",
@@ -700,7 +704,8 @@
               }
             ],
             "languages": "en",
-            "contact": "mate@example.com",
+            "contact": "010-0000-0000",
+            "email": "mate@example.com",
             "experience": "동네 산책 안내 경험",
             "localContext": "성수에서 3년째 살고 있어요.",
             "pace": "천천히 걸으며 쉬어가요.",
@@ -1868,7 +1873,8 @@
       "condition": "보낸 제안",
       "transition": "예약 상세 또는 제안 확인",
       "fixture": {
-        "flow": "quote"
+        "flow": "quote",
+        "hash": "guide-activity?tab=sent"
       },
       "note": ""
     },
@@ -1878,7 +1884,8 @@
       "condition": "확정 대기",
       "transition": "메이트 수수료 결제 → 확정 / 수동 거절·결제 기한 만료 → 시작 전 자동 재모집, 시작 후 일정 변경 안내",
       "fixture": {
-        "flow": "fee"
+        "flow": "fee",
+        "hash": "guide-activity?tab=bookings&filter=pending"
       },
       "note": ""
     },
@@ -1898,7 +1905,8 @@
       "condition": "취소 완료",
       "transition": "예약 상세 또는 제안 확인",
       "fixture": {
-        "flow": "cancelled"
+        "flow": "cancelled",
+        "hash": "guide-activity?tab=bookings&filter=history"
       },
       "note": ""
     },
@@ -1908,21 +1916,22 @@
       "condition": "여행 완료",
       "transition": "예약 상세 또는 제안 확인",
       "fixture": {
-        "flow": "completed"
+        "flow": "completed",
+        "hash": "guide-activity?tab=bookings&filter=history"
       },
       "note": ""
     },
     {
       "id": "many-bookings",
-      "label": "여러 예약 · 혼합 상태",
-      "condition": "결제 기한순 → 확정 여행일순 → 완료·취소 최근 여행일순 · 예약 7개",
+      "label": "여러 예약 · 예정된 여행",
+      "condition": "예정된 여행 기본 표시 · 확정 필요 안내에서 필터 전환",
       "transition": "탭 변경 → 목록 확인 → 카드별 상세 확인",
       "fixture": {
         "flow": "fee",
         "activityMany": true,
         "hash": "guide-activity?tab=bookings"
       },
-      "note": "기존 체험 데이터와 분리된 다건 예시입니다. 추가 예시 예약은 상세 열람용이며 결제·취소는 기존 현재 예약에서 체험합니다."
+      "note": "각 예약 상태를 필터로 구분합니다. 결제는 시연입니다."
     },
     {
       "id": "many-sent",
@@ -1935,6 +1944,30 @@
         "hash": "guide-activity?tab=sent"
       },
       "note": "기존 체험 데이터와 분리된 다건 예시입니다. 추가 예시 예약은 상세 열람용이며 결제·취소는 기존 현재 예약에서 체험합니다."
+    },
+    {
+      "id": "many-pending",
+      "label": "여러 예약 · 확정 필요",
+      "condition": "확정 필요 필터 선택",
+      "transition": "탭 변경 → 목록 확인 → 카드별 상세 확인",
+      "fixture": {
+        "flow": "fee",
+        "activityMany": true,
+        "hash": "guide-activity?tab=bookings&filter=pending"
+      },
+      "note": "각 예약 상태를 필터로 구분합니다. 결제는 시연입니다."
+    },
+    {
+      "id": "many-history",
+      "label": "여러 예약 · 지난 내역",
+      "condition": "지난 내역 필터 선택",
+      "transition": "탭 변경 → 목록 확인 → 카드별 상세 확인",
+      "fixture": {
+        "flow": "fee",
+        "activityMany": true,
+        "hash": "guide-activity?tab=bookings&filter=history"
+      },
+      "note": "각 예약 상태를 필터로 구분합니다. 결제는 시연입니다."
     }
   ]
 }

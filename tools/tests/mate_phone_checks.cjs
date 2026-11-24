@@ -13,7 +13,7 @@ for(const lang of ['ko','en']){
  code.value='000000';m.matePhoneAction('verify');assert(!m.matePhoneVerified(m.mateApplication()));assert(message.textContent);
  code.value='123456';m.age(180001);m.matePhoneAction('verify');assert(!m.state().verified);
  m.matePhoneAction('send');code.value='000000';for(let i=0;i<5;i++)m.matePhoneAction('verify');code.value='123456';m.matePhoneAction('verify');assert(!m.state().verified);
- m.age(31000);m.matePhoneAction('send');m.matePhoneAction('verify');assert(m.matePhoneVerified(m.mateApplication()));m.submitMate(form);assert.equal(m.mateApplication().step,4);
+ m.age(31000);m.matePhoneAction('send');m.matePhoneAction('verify');assert(m.matePhoneVerified(m.mateApplication()));const verified=m.mateApplication();verified.fields.email='mate@example.com';verified.fields.emailVerified='mate@example.com';m.saveMate(verified);m.submitMate(form);assert.equal(m.mateApplication().step,4);
  phone.value='010-9999-8888';m.submitMate(form);assert.equal(m.mateApplication().step,3);assert(!m.matePhoneVerified(m.mateApplication()));
 }
 console.log('PASS: KO/EN demo phone UI, verification gate, resend cooldown, expiry, attempt limit and changed-number rejection. No SMS sent.');

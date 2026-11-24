@@ -829,60 +829,52 @@
       "condition": "노출 상태: 견적 요청 전, 제안 대기 중, 제안 도착, 요청 마감, 메이트 선택 완료, 도착한 제안 모두 읽음, 자유 견적 탭 · 요청 전, 자유 견적 탭 · 기존 요청, 비회원 · 받은 제안과 자유 견적"
     },
     {
-      "kind": "이동",
       "target": "requested",
-      "state": "waiting",
-      "destination": "#requested",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#requested",
+      "state": "none",
+      "kind": "상태 변경",
+      "effect": "선택한 로컬 요청·제안·예약 컨텍스트를 보존·전환한다.",
+      "source": "action:open-matching",
       "common": false,
       "sourceStates": [
         "waiting",
         "proposals",
         "closed",
         "fee",
-        "read",
-        "discover-existing"
+        "read"
       ],
       "labels": {
         "ko": {
           "waiting": [
-            "제안 기다리는 중11월 23일성수에서 보내는 여유로운 오후제안 0 2026-11-30 · 2명 · 3곳"
+            "요청·예약 열기"
           ],
           "proposals": [
-            "제안 도착11월 23일성수에서 보내는 여유로운 오후제안 2 2026-11-30 · 2명 · 3곳"
+            "요청·예약 열기"
           ],
           "closed": [
-            "요청 마감11월 23일성수에서 보내는 여유로운 오후제안 0 2026-11-30 · 2명 · 3곳"
+            "요청·예약 열기"
           ],
           "fee": [
-            "메이트 선택 완료11월 23일성수에서 보내는 여유로운 오후제안 2 2026-11-30 · 2명 · 3곳"
+            "요청·예약 열기"
           ],
           "read": [
-            "제안 도착11월 23일성수에서 보내는 여유로운 오후제안 2 2026-11-30 · 2명 · 3곳"
-          ],
-          "discover-existing": [
-            "보낸 요청 확인"
+            "요청·예약 열기"
           ]
         },
         "en": {
           "waiting": [
-            "Awaiting proposalsNov 23A slow afternoon in SeongsuProposals 0 2026-11-30 · 2 guests · 3 places"
+            "Open request or booking"
           ],
           "proposals": [
-            "Proposals receivedNov 23A slow afternoon in SeongsuProposals 2 2026-11-30 · 2 guests · 3 places"
+            "Open request or booking"
           ],
           "closed": [
-            "Close requestNov 23A slow afternoon in SeongsuProposals 0 2026-11-30 · 2 guests · 3 places"
+            "Open request or booking"
           ],
           "fee": [
-            "Mate selectedNov 23A slow afternoon in SeongsuProposals 2 2026-11-30 · 2 guests · 3 places"
+            "Open request or booking"
           ],
           "read": [
-            "Proposals receivedNov 23A slow afternoon in SeongsuProposals 2 2026-11-30 · 2 guests · 3 places"
-          ],
-          "discover-existing": [
-            "View your request"
+            "Open request or booking"
           ]
         }
       },
@@ -893,28 +885,25 @@
           "proposals": "#requested",
           "closed": "#requested",
           "fee": "#requested",
-          "read": "#requested",
-          "discover-existing": "#requested"
+          "read": "#requested"
         },
         "en": {
           "waiting": "#requested",
           "proposals": "#requested",
           "closed": "#requested",
           "fee": "#requested",
-          "read": "#requested",
-          "discover-existing": "#requested"
+          "read": "#requested"
         }
       },
       "previewStates": {
-        "waiting": "waiting",
-        "proposals": "proposals",
-        "closed": "closed",
-        "fee": "fee",
-        "read": "proposals",
-        "discover-existing": "waiting"
+        "waiting": "none",
+        "proposals": "none",
+        "closed": "none",
+        "fee": "none",
+        "read": "none"
       },
-      "trigger": "제안 기다리는 중11월 23일성수에서 보내는 여유로운 오후제안 0 2026-11-30 · 2명 · 3곳",
-      "condition": "노출 상태: 제안 대기 중, 제안 도착, 요청 마감, 메이트 선택 완료, 도착한 제안 모두 읽음, 자유 견적 탭 · 기존 요청"
+      "trigger": "요청·예약 열기",
+      "condition": "노출 상태: 제안 대기 중, 제안 도착, 요청 마감, 메이트 선택 완료, 도착한 제안 모두 읽음"
     },
     {
       "kind": "이동",
@@ -973,16 +962,23 @@
       "source": "link:#request?mode=free",
       "common": false,
       "sourceStates": [
-        "discover"
+        "discover",
+        "discover-existing"
       ],
       "labels": {
         "ko": {
           "discover": [
             "함께할 메이트 찾기"
+          ],
+          "discover-existing": [
+            "함께할 메이트 찾기"
           ]
         },
         "en": {
           "discover": [
+            "Find a travel mate"
+          ],
+          "discover-existing": [
             "Find a travel mate"
           ]
         }
@@ -990,17 +986,20 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "discover": "#request?mode=free"
+          "discover": "#request?mode=free",
+          "discover-existing": "#request?mode=free"
         },
         "en": {
-          "discover": "#request?mode=free"
+          "discover": "#request?mode=free",
+          "discover-existing": "#request?mode=free"
         }
       },
       "previewStates": {
-        "discover": "free"
+        "discover": "free",
+        "discover-existing": "free"
       },
       "trigger": "함께할 메이트 찾기",
-      "condition": "노출 상태: 자유 견적 탭 · 요청 전"
+      "condition": "노출 상태: 자유 견적 탭 · 요청 전, 자유 견적 탭 · 기존 요청"
     }
   ],
   "requested": [
@@ -3078,6 +3077,44 @@
     },
     {
       "kind": "이동",
+      "target": "chat",
+      "state": "active",
+      "destination": "#chat?thread=%5B%22RQ-PREVIEW%22%2C%22jun%22%5D",
+      "effect": "현재 예약 또는 thread ID의 대화 열기; 현재 모드의 읽음 위치 갱신. 대화 없으면 목록 표시",
+      "source": "link:#chat?thread=%5B%22RQ-PREVIEW%22%2C%22jun%22%5D",
+      "common": false,
+      "sourceStates": [
+        "confirmed"
+      ],
+      "labels": {
+        "ko": {
+          "confirmed": [
+            "메이트에게 일정·만남 문의"
+          ]
+        },
+        "en": {
+          "confirmed": [
+            "Message your mate"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "confirmed": "#chat?thread=%5B%22RQ-PREVIEW%22%2C%22jun%22%5D"
+        },
+        "en": {
+          "confirmed": "#chat?thread=%5B%22RQ-PREVIEW%22%2C%22jun%22%5D"
+        }
+      },
+      "previewStates": {
+        "confirmed": "active"
+      },
+      "trigger": "메이트에게 일정·만남 문의",
+      "condition": "노출 상태: 예약 확정"
+    },
+    {
+      "kind": "이동",
       "target": "signup",
       "state": "guest",
       "destination": "#signup",
@@ -3813,44 +3850,6 @@
     },
     {
       "kind": "이동",
-      "target": "manual",
-      "state": "examples",
-      "destination": "#manual",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#manual",
-      "common": false,
-      "sourceStates": [
-        "failed"
-      ],
-      "labels": {
-        "ko": {
-          "failed": [
-            "장소 검색"
-          ]
-        },
-        "en": {
-          "failed": [
-            "Search places"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "failed": "#manual"
-        },
-        "en": {
-          "failed": "#manual"
-        }
-      },
-      "previewStates": {
-        "failed": "examples"
-      },
-      "trigger": "장소 검색",
-      "condition": "노출 상태: 분석 실패"
-    },
-    {
-      "kind": "이동",
       "target": "signup",
       "state": "guest",
       "destination": "#signup",
@@ -4024,22 +4023,24 @@
       "labels": {
         "ko": {
           "selected": [
-            "서울숲 · 장소 저장",
-            "성수동 카페 · 장소 저장",
-            "성수동 카메라 상점 · 장소 저장",
+            "서울숲 · 저장됨",
+            "성수동 카페 · 저장됨",
+            "성수동 카메라 상점 · 저장됨",
             "광장시장 먹거리 · 장소 저장"
           ]
         },
         "en": {
           "selected": [
-            "Seoul Forest · Save place",
-            "Seongsu cafe · Save place",
-            "Seongsu camera shop · Save place",
+            "Seoul Forest · Saved",
+            "Seongsu cafe · Saved",
+            "Seongsu camera shop · Saved",
             "Gwangjang Market food · Save place"
           ]
         }
       },
-      "disabledStates": [],
+      "disabledStates": [
+        "selected"
+      ],
       "destinations": {
         "ko": {
           "selected": ""
@@ -4048,7 +4049,7 @@
           "selected": ""
         }
       },
-      "trigger": "서울숲 · 장소 저장",
+      "trigger": "서울숲 · 저장됨",
       "condition": "노출 상태: 장소별 저장 가능"
     },
     {
@@ -5895,6 +5896,142 @@
       "condition": "노출 상태: 저장 장소 있음"
     },
     {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:19",
+      "common": false,
+      "sourceStates": [
+        "saved"
+      ],
+      "labels": {
+        "ko": {
+          "saved": [
+            "N서울타워 전망대 · 장소 관리"
+          ]
+        },
+        "en": {
+          "saved": [
+            "N Seoul Tower Observatory · Manage this place"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "saved": ""
+        },
+        "en": {
+          "saved": ""
+        }
+      },
+      "trigger": "N서울타워 전망대 · 장소 관리",
+      "condition": "노출 상태: 저장 장소 있음"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:22",
+      "common": false,
+      "sourceStates": [
+        "saved"
+      ],
+      "labels": {
+        "ko": {
+          "saved": [
+            "서울숲 · 장소 관리"
+          ]
+        },
+        "en": {
+          "saved": [
+            "Seoul Forest · Manage this place"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "saved": ""
+        },
+        "en": {
+          "saved": ""
+        }
+      },
+      "trigger": "서울숲 · 장소 관리",
+      "condition": "노출 상태: 저장 장소 있음"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:25",
+      "common": false,
+      "sourceStates": [
+        "saved"
+      ],
+      "labels": {
+        "ko": {
+          "saved": [
+            "성수동 카페 · 장소 관리"
+          ]
+        },
+        "en": {
+          "saved": [
+            "Seongsu cafe · Manage this place"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "saved": ""
+        },
+        "en": {
+          "saved": ""
+        }
+      },
+      "trigger": "성수동 카페 · 장소 관리",
+      "condition": "노출 상태: 저장 장소 있음"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:28",
+      "common": false,
+      "sourceStates": [
+        "saved"
+      ],
+      "labels": {
+        "ko": {
+          "saved": [
+            "성수동 카메라 상점 · 장소 관리"
+          ]
+        },
+        "en": {
+          "saved": [
+            "Seongsu camera shop · Manage this place"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "saved": ""
+        },
+        "en": {
+          "saved": ""
+        }
+      },
+      "trigger": "성수동 카메라 상점 · 장소 관리",
+      "condition": "노출 상태: 저장 장소 있음"
+    },
+    {
       "target": null,
       "state": null,
       "kind": "모달",
@@ -5933,7 +6070,7 @@
       "target": null,
       "state": null,
       "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
-      "source": "disclosure:21",
+      "source": "disclosure:33",
       "common": false,
       "sourceStates": [
         "saved"
@@ -8942,11 +9079,11 @@
       "condition": "노출 상태: 문의 작성"
     },
     {
-      "kind": "입력 변경",
-      "target": null,
-      "state": null,
-      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
-      "source": "field:type",
+      "target": "support",
+      "state": "form",
+      "kind": "상태 변경",
+      "effect": "사용자 동의 후 접수 시 현재 위치 1회 첨부. 실패 시 자료 첨부 안내.",
+      "source": "action:support-location",
       "common": false,
       "sourceStates": [
         "form"
@@ -8954,12 +9091,49 @@
       "labels": {
         "ko": {
           "form": [
-            "장소·추출 오류데이터·개인정보 요청예약·환불기타 의견"
+            "노쇼 접수 시 현재 위치 첨부"
           ]
         },
         "en": {
           "form": [
-            "Place or video issueData or privacy requestBooking or refundOther feedback"
+            "Attach current location for a no-show report"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "form": "#support"
+        },
+        "en": {
+          "form": "#support"
+        }
+      },
+      "previewStates": {
+        "form": "form"
+      },
+      "trigger": "노쇼 접수 시 현재 위치 첨부",
+      "condition": "노출 상태: 문의 작성"
+    },
+    {
+      "kind": "입력 변경",
+      "target": null,
+      "state": null,
+      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
+      "source": "field:support-type",
+      "common": false,
+      "sourceStates": [
+        "form"
+      ],
+      "labels": {
+        "ko": {
+          "form": [
+            "장소·추출 오류데이터·개인정보 요청예약·환불메이트 지각여행자 노쇼 · 30분 무응답지각 연락 후 60분 초과악천후·사고·질병기타 의견"
+          ]
+        },
+        "en": {
+          "form": [
+            "Place or video issueData or privacy requestBooking or refundMate latenessTraveler no-show · No response for 30 minutesOver 60 minutes after reporting a delaySevere weather, accident or illnessOther feedback"
           ]
         }
       },
@@ -8972,7 +9146,7 @@
           "form": ""
         }
       },
-      "trigger": "장소·추출 오류데이터·개인정보 요청예약·환불기타 의견",
+      "trigger": "장소·추출 오류데이터·개인정보 요청예약·환불메이트 지각여행자 노쇼 · 30분 무응답지각 연락 후 60분 초과악천후·사고·질병기타 의견",
       "condition": "노출 상태: 문의 작성"
     },
     {
@@ -10607,7 +10781,7 @@
       "target": "requested",
       "state": "waiting",
       "kind": "제출",
-      "effect": "필수 입력·동의·출발 48시간 이후 검증 → request=requested, 이전 제안·예약·후기 초기화 → requested; 오류는 현재 화면",
+      "effect": "날짜별 중복 요청 검사 후 새 요청 저장. 기존 다른 날짜의 요청·예약 보존.",
       "source": "form:request-form",
       "common": false,
       "sourceStates": [
@@ -11568,7 +11742,9 @@
       "common": false,
       "sourceStates": [
         "none",
+        "new",
         "mate-none",
+        "mate-new",
         "guest"
       ],
       "labels": {
@@ -11576,7 +11752,13 @@
           "none": [
             "채팅 이용 안내"
           ],
+          "new": [
+            "채팅 이용 안내"
+          ],
           "mate-none": [
+            "채팅 이용 안내"
+          ],
+          "mate-new": [
             "채팅 이용 안내"
           ],
           "guest": [
@@ -11587,7 +11769,13 @@
           "none": [
             "About chat"
           ],
+          "new": [
+            "About chat"
+          ],
           "mate-none": [
+            "About chat"
+          ],
+          "mate-new": [
             "About chat"
           ],
           "guest": [
@@ -11599,17 +11787,21 @@
       "destinations": {
         "ko": {
           "none": "",
+          "new": "",
           "mate-none": "",
+          "mate-new": "",
           "guest": ""
         },
         "en": {
           "none": "",
+          "new": "",
           "mate-none": "",
+          "mate-new": "",
           "guest": ""
         }
       },
       "trigger": "채팅 이용 안내",
-      "condition": "노출 상태: 대화 없음, 메이트 · 대화 없음, 비회원 · 메이트와 대화"
+      "condition": "노출 상태: 대화 없음, 대화 시작, 메이트 · 대화 없음, 메이트 · 대화 시작, 비회원 · 메이트와 대화"
     },
     {
       "kind": "이동",
@@ -11669,11 +11861,15 @@
       "common": true,
       "sourceStates": [
         "none",
+        "new",
         "guest"
       ],
       "labels": {
         "ko": {
           "none": [
+            "발견"
+          ],
+          "new": [
             "발견"
           ],
           "guest": [
@@ -11682,6 +11878,9 @@
         },
         "en": {
           "none": [
+            "Discover"
+          ],
+          "new": [
             "Discover"
           ],
           "guest": [
@@ -11693,19 +11892,22 @@
       "destinations": {
         "ko": {
           "none": "#home",
+          "new": "#home",
           "guest": "#home"
         },
         "en": {
           "none": "#home",
+          "new": "#home",
           "guest": "#home"
         }
       },
       "previewStates": {
         "none": "guest",
+        "new": "guest",
         "guest": "guest"
       },
       "trigger": "발견",
-      "condition": "노출 상태: 대화 없음, 비회원 · 메이트와 대화"
+      "condition": "노출 상태: 대화 없음, 대화 시작, 비회원 · 메이트와 대화"
     },
     {
       "kind": "이동",
@@ -11717,11 +11919,15 @@
       "common": true,
       "sourceStates": [
         "none",
+        "new",
         "guest"
       ],
       "labels": {
         "ko": {
           "none": [
+            "내 여행"
+          ],
+          "new": [
             "내 여행"
           ],
           "guest": [
@@ -11730,6 +11936,9 @@
         },
         "en": {
           "none": [
+            "My trips"
+          ],
+          "new": [
             "My trips"
           ],
           "guest": [
@@ -11741,19 +11950,22 @@
       "destinations": {
         "ko": {
           "none": "#trips",
+          "new": "#trips",
           "guest": "#trips"
         },
         "en": {
           "none": "#trips",
+          "new": "#trips",
           "guest": "#trips"
         }
       },
       "previewStates": {
         "none": "upcoming",
+        "new": "upcoming",
         "guest": "guest"
       },
       "trigger": "내 여행",
-      "condition": "노출 상태: 대화 없음, 비회원 · 메이트와 대화"
+      "condition": "노출 상태: 대화 없음, 대화 시작, 비회원 · 메이트와 대화"
     },
     {
       "kind": "이동",
@@ -11765,11 +11977,15 @@
       "common": true,
       "sourceStates": [
         "none",
+        "new",
         "guest"
       ],
       "labels": {
         "ko": {
           "none": [
+            "메이트"
+          ],
+          "new": [
             "메이트"
           ],
           "guest": [
@@ -11778,6 +11994,9 @@
         },
         "en": {
           "none": [
+            "Mates"
+          ],
+          "new": [
             "Mates"
           ],
           "guest": [
@@ -11789,19 +12008,22 @@
       "destinations": {
         "ko": {
           "none": "#guides",
+          "new": "#guides",
           "guest": "#guides"
         },
         "en": {
           "none": "#guides",
+          "new": "#guides",
           "guest": "#guides"
         }
       },
       "previewStates": {
         "none": "none",
+        "new": "fee",
         "guest": "guest"
       },
       "trigger": "메이트",
-      "condition": "노출 상태: 대화 없음, 비회원 · 메이트와 대화"
+      "condition": "노출 상태: 대화 없음, 대화 시작, 비회원 · 메이트와 대화"
     },
     {
       "kind": "이동",
@@ -11813,7 +12035,9 @@
       "common": true,
       "sourceStates": [
         "none",
+        "new",
         "mate-none",
+        "mate-new",
         "guest"
       ],
       "labels": {
@@ -11821,7 +12045,13 @@
           "none": [
             "채팅"
           ],
+          "new": [
+            "채팅"
+          ],
           "mate-none": [
+            "채팅"
+          ],
+          "mate-new": [
             "채팅"
           ],
           "guest": [
@@ -11832,7 +12062,13 @@
           "none": [
             "Chats"
           ],
+          "new": [
+            "Chats"
+          ],
           "mate-none": [
+            "Chats"
+          ],
+          "mate-new": [
             "Chats"
           ],
           "guest": [
@@ -11844,22 +12080,28 @@
       "destinations": {
         "ko": {
           "none": "#messages",
+          "new": "#messages",
           "mate-none": "#messages",
+          "mate-new": "#messages",
           "guest": "#messages"
         },
         "en": {
           "none": "#messages",
+          "new": "#messages",
           "mate-none": "#messages",
+          "mate-new": "#messages",
           "guest": "#messages"
         }
       },
       "previewStates": {
         "none": "none",
+        "new": "new",
         "mate-none": "mate-none",
+        "mate-new": "mate-new",
         "guest": "guest"
       },
       "trigger": "채팅",
-      "condition": "노출 상태: 대화 없음, 메이트 · 대화 없음, 비회원 · 메이트와 대화"
+      "condition": "노출 상태: 대화 없음, 대화 시작, 메이트 · 대화 없음, 메이트 · 대화 시작, 비회원 · 메이트와 대화"
     },
     {
       "kind": "이동",
@@ -11871,7 +12113,9 @@
       "common": true,
       "sourceStates": [
         "none",
+        "new",
         "mate-none",
+        "mate-new",
         "guest"
       ],
       "labels": {
@@ -11879,7 +12123,13 @@
           "none": [
             "마이"
           ],
+          "new": [
+            "마이"
+          ],
           "mate-none": [
+            "마이"
+          ],
+          "mate-new": [
             "마이"
           ],
           "guest": [
@@ -11890,7 +12140,13 @@
           "none": [
             "My account"
           ],
+          "new": [
+            "My account"
+          ],
           "mate-none": [
+            "My account"
+          ],
+          "mate-new": [
             "My account"
           ],
           "guest": [
@@ -11902,22 +12158,66 @@
       "destinations": {
         "ko": {
           "none": "#account",
+          "new": "#account",
           "mate-none": "#account",
+          "mate-new": "#account",
           "guest": "#account"
         },
         "en": {
           "none": "#account",
+          "new": "#account",
           "mate-none": "#account",
+          "mate-new": "#account",
           "guest": "#account"
         }
       },
       "previewStates": {
         "none": "member",
+        "new": "member",
         "mate-none": "mate",
+        "mate-new": "mate",
         "guest": "guest"
       },
       "trigger": "마이",
-      "condition": "노출 상태: 대화 없음, 메이트 · 대화 없음, 비회원 · 메이트와 대화"
+      "condition": "노출 상태: 대화 없음, 대화 시작, 메이트 · 대화 없음, 메이트 · 대화 시작, 비회원 · 메이트와 대화"
+    },
+    {
+      "kind": "이동",
+      "target": "requested",
+      "state": "fee",
+      "destination": "#requested",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#requested",
+      "common": false,
+      "sourceStates": [
+        "new"
+      ],
+      "labels": {
+        "ko": {
+          "new": [
+            "도착한 제안"
+          ]
+        },
+        "en": {
+          "new": [
+            "Received proposals"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "new": "#requested"
+        },
+        "en": {
+          "new": "#requested"
+        }
+      },
+      "previewStates": {
+        "new": "fee"
+      },
+      "trigger": "도착한 제안",
+      "condition": "노출 상태: 대화 시작"
     },
     {
       "kind": "모달",
@@ -11927,20 +12227,15 @@
       "source": "action:user-safety",
       "common": false,
       "sourceStates": [
-        "new",
         "active",
         "closed",
         "date-ended",
-        "mate-new",
         "mate-active",
         "mate-closed",
         "mate-date-ended"
       ],
       "labels": {
         "ko": {
-          "new": [
-            "신고·차단"
-          ],
           "active": [
             "신고·차단"
           ],
@@ -11948,9 +12243,6 @@
             "신고·차단"
           ],
           "date-ended": [
-            "신고·차단"
-          ],
-          "mate-new": [
             "신고·차단"
           ],
           "mate-active": [
@@ -11964,9 +12256,6 @@
           ]
         },
         "en": {
-          "new": [
-            "Report or block"
-          ],
           "active": [
             "Report or block"
           ],
@@ -11974,9 +12263,6 @@
             "Report or block"
           ],
           "date-ended": [
-            "Report or block"
-          ],
-          "mate-new": [
             "Report or block"
           ],
           "mate-active": [
@@ -11993,48 +12279,40 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "new": "",
           "active": "",
           "closed": "",
           "date-ended": "",
-          "mate-new": "",
           "mate-active": "",
           "mate-closed": "",
           "mate-date-ended": ""
         },
         "en": {
-          "new": "",
           "active": "",
           "closed": "",
           "date-ended": "",
-          "mate-new": "",
           "mate-active": "",
           "mate-closed": "",
           "mate-date-ended": ""
         }
       },
       "trigger": "신고·차단",
-      "condition": "노출 상태: 대화 시작, 대화 중 · 메시지 있음, 종료된 대화, 여행일 종료 · 기록 열람, 메이트 · 대화 시작, 메이트 · 대화 중 · 메시지 있음, 메이트 · 종료된 대화, 메이트 · 여행일 종료 · 기록 열람"
+      "condition": "노출 상태: 대화 중 · 메시지 있음, 종료된 대화, 여행일 종료 · 기록 열람, 메이트 · 대화 중 · 메시지 있음, 메이트 · 종료된 대화, 메이트 · 여행일 종료 · 기록 열람"
     },
     {
       "kind": "이동",
       "target": "booking",
       "state": "completed",
-      "destination": "#booking",
+      "destination": "#booking?record=RT-PREVIEW",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#booking",
+      "source": "link:#booking?record=RT-PREVIEW",
       "common": false,
       "sourceStates": [
-        "new",
         "active",
         "closed",
         "date-ended"
       ],
       "labels": {
         "ko": {
-          "new": [
-            "예약 상세"
-          ],
           "active": [
             "예약 상세"
           ],
@@ -12046,9 +12324,6 @@
           ]
         },
         "en": {
-          "new": [
-            "Booking details"
-          ],
           "active": [
             "Booking details"
           ],
@@ -12063,26 +12338,23 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "new": "#booking",
-          "active": "#booking",
-          "closed": "#booking",
-          "date-ended": "#booking"
+          "active": "#booking?record=RT-PREVIEW",
+          "closed": "#booking?record=RT-PREVIEW",
+          "date-ended": "#booking?record=RT-PREVIEW"
         },
         "en": {
-          "new": "#booking",
-          "active": "#booking",
-          "closed": "#booking",
-          "date-ended": "#booking"
+          "active": "#booking?record=RT-PREVIEW",
+          "closed": "#booking?record=RT-PREVIEW",
+          "date-ended": "#booking?record=RT-PREVIEW"
         }
       },
       "previewStates": {
-        "new": "fee",
         "active": "confirmed",
         "closed": "cancelled",
         "date-ended": "completed"
       },
       "trigger": "예약 상세",
-      "condition": "노출 상태: 대화 시작, 대화 중 · 메시지 있음, 종료된 대화, 여행일 종료 · 기록 열람"
+      "condition": "노출 상태: 대화 중 · 메시지 있음, 종료된 대화, 여행일 종료 · 기록 열람"
     },
     {
       "target": "chat",
@@ -12134,22 +12406,29 @@
     {
       "kind": "이동",
       "target": "guide-desk",
-      "state": "none",
+      "state": "fee",
       "destination": "#guide-desk",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
       "source": "link:#guide-desk",
       "common": false,
       "sourceStates": [
-        "mate-none"
+        "mate-none",
+        "mate-new"
       ],
       "labels": {
         "ko": {
           "mate-none": [
             "공개된 여행 보기"
+          ],
+          "mate-new": [
+            "공개된 여행 보기"
           ]
         },
         "en": {
           "mate-none": [
+            "View open trips"
+          ],
+          "mate-new": [
             "View open trips"
           ]
         }
@@ -12157,37 +12436,47 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "mate-none": "#guide-desk"
+          "mate-none": "#guide-desk",
+          "mate-new": "#guide-desk"
         },
         "en": {
-          "mate-none": "#guide-desk"
+          "mate-none": "#guide-desk",
+          "mate-new": "#guide-desk"
         }
       },
       "previewStates": {
-        "mate-none": "none"
+        "mate-none": "none",
+        "mate-new": "fee"
       },
       "trigger": "공개된 여행 보기",
-      "condition": "노출 상태: 메이트 · 대화 없음"
+      "condition": "노출 상태: 메이트 · 대화 없음, 메이트 · 대화 시작"
     },
     {
       "kind": "이동",
       "target": "guide-desk",
-      "state": "none",
+      "state": "fee",
       "destination": "#guide-desk",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
       "source": "link:#guide-desk",
       "common": true,
       "sourceStates": [
-        "mate-none"
+        "mate-none",
+        "mate-new"
       ],
       "labels": {
         "ko": {
           "mate-none": [
             "여행 찾기"
+          ],
+          "mate-new": [
+            "여행 찾기"
           ]
         },
         "en": {
           "mate-none": [
+            "Find trips"
+          ],
+          "mate-new": [
             "Find trips"
           ]
         }
@@ -12195,37 +12484,47 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "mate-none": "#guide-desk"
+          "mate-none": "#guide-desk",
+          "mate-new": "#guide-desk"
         },
         "en": {
-          "mate-none": "#guide-desk"
+          "mate-none": "#guide-desk",
+          "mate-new": "#guide-desk"
         }
       },
       "previewStates": {
-        "mate-none": "none"
+        "mate-none": "none",
+        "mate-new": "fee"
       },
       "trigger": "여행 찾기",
-      "condition": "노출 상태: 메이트 · 대화 없음"
+      "condition": "노출 상태: 메이트 · 대화 없음, 메이트 · 대화 시작"
     },
     {
       "kind": "이동",
       "target": "guide-activity",
-      "state": "none",
+      "state": "fee",
       "destination": "#guide-activity",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
       "source": "link:#guide-activity",
       "common": true,
       "sourceStates": [
-        "mate-none"
+        "mate-none",
+        "mate-new"
       ],
       "labels": {
         "ko": {
           "mate-none": [
             "내 활동"
+          ],
+          "mate-new": [
+            "내 활동"
           ]
         },
         "en": {
           "mate-none": [
+            "My activity"
+          ],
+          "mate-new": [
             "My activity"
           ]
         }
@@ -12233,37 +12532,36 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "mate-none": "#guide-activity"
+          "mate-none": "#guide-activity",
+          "mate-new": "#guide-activity"
         },
         "en": {
-          "mate-none": "#guide-activity"
+          "mate-none": "#guide-activity",
+          "mate-new": "#guide-activity"
         }
       },
       "previewStates": {
-        "mate-none": "none"
+        "mate-none": "none",
+        "mate-new": "fee"
       },
       "trigger": "내 활동",
-      "condition": "노출 상태: 메이트 · 대화 없음"
+      "condition": "노출 상태: 메이트 · 대화 없음, 메이트 · 대화 시작"
     },
     {
       "kind": "이동",
       "target": "guide-fee",
       "state": "none",
-      "destination": "#guide-fee",
+      "destination": "#guide-fee?record=RT-PREVIEW",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-fee",
+      "source": "link:#guide-fee?record=RT-PREVIEW",
       "common": false,
       "sourceStates": [
-        "mate-new",
         "mate-active",
         "mate-closed",
         "mate-date-ended"
       ],
       "labels": {
         "ko": {
-          "mate-new": [
-            "예약 상세"
-          ],
           "mate-active": [
             "예약 상세"
           ],
@@ -12275,9 +12573,6 @@
           ]
         },
         "en": {
-          "mate-new": [
-            "Booking details"
-          ],
           "mate-active": [
             "Booking details"
           ],
@@ -12292,26 +12587,23 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "mate-new": "#guide-fee",
-          "mate-active": "#guide-fee",
-          "mate-closed": "#guide-fee",
-          "mate-date-ended": "#guide-fee"
+          "mate-active": "#guide-fee?record=RT-PREVIEW",
+          "mate-closed": "#guide-fee?record=RT-PREVIEW",
+          "mate-date-ended": "#guide-fee?record=RT-PREVIEW"
         },
         "en": {
-          "mate-new": "#guide-fee",
-          "mate-active": "#guide-fee",
-          "mate-closed": "#guide-fee",
-          "mate-date-ended": "#guide-fee"
+          "mate-active": "#guide-fee?record=RT-PREVIEW",
+          "mate-closed": "#guide-fee?record=RT-PREVIEW",
+          "mate-date-ended": "#guide-fee?record=RT-PREVIEW"
         }
       },
       "previewStates": {
-        "mate-new": "fee",
         "mate-active": "confirmed",
         "mate-closed": "cancelled",
         "mate-date-ended": "none"
       },
       "trigger": "예약 상세",
-      "condition": "노출 상태: 메이트 · 대화 시작, 메이트 · 대화 중 · 메시지 있음, 메이트 · 종료된 대화, 메이트 · 여행일 종료 · 기록 열람"
+      "condition": "노출 상태: 메이트 · 대화 중 · 메시지 있음, 메이트 · 종료된 대화, 메이트 · 여행일 종료 · 기록 열람"
     }
   ],
   "messages": [
@@ -14484,9 +14776,9 @@
       "kind": "이동",
       "target": "guide-quote",
       "state": "proposals",
-      "destination": "#guide-quote",
+      "destination": "#guide-quote?request=RQ-PREVIEW",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-quote",
+      "source": "link:#guide-quote?request=RQ-PREVIEW",
       "common": false,
       "sourceStates": [
         "waiting",
@@ -14513,12 +14805,12 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "waiting": "#guide-quote",
-          "proposals": "#guide-quote"
+          "waiting": "#guide-quote?request=RQ-PREVIEW",
+          "proposals": "#guide-quote?request=RQ-PREVIEW"
         },
         "en": {
-          "waiting": "#guide-quote",
-          "proposals": "#guide-quote"
+          "waiting": "#guide-quote?request=RQ-PREVIEW",
+          "proposals": "#guide-quote?request=RQ-PREVIEW"
         }
       },
       "previewStates": {
@@ -14580,12 +14872,12 @@
       "labels": {
         "ko": {
           "fee": [
-            "수수료 확인하고 결제하기"
+            "예약 확정"
           ]
         },
         "en": {
           "fee": [
-            "Review fee & pay"
+            "Confirm booking"
           ]
         }
       },
@@ -14601,7 +14893,7 @@
       "previewStates": {
         "fee": "fee"
       },
-      "trigger": "수수료 확인하고 결제하기",
+      "trigger": "예약 확정",
       "condition": "노출 상태: 선택받았어요!"
     }
   ],
@@ -15165,6 +15457,40 @@
       "condition": "노출 상태: 제안 가능"
     },
     {
+      "target": null,
+      "state": null,
+      "kind": "모달",
+      "effect": "선택 전 유효 제안의 철회 확인. 취소 또는 제안 철회.",
+      "source": "action:withdraw-proposal",
+      "common": false,
+      "sourceStates": [
+        "proposals"
+      ],
+      "labels": {
+        "ko": {
+          "proposals": [
+            "이 제안 철회하기"
+          ]
+        },
+        "en": {
+          "proposals": [
+            "Withdraw this proposal"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "proposals": ""
+        },
+        "en": {
+          "proposals": ""
+        }
+      },
+      "trigger": "이 제안 철회하기",
+      "condition": "노출 상태: 여행자 선택 대기"
+    },
+    {
       "kind": "이동",
       "target": "guide-activity",
       "state": "fee",
@@ -15216,12 +15542,12 @@
       "labels": {
         "ko": {
           "fee": [
-            "수수료 확인하고 결제하기"
+            "예약 확정"
           ]
         },
         "en": {
           "fee": [
-            "Review fee & pay"
+            "Confirm booking"
           ]
         }
       },
@@ -15237,7 +15563,7 @@
       "previewStates": {
         "fee": "fee"
       },
-      "trigger": "수수료 확인하고 결제하기",
+      "trigger": "예약 확정",
       "condition": "노출 상태: 선택받았어요!"
     }
   ],
@@ -15635,6 +15961,49 @@
       "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 수수료 결제 완료, 취소된 예약 · 결제 불가"
     },
     {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:9",
+      "common": false,
+      "sourceStates": [
+        "fee",
+        "failed"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "예약 금액"
+          ],
+          "failed": [
+            "예약 금액"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Booking price"
+          ],
+          "failed": [
+            "Booking price"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "",
+          "failed": ""
+        },
+        "en": {
+          "fee": "",
+          "failed": ""
+        }
+      },
+      "trigger": "예약 금액",
+      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패"
+    },
+    {
       "kind": "이동",
       "target": "guide-activity",
       "state": "none",
@@ -15683,169 +16052,12 @@
       "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패"
     },
     {
-      "target": "guide-fee",
-      "state": "confirmed",
-      "kind": "제출",
-      "effect": "시연 성공: feeStatus=paid, booking=confirmed, request=booked → guide-earnings. 실패: feeStatus=failed, 미확정 유지, 현재 화면 오류·재시도",
-      "source": "form:mate-fee-form",
-      "common": false,
-      "sourceStates": [
-        "fee",
-        "failed"
-      ],
-      "labels": {
-        "ko": {
-          "fee": [
-            "결제하고 예약 확정"
-          ],
-          "failed": [
-            "결제하고 예약 확정"
-          ]
-        },
-        "en": {
-          "fee": [
-            "Pay & confirm booking"
-          ],
-          "failed": [
-            "Pay & confirm booking"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "fee": "#guide-fee",
-          "failed": "#guide-fee"
-        },
-        "en": {
-          "fee": "#guide-fee",
-          "failed": "#guide-fee"
-        }
-      },
-      "previewStates": {
-        "fee": "confirmed",
-        "failed": "confirmed"
-      },
-      "trigger": "결제하고 예약 확정",
-      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패"
-    },
-    {
-      "kind": "펼침",
-      "target": null,
-      "state": null,
-      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
-      "source": "disclosure:11",
-      "common": false,
-      "sourceStates": [
-        "fee",
-        "failed"
-      ],
-      "labels": {
-        "ko": {
-          "fee": [
-            "예약 금액"
-          ],
-          "failed": [
-            "예약 금액"
-          ]
-        },
-        "en": {
-          "fee": [
-            "Booking price"
-          ],
-          "failed": [
-            "Booking price"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "fee": "",
-          "failed": ""
-        },
-        "en": {
-          "fee": "",
-          "failed": ""
-        }
-      },
-      "trigger": "예약 금액",
-      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패"
-    },
-    {
       "kind": "이동",
       "target": "chat",
-      "state": "mate-closed",
-      "destination": "#chat",
+      "state": "mate-active",
+      "destination": "#chat?thread=%5B%22RQ-PREVIEW%22%2C%22mina%22%5D",
       "effect": "현재 예약 또는 thread ID의 대화 열기; 현재 모드의 읽음 위치 갱신. 대화 없으면 목록 표시",
-      "source": "link:#chat",
-      "common": false,
-      "sourceStates": [
-        "fee",
-        "failed",
-        "confirmed",
-        "cancelled"
-      ],
-      "labels": {
-        "ko": {
-          "fee": [
-            "여행자와 대화"
-          ],
-          "failed": [
-            "여행자와 대화"
-          ],
-          "confirmed": [
-            "여행자와 대화"
-          ],
-          "cancelled": [
-            "여행자와 대화"
-          ]
-        },
-        "en": {
-          "fee": [
-            "Chat with traveler"
-          ],
-          "failed": [
-            "Chat with traveler"
-          ],
-          "confirmed": [
-            "Chat with traveler"
-          ],
-          "cancelled": [
-            "Chat with traveler"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "fee": "#chat",
-          "failed": "#chat",
-          "confirmed": "#chat",
-          "cancelled": "#chat"
-        },
-        "en": {
-          "fee": "#chat",
-          "failed": "#chat",
-          "confirmed": "#chat",
-          "cancelled": "#chat"
-        }
-      },
-      "previewStates": {
-        "fee": "mate-new",
-        "failed": "mate-none",
-        "confirmed": "mate-active",
-        "cancelled": "mate-closed"
-      },
-      "trigger": "여행자와 대화",
-      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 수수료 결제 완료, 취소된 예약 · 결제 불가"
-    },
-    {
-      "kind": "상태 변경",
-      "target": null,
-      "state": null,
-      "effect": "현금 전액 수령 확인 모달. 확인 후 cashStatus=collected; 예약 상태 유지.",
-      "source": "action:mate-cash",
+      "source": "link:#chat?thread=%5B%22RQ-PREVIEW%22%2C%22mina%22%5D",
       "common": false,
       "sourceStates": [
         "confirmed"
@@ -15853,25 +16065,28 @@
       "labels": {
         "ko": {
           "confirmed": [
-            "현금 수령 확인"
+            "여행자와 대화하기"
           ]
         },
         "en": {
           "confirmed": [
-            "Confirm cash collection"
+            "Chat with traveler"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "confirmed": ""
+          "confirmed": "#chat?thread=%5B%22RQ-PREVIEW%22%2C%22mina%22%5D"
         },
         "en": {
-          "confirmed": ""
+          "confirmed": "#chat?thread=%5B%22RQ-PREVIEW%22%2C%22mina%22%5D"
         }
       },
-      "trigger": "현금 수령 확인",
+      "previewStates": {
+        "confirmed": "mate-active"
+      },
+      "trigger": "여행자와 대화하기",
       "condition": "노출 상태: 수수료 결제 완료"
     },
     {
@@ -16881,6 +17096,49 @@
       },
       "trigger": "여행자 모드메이트로 전환›",
       "condition": "노출 상태: 여행자 설정"
+    },
+    {
+      "target": null,
+      "state": null,
+      "kind": "모달",
+      "effect": "이메일 소식·광고 수신 선택 설정 열기; 저장 시 공통 브라우저 설정 변경, 취소 시 유지; 실제 발송 없음",
+      "source": "action:notification-settings",
+      "common": false,
+      "sourceStates": [
+        "customer",
+        "mate"
+      ],
+      "labels": {
+        "ko": {
+          "customer": [
+            "알림 설정"
+          ],
+          "mate": [
+            "알림 설정"
+          ]
+        },
+        "en": {
+          "customer": [
+            "Notification settings"
+          ],
+          "mate": [
+            "Notification settings"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "customer": "",
+          "mate": ""
+        },
+        "en": {
+          "customer": "",
+          "mate": ""
+        }
+      },
+      "trigger": "알림 설정",
+      "condition": "노출 상태: 여행자 설정, 메이트 설정"
     },
     {
       "kind": "모달",
@@ -19730,8 +19988,7 @@
       "labels": {
         "ko": {
           "none": [
-            "운영 홈",
-            "운영 현황"
+            "운영 홈"
           ],
           "open": [
             "운영 홈"
@@ -19742,8 +19999,7 @@
         },
         "en": {
           "none": [
-            "운영 홈",
-            "Operations overview"
+            "운영 홈"
           ],
           "open": [
             "운영 홈"
@@ -20117,41 +20373,94 @@
       "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
     },
     {
-      "target": "admin-support",
-      "state": "resolved",
-      "kind": "화면 내 변경",
-      "effect": "클릭한 ticket.status=open → resolved; 처리 버튼 제거",
-      "source": "action:resolve-ticket",
+      "kind": "입력 변경",
+      "target": null,
+      "state": null,
+      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
+      "source": "field:status",
       "common": false,
       "sourceStates": [
-        "open"
+        "open",
+        "resolved"
       ],
       "labels": {
         "ko": {
           "open": [
-            "처리 완료로 표시"
+            "접수검토 중보완 요청처리 완료"
+          ],
+          "resolved": [
+            "접수검토 중보완 요청처리 완료"
           ]
         },
         "en": {
           "open": [
-            "Mark resolved"
+            "ReceivedUnder reviewMore information neededResolved"
+          ],
+          "resolved": [
+            "ReceivedUnder reviewMore information neededResolved"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "open": "#admin-support"
+          "open": "",
+          "resolved": ""
         },
         "en": {
-          "open": "#admin-support"
+          "open": "",
+          "resolved": ""
+        }
+      },
+      "trigger": "접수검토 중보완 요청처리 완료",
+      "condition": "노출 상태: 접수된 문의, 처리 완료된 문의"
+    },
+    {
+      "target": "admin-support",
+      "state": "none",
+      "kind": "제출",
+      "effect": "문의 처리 상태·내부 메모 저장. 메일은 별도 발송.",
+      "source": "form:operations-ticket-form",
+      "common": false,
+      "sourceStates": [
+        "open",
+        "resolved"
+      ],
+      "labels": {
+        "ko": {
+          "open": [
+            "처리 기록 저장"
+          ],
+          "resolved": [
+            "처리 기록 저장"
+          ]
+        },
+        "en": {
+          "open": [
+            "Save processing record"
+          ],
+          "resolved": [
+            "Save processing record"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "open": "#admin-support",
+          "resolved": "#admin-support"
+        },
+        "en": {
+          "open": "#admin-support",
+          "resolved": "#admin-support"
         }
       },
       "previewStates": {
-        "open": "resolved"
+        "open": "none",
+        "resolved": "none"
       },
-      "trigger": "처리 완료로 표시",
-      "condition": "노출 상태: 접수된 문의"
+      "trigger": "처리 기록 저장",
+      "condition": "노출 상태: 접수된 문의, 처리 완료된 문의"
     }
   ],
   "admin-guides": [
@@ -20692,6 +21001,43 @@
       },
       "trigger": "보완 요청",
       "condition": "노출 상태: 신청 심사"
+    },
+    {
+      "target": "admin-guides",
+      "state": "draft",
+      "kind": "제출",
+      "effect": "운영팀 사유와 신규 제안·확정 제한 상태 기록. 기존 예약은 별도 판단.",
+      "source": "form:activity-restriction-form",
+      "common": false,
+      "sourceStates": [
+        "approved"
+      ],
+      "labels": {
+        "ko": {
+          "approved": [
+            "제한 상태 저장"
+          ]
+        },
+        "en": {
+          "approved": [
+            "Save restriction status"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "approved": "#admin-guides"
+        },
+        "en": {
+          "approved": "#admin-guides"
+        }
+      },
+      "previewStates": {
+        "approved": "draft"
+      },
+      "trigger": "제한 상태 저장",
+      "condition": "노출 상태: 등록 완료"
     }
   ],
   "admin-bookings": [
@@ -21222,6 +21568,223 @@
       },
       "trigger": "예약·환불 운영",
       "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "kind": "입력 변경",
+      "target": null,
+      "state": null,
+      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
+      "source": "field:refundStatus",
+      "common": false,
+      "sourceStates": [
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
+          ],
+          "failed": [
+            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
+          ],
+          "confirmed": [
+            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
+          ],
+          "cancelled": [
+            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
+          ],
+          "completed": [
+            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
+          ],
+          "failed": [
+            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
+          ],
+          "confirmed": [
+            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
+          ],
+          "cancelled": [
+            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
+          ],
+          "completed": [
+            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        },
+        "en": {
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        }
+      },
+      "trigger": "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님",
+      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "kind": "입력 변경",
+      "target": null,
+      "state": null,
+      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
+      "source": "field:resolution",
+      "common": false,
+      "sourceStates": [
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "기존 예약 유지CS 확인 후 예약 종료"
+          ],
+          "failed": [
+            "기존 예약 유지CS 확인 후 예약 종료"
+          ],
+          "confirmed": [
+            "기존 예약 유지CS 확인 후 예약 종료"
+          ],
+          "cancelled": [
+            "기존 예약 유지CS 확인 후 예약 종료"
+          ],
+          "completed": [
+            "기존 예약 유지CS 확인 후 예약 종료"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Keep existing bookingEnd booking after support review"
+          ],
+          "failed": [
+            "Keep existing bookingEnd booking after support review"
+          ],
+          "confirmed": [
+            "Keep existing bookingEnd booking after support review"
+          ],
+          "cancelled": [
+            "Keep existing bookingEnd booking after support review"
+          ],
+          "completed": [
+            "Keep existing bookingEnd booking after support review"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        },
+        "en": {
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        }
+      },
+      "trigger": "기존 예약 유지CS 확인 후 예약 종료",
+      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "target": "admin-bookings",
+      "state": "none",
+      "kind": "제출",
+      "effect": "반환·분쟁 운영 기록. PG 성공 확인 및 금액 검증 후 완료 기록. 실제 PG 취소는 하지 않음.",
+      "source": "form:operations-booking-form",
+      "common": false,
+      "sourceStates": [
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "처리 기록 저장"
+          ],
+          "failed": [
+            "처리 기록 저장"
+          ],
+          "confirmed": [
+            "처리 기록 저장"
+          ],
+          "cancelled": [
+            "처리 기록 저장"
+          ],
+          "completed": [
+            "처리 기록 저장"
+          ]
+        },
+        "en": {
+          "fee": [
+            "Save processing record"
+          ],
+          "failed": [
+            "Save processing record"
+          ],
+          "confirmed": [
+            "Save processing record"
+          ],
+          "cancelled": [
+            "Save processing record"
+          ],
+          "completed": [
+            "Save processing record"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "#admin-bookings",
+          "failed": "#admin-bookings",
+          "confirmed": "#admin-bookings",
+          "cancelled": "#admin-bookings",
+          "completed": "#admin-bookings"
+        },
+        "en": {
+          "fee": "#admin-bookings",
+          "failed": "#admin-bookings",
+          "confirmed": "#admin-bookings",
+          "cancelled": "#admin-bookings",
+          "completed": "#admin-bookings"
+        }
+      },
+      "previewStates": {
+        "fee": "none",
+        "failed": "none",
+        "confirmed": "none",
+        "cancelled": "none",
+        "completed": "none"
+      },
+      "trigger": "처리 기록 저장",
+      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
     }
   ],
   "mate-register": [
@@ -22311,6 +22874,80 @@
       "condition": "노출 상태: 연락처·경험"
     },
     {
+      "target": "mate-register",
+      "state": "step-0",
+      "kind": "상태 변경",
+      "effect": "이메일 인증 시연 코드 요청, 실제 발송 없음.",
+      "source": "action:mate-email-send",
+      "common": false,
+      "sourceStates": [
+        "step-3"
+      ],
+      "labels": {
+        "ko": {
+          "step-3": [
+            "이메일 인증번호 받기"
+          ]
+        },
+        "en": {
+          "step-3": [
+            "Get email verification code"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "step-3": "#mate-register"
+        },
+        "en": {
+          "step-3": "#mate-register"
+        }
+      },
+      "previewStates": {
+        "step-3": "step-0"
+      },
+      "trigger": "이메일 인증번호 받기",
+      "condition": "노출 상태: 연락처·경험"
+    },
+    {
+      "target": "mate-register",
+      "state": "step-0",
+      "kind": "상태 변경",
+      "effect": "3분·5회 제한 안에서 이메일 시연 인증.",
+      "source": "action:mate-email-verify",
+      "common": false,
+      "sourceStates": [
+        "step-3"
+      ],
+      "labels": {
+        "ko": {
+          "step-3": [
+            "이메일 인증 확인"
+          ]
+        },
+        "en": {
+          "step-3": [
+            "Verify email code"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "step-3": "#mate-register"
+        },
+        "en": {
+          "step-3": "#mate-register"
+        }
+      },
+      "previewStates": {
+        "step-3": "step-0"
+      },
+      "trigger": "이메일 인증 확인",
+      "condition": "노출 상태: 연락처·경험"
+    },
+    {
       "kind": "화면 이동",
       "target": "support",
       "state": "form",
@@ -22533,7 +23170,135 @@
     {
       "kind": "이동",
       "target": "guide-activity",
-      "state": "many-sent",
+      "state": "many-bookings",
+      "destination": "#guide-activity?tab=bookings",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?tab=bookings",
+      "common": true,
+      "sourceStates": [
+        "none",
+        "quote",
+        "fee",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "many-bookings",
+        "many-sent",
+        "many-pending",
+        "many-history"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "예약0"
+          ],
+          "quote": [
+            "예약0"
+          ],
+          "fee": [
+            "예약1"
+          ],
+          "confirmed": [
+            "예약1"
+          ],
+          "cancelled": [
+            "예약1"
+          ],
+          "completed": [
+            "예약1"
+          ],
+          "many-bookings": [
+            "예약7"
+          ],
+          "many-sent": [
+            "예약7"
+          ],
+          "many-pending": [
+            "예약7"
+          ],
+          "many-history": [
+            "예약7"
+          ]
+        },
+        "en": {
+          "none": [
+            "Bookings0"
+          ],
+          "quote": [
+            "Bookings0"
+          ],
+          "fee": [
+            "Bookings1"
+          ],
+          "confirmed": [
+            "Bookings1"
+          ],
+          "cancelled": [
+            "Bookings1"
+          ],
+          "completed": [
+            "Bookings1"
+          ],
+          "many-bookings": [
+            "Bookings7"
+          ],
+          "many-sent": [
+            "Bookings7"
+          ],
+          "many-pending": [
+            "Bookings7"
+          ],
+          "many-history": [
+            "Bookings7"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "#guide-activity?tab=bookings",
+          "quote": "#guide-activity?tab=bookings",
+          "fee": "#guide-activity?tab=bookings",
+          "confirmed": "#guide-activity?tab=bookings",
+          "cancelled": "#guide-activity?tab=bookings",
+          "completed": "#guide-activity?tab=bookings",
+          "many-bookings": "#guide-activity?tab=bookings",
+          "many-sent": "#guide-activity?tab=bookings",
+          "many-pending": "#guide-activity?tab=bookings",
+          "many-history": "#guide-activity?tab=bookings"
+        },
+        "en": {
+          "none": "#guide-activity?tab=bookings",
+          "quote": "#guide-activity?tab=bookings",
+          "fee": "#guide-activity?tab=bookings",
+          "confirmed": "#guide-activity?tab=bookings",
+          "cancelled": "#guide-activity?tab=bookings",
+          "completed": "#guide-activity?tab=bookings",
+          "many-bookings": "#guide-activity?tab=bookings",
+          "many-sent": "#guide-activity?tab=bookings",
+          "many-pending": "#guide-activity?tab=bookings",
+          "many-history": "#guide-activity?tab=bookings"
+        }
+      },
+      "previewStates": {
+        "none": "many-bookings",
+        "quote": "many-bookings",
+        "fee": "many-bookings",
+        "confirmed": "many-bookings",
+        "cancelled": "many-bookings",
+        "completed": "many-bookings",
+        "many-bookings": "many-bookings",
+        "many-sent": "many-bookings",
+        "many-pending": "many-bookings",
+        "many-history": "many-bookings"
+      },
+      "trigger": "예약0",
+      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 보낸 제안, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-activity",
+      "state": "quote",
       "destination": "#guide-activity?tab=sent",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
       "source": "link:#guide-activity?tab=sent",
@@ -22546,7 +23311,9 @@
         "cancelled",
         "completed",
         "many-bookings",
-        "many-sent"
+        "many-sent",
+        "many-pending",
+        "many-history"
       ],
       "labels": {
         "ko": {
@@ -22572,6 +23339,12 @@
             "보낸 제안6"
           ],
           "many-sent": [
+            "보낸 제안6"
+          ],
+          "many-pending": [
+            "보낸 제안6"
+          ],
+          "many-history": [
             "보낸 제안6"
           ]
         },
@@ -22599,6 +23372,12 @@
           ],
           "many-sent": [
             "Sent proposal6"
+          ],
+          "many-pending": [
+            "Sent proposal6"
+          ],
+          "many-history": [
+            "Sent proposal6"
           ]
         }
       },
@@ -22612,7 +23391,9 @@
           "cancelled": "#guide-activity?tab=sent",
           "completed": "#guide-activity?tab=sent",
           "many-bookings": "#guide-activity?tab=sent",
-          "many-sent": "#guide-activity?tab=sent"
+          "many-sent": "#guide-activity?tab=sent",
+          "many-pending": "#guide-activity?tab=sent",
+          "many-history": "#guide-activity?tab=sent"
         },
         "en": {
           "none": "#guide-activity?tab=sent",
@@ -22622,129 +23403,349 @@
           "cancelled": "#guide-activity?tab=sent",
           "completed": "#guide-activity?tab=sent",
           "many-bookings": "#guide-activity?tab=sent",
-          "many-sent": "#guide-activity?tab=sent"
+          "many-sent": "#guide-activity?tab=sent",
+          "many-pending": "#guide-activity?tab=sent",
+          "many-history": "#guide-activity?tab=sent"
         }
       },
       "previewStates": {
-        "none": "many-sent",
-        "quote": "many-sent",
-        "fee": "many-sent",
-        "confirmed": "many-sent",
-        "cancelled": "many-sent",
-        "completed": "many-sent",
-        "many-bookings": "many-sent",
-        "many-sent": "many-sent"
+        "none": "quote",
+        "quote": "quote",
+        "fee": "quote",
+        "confirmed": "quote",
+        "cancelled": "quote",
+        "completed": "quote",
+        "many-bookings": "quote",
+        "many-sent": "quote",
+        "many-pending": "quote",
+        "many-history": "quote"
       },
       "trigger": "보낸 제안0",
-      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태, 여러 보낸 제안"
+      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 보낸 제안, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
       "target": "guide-activity",
-      "state": "many-bookings",
-      "destination": "#guide-activity?tab=bookings",
+      "state": "fee",
+      "destination": "#guide-activity?tab=bookings&filter=upcoming",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?tab=bookings",
+      "source": "link:#guide-activity?tab=bookings&filter=upcoming",
       "common": true,
       "sourceStates": [
         "none",
-        "quote",
         "fee",
         "confirmed",
         "cancelled",
         "completed",
         "many-bookings",
-        "many-sent"
+        "many-pending",
+        "many-history"
       ],
       "labels": {
         "ko": {
           "none": [
-            "예약0"
-          ],
-          "quote": [
-            "예약0"
+            "예정된 여행0"
           ],
           "fee": [
-            "예약1"
+            "예정된 여행0"
           ],
           "confirmed": [
-            "예약1"
+            "예정된 여행1"
           ],
           "cancelled": [
-            "예약1"
+            "예정된 여행0"
           ],
           "completed": [
-            "예약1"
+            "예정된 여행0"
           ],
           "many-bookings": [
-            "예약7"
+            "예정된 여행2"
           ],
-          "many-sent": [
-            "예약7"
+          "many-pending": [
+            "예정된 여행2"
+          ],
+          "many-history": [
+            "예정된 여행2"
           ]
         },
         "en": {
           "none": [
-            "Bookings0"
-          ],
-          "quote": [
-            "Bookings0"
+            "Upcoming trips0"
           ],
           "fee": [
-            "Bookings1"
+            "Upcoming trips0"
           ],
           "confirmed": [
-            "Bookings1"
+            "Upcoming trips1"
           ],
           "cancelled": [
-            "Bookings1"
+            "Upcoming trips0"
           ],
           "completed": [
-            "Bookings1"
+            "Upcoming trips0"
           ],
           "many-bookings": [
-            "Bookings7"
+            "Upcoming trips2"
           ],
-          "many-sent": [
-            "Bookings7"
+          "many-pending": [
+            "Upcoming trips2"
+          ],
+          "many-history": [
+            "Upcoming trips2"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "none": "#guide-activity?tab=bookings",
-          "quote": "#guide-activity?tab=bookings",
-          "fee": "#guide-activity?tab=bookings",
-          "confirmed": "#guide-activity?tab=bookings",
-          "cancelled": "#guide-activity?tab=bookings",
-          "completed": "#guide-activity?tab=bookings",
-          "many-bookings": "#guide-activity?tab=bookings",
-          "many-sent": "#guide-activity?tab=bookings"
+          "none": "#guide-activity?tab=bookings&filter=upcoming",
+          "fee": "#guide-activity?tab=bookings&filter=upcoming",
+          "confirmed": "#guide-activity?tab=bookings&filter=upcoming",
+          "cancelled": "#guide-activity?tab=bookings&filter=upcoming",
+          "completed": "#guide-activity?tab=bookings&filter=upcoming",
+          "many-bookings": "#guide-activity?tab=bookings&filter=upcoming",
+          "many-pending": "#guide-activity?tab=bookings&filter=upcoming",
+          "many-history": "#guide-activity?tab=bookings&filter=upcoming"
         },
         "en": {
-          "none": "#guide-activity?tab=bookings",
-          "quote": "#guide-activity?tab=bookings",
-          "fee": "#guide-activity?tab=bookings",
-          "confirmed": "#guide-activity?tab=bookings",
-          "cancelled": "#guide-activity?tab=bookings",
-          "completed": "#guide-activity?tab=bookings",
-          "many-bookings": "#guide-activity?tab=bookings",
-          "many-sent": "#guide-activity?tab=bookings"
+          "none": "#guide-activity?tab=bookings&filter=upcoming",
+          "fee": "#guide-activity?tab=bookings&filter=upcoming",
+          "confirmed": "#guide-activity?tab=bookings&filter=upcoming",
+          "cancelled": "#guide-activity?tab=bookings&filter=upcoming",
+          "completed": "#guide-activity?tab=bookings&filter=upcoming",
+          "many-bookings": "#guide-activity?tab=bookings&filter=upcoming",
+          "many-pending": "#guide-activity?tab=bookings&filter=upcoming",
+          "many-history": "#guide-activity?tab=bookings&filter=upcoming"
         }
       },
       "previewStates": {
-        "none": "many-bookings",
-        "quote": "many-bookings",
-        "fee": "many-bookings",
-        "confirmed": "many-bookings",
-        "cancelled": "many-bookings",
-        "completed": "many-bookings",
-        "many-bookings": "many-bookings",
-        "many-sent": "many-bookings"
+        "none": "none",
+        "fee": "fee",
+        "confirmed": "confirmed",
+        "cancelled": "cancelled",
+        "completed": "completed",
+        "many-bookings": "fee",
+        "many-pending": "fee",
+        "many-history": "fee"
       },
-      "trigger": "예약0",
-      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태, 여러 보낸 제안"
+      "trigger": "예정된 여행0",
+      "condition": "노출 상태: 활동 없음, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-activity",
+      "state": "fee",
+      "destination": "#guide-activity?tab=bookings&filter=pending",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?tab=bookings&filter=pending",
+      "common": true,
+      "sourceStates": [
+        "none",
+        "fee",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "many-bookings",
+        "many-pending",
+        "many-history"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "확정 필요0"
+          ],
+          "fee": [
+            "확정 필요1"
+          ],
+          "confirmed": [
+            "확정 필요0"
+          ],
+          "cancelled": [
+            "확정 필요0"
+          ],
+          "completed": [
+            "확정 필요0"
+          ],
+          "many-bookings": [
+            "확정 필요2"
+          ],
+          "many-pending": [
+            "확정 필요2"
+          ],
+          "many-history": [
+            "확정 필요2"
+          ]
+        },
+        "en": {
+          "none": [
+            "Needs confirmation0"
+          ],
+          "fee": [
+            "Needs confirmation1"
+          ],
+          "confirmed": [
+            "Needs confirmation0"
+          ],
+          "cancelled": [
+            "Needs confirmation0"
+          ],
+          "completed": [
+            "Needs confirmation0"
+          ],
+          "many-bookings": [
+            "Needs confirmation2"
+          ],
+          "many-pending": [
+            "Needs confirmation2"
+          ],
+          "many-history": [
+            "Needs confirmation2"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "#guide-activity?tab=bookings&filter=pending",
+          "fee": "#guide-activity?tab=bookings&filter=pending",
+          "confirmed": "#guide-activity?tab=bookings&filter=pending",
+          "cancelled": "#guide-activity?tab=bookings&filter=pending",
+          "completed": "#guide-activity?tab=bookings&filter=pending",
+          "many-bookings": "#guide-activity?tab=bookings&filter=pending",
+          "many-pending": "#guide-activity?tab=bookings&filter=pending",
+          "many-history": "#guide-activity?tab=bookings&filter=pending"
+        },
+        "en": {
+          "none": "#guide-activity?tab=bookings&filter=pending",
+          "fee": "#guide-activity?tab=bookings&filter=pending",
+          "confirmed": "#guide-activity?tab=bookings&filter=pending",
+          "cancelled": "#guide-activity?tab=bookings&filter=pending",
+          "completed": "#guide-activity?tab=bookings&filter=pending",
+          "many-bookings": "#guide-activity?tab=bookings&filter=pending",
+          "many-pending": "#guide-activity?tab=bookings&filter=pending",
+          "many-history": "#guide-activity?tab=bookings&filter=pending"
+        }
+      },
+      "previewStates": {
+        "none": "fee",
+        "fee": "fee",
+        "confirmed": "fee",
+        "cancelled": "fee",
+        "completed": "fee",
+        "many-bookings": "fee",
+        "many-pending": "fee",
+        "many-history": "fee"
+      },
+      "trigger": "확정 필요0",
+      "condition": "노출 상태: 활동 없음, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-activity",
+      "state": "cancelled",
+      "destination": "#guide-activity?tab=bookings&filter=history",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?tab=bookings&filter=history",
+      "common": true,
+      "sourceStates": [
+        "none",
+        "fee",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "many-bookings",
+        "many-pending",
+        "many-history"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "지난 내역0"
+          ],
+          "fee": [
+            "지난 내역0"
+          ],
+          "confirmed": [
+            "지난 내역0"
+          ],
+          "cancelled": [
+            "지난 내역1"
+          ],
+          "completed": [
+            "지난 내역1"
+          ],
+          "many-bookings": [
+            "지난 내역3"
+          ],
+          "many-pending": [
+            "지난 내역3"
+          ],
+          "many-history": [
+            "지난 내역3"
+          ]
+        },
+        "en": {
+          "none": [
+            "Past bookings0"
+          ],
+          "fee": [
+            "Past bookings0"
+          ],
+          "confirmed": [
+            "Past bookings0"
+          ],
+          "cancelled": [
+            "Past bookings1"
+          ],
+          "completed": [
+            "Past bookings1"
+          ],
+          "many-bookings": [
+            "Past bookings3"
+          ],
+          "many-pending": [
+            "Past bookings3"
+          ],
+          "many-history": [
+            "Past bookings3"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "#guide-activity?tab=bookings&filter=history",
+          "fee": "#guide-activity?tab=bookings&filter=history",
+          "confirmed": "#guide-activity?tab=bookings&filter=history",
+          "cancelled": "#guide-activity?tab=bookings&filter=history",
+          "completed": "#guide-activity?tab=bookings&filter=history",
+          "many-bookings": "#guide-activity?tab=bookings&filter=history",
+          "many-pending": "#guide-activity?tab=bookings&filter=history",
+          "many-history": "#guide-activity?tab=bookings&filter=history"
+        },
+        "en": {
+          "none": "#guide-activity?tab=bookings&filter=history",
+          "fee": "#guide-activity?tab=bookings&filter=history",
+          "confirmed": "#guide-activity?tab=bookings&filter=history",
+          "cancelled": "#guide-activity?tab=bookings&filter=history",
+          "completed": "#guide-activity?tab=bookings&filter=history",
+          "many-bookings": "#guide-activity?tab=bookings&filter=history",
+          "many-pending": "#guide-activity?tab=bookings&filter=history",
+          "many-history": "#guide-activity?tab=bookings&filter=history"
+        }
+      },
+      "previewStates": {
+        "none": "cancelled",
+        "fee": "cancelled",
+        "confirmed": "cancelled",
+        "cancelled": "cancelled",
+        "completed": "cancelled",
+        "many-bookings": "cancelled",
+        "many-pending": "cancelled",
+        "many-history": "cancelled"
+      },
+      "trigger": "지난 내역0",
+      "condition": "노출 상태: 활동 없음, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
@@ -22800,7 +23801,9 @@
         "cancelled",
         "completed",
         "many-bookings",
-        "many-sent"
+        "many-sent",
+        "many-pending",
+        "many-history"
       ],
       "labels": {
         "ko": {
@@ -22827,6 +23830,12 @@
           ],
           "many-sent": [
             "여행 찾기"
+          ],
+          "many-pending": [
+            "여행 찾기"
+          ],
+          "many-history": [
+            "여행 찾기"
           ]
         },
         "en": {
@@ -22853,6 +23862,12 @@
           ],
           "many-sent": [
             "Find trips"
+          ],
+          "many-pending": [
+            "Find trips"
+          ],
+          "many-history": [
+            "Find trips"
           ]
         }
       },
@@ -22866,7 +23881,9 @@
           "cancelled": "#guide-desk",
           "completed": "#guide-desk",
           "many-bookings": "#guide-desk",
-          "many-sent": "#guide-desk"
+          "many-sent": "#guide-desk",
+          "many-pending": "#guide-desk",
+          "many-history": "#guide-desk"
         },
         "en": {
           "none": "#guide-desk",
@@ -22876,7 +23893,9 @@
           "cancelled": "#guide-desk",
           "completed": "#guide-desk",
           "many-bookings": "#guide-desk",
-          "many-sent": "#guide-desk"
+          "many-sent": "#guide-desk",
+          "many-pending": "#guide-desk",
+          "many-history": "#guide-desk"
         }
       },
       "previewStates": {
@@ -22887,10 +23906,12 @@
         "cancelled": "none",
         "completed": "none",
         "many-bookings": "fee",
-        "many-sent": "fee"
+        "many-sent": "fee",
+        "many-pending": "fee",
+        "many-history": "fee"
       },
       "trigger": "여행 찾기",
-      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태, 여러 보낸 제안"
+      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 보낸 제안, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
@@ -22908,7 +23929,9 @@
         "cancelled",
         "completed",
         "many-bookings",
-        "many-sent"
+        "many-sent",
+        "many-pending",
+        "many-history"
       ],
       "labels": {
         "ko": {
@@ -22935,6 +23958,12 @@
           ],
           "many-sent": [
             "내 활동"
+          ],
+          "many-pending": [
+            "내 활동"
+          ],
+          "many-history": [
+            "내 활동"
           ]
         },
         "en": {
@@ -22961,6 +23990,12 @@
           ],
           "many-sent": [
             "My activity"
+          ],
+          "many-pending": [
+            "My activity"
+          ],
+          "many-history": [
+            "My activity"
           ]
         }
       },
@@ -22974,7 +24009,9 @@
           "cancelled": "#guide-activity",
           "completed": "#guide-activity",
           "many-bookings": "#guide-activity",
-          "many-sent": "#guide-activity"
+          "many-sent": "#guide-activity",
+          "many-pending": "#guide-activity",
+          "many-history": "#guide-activity"
         },
         "en": {
           "none": "#guide-activity",
@@ -22984,7 +24021,9 @@
           "cancelled": "#guide-activity",
           "completed": "#guide-activity",
           "many-bookings": "#guide-activity",
-          "many-sent": "#guide-activity"
+          "many-sent": "#guide-activity",
+          "many-pending": "#guide-activity",
+          "many-history": "#guide-activity"
         }
       },
       "previewStates": {
@@ -22995,10 +24034,12 @@
         "cancelled": "cancelled",
         "completed": "completed",
         "many-bookings": "fee",
-        "many-sent": "fee"
+        "many-sent": "fee",
+        "many-pending": "fee",
+        "many-history": "fee"
       },
       "trigger": "내 활동",
-      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태, 여러 보낸 제안"
+      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 보낸 제안, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
@@ -23016,7 +24057,9 @@
         "cancelled",
         "completed",
         "many-bookings",
-        "many-sent"
+        "many-sent",
+        "many-pending",
+        "many-history"
       ],
       "labels": {
         "ko": {
@@ -23043,6 +24086,12 @@
           ],
           "many-sent": [
             "채팅"
+          ],
+          "many-pending": [
+            "채팅"
+          ],
+          "many-history": [
+            "채팅"
           ]
         },
         "en": {
@@ -23069,6 +24118,12 @@
           ],
           "many-sent": [
             "Chats"
+          ],
+          "many-pending": [
+            "Chats"
+          ],
+          "many-history": [
+            "Chats"
           ]
         }
       },
@@ -23082,7 +24137,9 @@
           "cancelled": "#messages",
           "completed": "#messages",
           "many-bookings": "#messages",
-          "many-sent": "#messages"
+          "many-sent": "#messages",
+          "many-pending": "#messages",
+          "many-history": "#messages"
         },
         "en": {
           "none": "#messages",
@@ -23092,7 +24149,9 @@
           "cancelled": "#messages",
           "completed": "#messages",
           "many-bookings": "#messages",
-          "many-sent": "#messages"
+          "many-sent": "#messages",
+          "many-pending": "#messages",
+          "many-history": "#messages"
         }
       },
       "previewStates": {
@@ -23103,10 +24162,12 @@
         "cancelled": "mate-closed",
         "completed": "mate-none",
         "many-bookings": "mate-new",
-        "many-sent": "mate-new"
+        "many-sent": "mate-new",
+        "many-pending": "mate-new",
+        "many-history": "mate-new"
       },
       "trigger": "채팅",
-      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태, 여러 보낸 제안"
+      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 보낸 제안, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
@@ -23124,7 +24185,9 @@
         "cancelled",
         "completed",
         "many-bookings",
-        "many-sent"
+        "many-sent",
+        "many-pending",
+        "many-history"
       ],
       "labels": {
         "ko": {
@@ -23151,6 +24214,12 @@
           ],
           "many-sent": [
             "마이"
+          ],
+          "many-pending": [
+            "마이"
+          ],
+          "many-history": [
+            "마이"
           ]
         },
         "en": {
@@ -23177,6 +24246,12 @@
           ],
           "many-sent": [
             "My account"
+          ],
+          "many-pending": [
+            "My account"
+          ],
+          "many-history": [
+            "My account"
           ]
         }
       },
@@ -23190,7 +24265,9 @@
           "cancelled": "#account",
           "completed": "#account",
           "many-bookings": "#account",
-          "many-sent": "#account"
+          "many-sent": "#account",
+          "many-pending": "#account",
+          "many-history": "#account"
         },
         "en": {
           "none": "#account",
@@ -23200,7 +24277,9 @@
           "cancelled": "#account",
           "completed": "#account",
           "many-bookings": "#account",
-          "many-sent": "#account"
+          "many-sent": "#account",
+          "many-pending": "#account",
+          "many-history": "#account"
         }
       },
       "previewStates": {
@@ -23211,18 +24290,20 @@
         "cancelled": "mate",
         "completed": "mate",
         "many-bookings": "mate",
-        "many-sent": "mate"
+        "many-sent": "mate",
+        "many-pending": "mate",
+        "many-history": "mate"
       },
       "trigger": "마이",
-      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태, 여러 보낸 제안"
+      "condition": "노출 상태: 활동 없음, 보낸 제안, 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 예정된 여행, 여러 보낸 제안, 여러 예약 · 확정 필요, 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
       "target": "guide-quote",
       "state": "none",
-      "destination": "#guide-quote",
+      "destination": "#guide-quote?proposal=QT-RQ-PREVIEW-mina",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-quote",
+      "source": "link:#guide-quote?proposal=QT-RQ-PREVIEW-mina",
       "common": false,
       "sourceStates": [
         "quote"
@@ -23230,28 +24311,28 @@
       "labels": {
         "ko": {
           "quote": [
-            "보낸 제안 보기"
+            "성수에서 보내는 여유로운 오후 · 제안 상세 보기"
           ]
         },
         "en": {
           "quote": [
-            "View sent proposal"
+            "A slow afternoon in Seongsu · View proposal details"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "quote": "#guide-quote"
+          "quote": "#guide-quote?proposal=QT-RQ-PREVIEW-mina"
         },
         "en": {
-          "quote": "#guide-quote"
+          "quote": "#guide-quote?proposal=QT-RQ-PREVIEW-mina"
         }
       },
       "previewStates": {
         "quote": "none"
       },
-      "trigger": "보낸 제안 보기",
+      "trigger": "성수에서 보내는 여유로운 오후 · 제안 상세 보기",
       "condition": "노출 상태: 보낸 제안"
     },
     {
@@ -23264,14 +24345,14 @@
       "common": false,
       "sourceStates": [
         "fee",
-        "many-bookings"
+        "many-pending"
       ],
       "labels": {
         "ko": {
           "fee": [
             "진행 불가"
           ],
-          "many-bookings": [
+          "many-pending": [
             "진행 불가"
           ]
         },
@@ -23279,7 +24360,7 @@
           "fee": [
             "Unable to proceed"
           ],
-          "many-bookings": [
+          "many-pending": [
             "Unable to proceed"
           ]
         }
@@ -23288,19 +24369,19 @@
       "destinations": {
         "ko": {
           "fee": "#guide-activity?decline=1",
-          "many-bookings": "#guide-activity?decline=1"
+          "many-pending": "#guide-activity?decline=1"
         },
         "en": {
           "fee": "#guide-activity?decline=1",
-          "many-bookings": "#guide-activity?decline=1"
+          "many-pending": "#guide-activity?decline=1"
         }
       },
       "previewStates": {
         "fee": "fee",
-        "many-bookings": "fee"
+        "many-pending": "fee"
       },
       "trigger": "진행 불가",
-      "condition": "노출 상태: 확정 대기, 여러 예약 · 혼합 상태"
+      "condition": "노출 상태: 확정 대기, 여러 예약 · 확정 필요"
     },
     {
       "kind": "이동",
@@ -23312,44 +24393,23 @@
       "common": false,
       "sourceStates": [
         "fee",
-        "confirmed",
-        "cancelled",
-        "completed",
-        "many-bookings"
+        "many-pending"
       ],
       "labels": {
         "ko": {
           "fee": [
-            "수수료 확인하고 결제하기"
+            "예약 확정"
           ],
-          "confirmed": [
-            "예약 보기"
-          ],
-          "cancelled": [
-            "예약 보기"
-          ],
-          "completed": [
-            "여행 내역 보기"
-          ],
-          "many-bookings": [
-            "수수료 확인하고 결제하기"
+          "many-pending": [
+            "예약 확정"
           ]
         },
         "en": {
           "fee": [
-            "Review fee & pay"
+            "Confirm booking"
           ],
-          "confirmed": [
-            "View booking"
-          ],
-          "cancelled": [
-            "View booking"
-          ],
-          "completed": [
-            "View trip history"
-          ],
-          "many-bookings": [
-            "Review fee & pay"
+          "many-pending": [
+            "Confirm booking"
           ]
         }
       },
@@ -23357,66 +24417,77 @@
       "destinations": {
         "ko": {
           "fee": "#guide-fee",
-          "confirmed": "#guide-fee",
-          "cancelled": "#guide-fee",
-          "completed": "#guide-fee",
-          "many-bookings": "#guide-fee"
+          "many-pending": "#guide-fee"
         },
         "en": {
           "fee": "#guide-fee",
-          "confirmed": "#guide-fee",
-          "cancelled": "#guide-fee",
-          "completed": "#guide-fee",
-          "many-bookings": "#guide-fee"
+          "many-pending": "#guide-fee"
         }
       },
       "previewStates": {
         "fee": "fee",
-        "confirmed": "confirmed",
-        "cancelled": "cancelled",
-        "completed": "none",
-        "many-bookings": "fee"
+        "many-pending": "fee"
       },
-      "trigger": "수수료 확인하고 결제하기",
-      "condition": "노출 상태: 확정 대기, 예약 확정, 취소 완료, 여행 완료, 여러 예약 · 혼합 상태"
+      "trigger": "예약 확정",
+      "condition": "노출 상태: 확정 대기, 여러 예약 · 확정 필요"
     },
     {
       "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?record=RT-MANY-2",
+      "target": "guide-fee",
+      "state": "none",
+      "destination": "#guide-fee?request=RQ-PREVIEW",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?record=RT-MANY-2",
+      "source": "link:#guide-fee?request=RQ-PREVIEW",
       "common": false,
       "sourceStates": [
-        "many-bookings"
+        "confirmed",
+        "cancelled",
+        "completed"
       ],
       "labels": {
         "ko": {
-          "many-bookings": [
+          "confirmed": [
             "예약 보기"
+          ],
+          "cancelled": [
+            "여행 내역 보기"
+          ],
+          "completed": [
+            "여행 내역 보기"
           ]
         },
         "en": {
-          "many-bookings": [
+          "confirmed": [
             "View booking"
+          ],
+          "cancelled": [
+            "View trip history"
+          ],
+          "completed": [
+            "View trip history"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "many-bookings": "#guide-activity?record=RT-MANY-2"
+          "confirmed": "#guide-fee?request=RQ-PREVIEW",
+          "cancelled": "#guide-fee?request=RQ-PREVIEW",
+          "completed": "#guide-fee?request=RQ-PREVIEW"
         },
         "en": {
-          "many-bookings": "#guide-activity?record=RT-MANY-2"
+          "confirmed": "#guide-fee?request=RQ-PREVIEW",
+          "cancelled": "#guide-fee?request=RQ-PREVIEW",
+          "completed": "#guide-fee?request=RQ-PREVIEW"
         }
       },
       "previewStates": {
-        "many-bookings": "fee"
+        "confirmed": "confirmed",
+        "cancelled": "cancelled",
+        "completed": "none"
       },
       "trigger": "예약 보기",
-      "condition": "노출 상태: 여러 예약 · 혼합 상태"
+      "condition": "노출 상태: 예약 확정, 취소 완료, 여행 완료"
     },
     {
       "kind": "이동",
@@ -23454,7 +24525,7 @@
         "many-bookings": "fee"
       },
       "trigger": "예약 보기",
-      "condition": "노출 상태: 여러 예약 · 혼합 상태"
+      "condition": "노출 상태: 여러 예약 · 예정된 여행"
     },
     {
       "kind": "이동",
@@ -23492,7 +24563,311 @@
         "many-bookings": "fee"
       },
       "trigger": "예약 보기",
-      "condition": "노출 상태: 여러 예약 · 혼합 상태"
+      "condition": "노출 상태: 여러 예약 · 예정된 여행"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-quote",
+      "state": "fee",
+      "destination": "#guide-quote?proposal=QP-MANY-3",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-quote?proposal=QP-MANY-3",
+      "common": false,
+      "sourceStates": [
+        "many-sent"
+      ],
+      "labels": {
+        "ko": {
+          "many-sent": [
+            "망원시장 맛집 · 제안 상세 보기"
+          ]
+        },
+        "en": {
+          "many-sent": [
+            "Mangwon Market food · View proposal details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-3"
+        },
+        "en": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-3"
+        }
+      },
+      "previewStates": {
+        "many-sent": "fee"
+      },
+      "trigger": "망원시장 맛집 · 제안 상세 보기",
+      "condition": "노출 상태: 여러 보낸 제안"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-quote",
+      "state": "fee",
+      "destination": "#guide-quote?proposal=QP-MANY-2",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-quote?proposal=QP-MANY-2",
+      "common": false,
+      "sourceStates": [
+        "many-sent"
+      ],
+      "labels": {
+        "ko": {
+          "many-sent": [
+            "서울숲 피크닉 · 제안 상세 보기"
+          ]
+        },
+        "en": {
+          "many-sent": [
+            "Seoul Forest picnic · View proposal details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-2"
+        },
+        "en": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-2"
+        }
+      },
+      "previewStates": {
+        "many-sent": "fee"
+      },
+      "trigger": "서울숲 피크닉 · 제안 상세 보기",
+      "condition": "노출 상태: 여러 보낸 제안"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-quote",
+      "state": "fee",
+      "destination": "#guide-quote?proposal=QP-MANY-0",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-quote?proposal=QP-MANY-0",
+      "common": false,
+      "sourceStates": [
+        "many-sent"
+      ],
+      "labels": {
+        "ko": {
+          "many-sent": [
+            "인사동 공예와 찻집 · 제안 상세 보기"
+          ]
+        },
+        "en": {
+          "many-sent": [
+            "Insadong crafts and tea · View proposal details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-0"
+        },
+        "en": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-0"
+        }
+      },
+      "previewStates": {
+        "many-sent": "fee"
+      },
+      "trigger": "인사동 공예와 찻집 · 제안 상세 보기",
+      "condition": "노출 상태: 여러 보낸 제안"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-quote",
+      "state": "fee",
+      "destination": "#guide-quote?proposal=QP-MANY-1",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-quote?proposal=QP-MANY-1",
+      "common": false,
+      "sourceStates": [
+        "many-sent"
+      ],
+      "labels": {
+        "ko": {
+          "many-sent": [
+            "을지로 로컬 산책 · 제안 상세 보기"
+          ]
+        },
+        "en": {
+          "many-sent": [
+            "Euljiro local walk · View proposal details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-1"
+        },
+        "en": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-1"
+        }
+      },
+      "previewStates": {
+        "many-sent": "fee"
+      },
+      "trigger": "을지로 로컬 산책 · 제안 상세 보기",
+      "condition": "노출 상태: 여러 보낸 제안"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-quote",
+      "state": "fee",
+      "destination": "#guide-quote?proposal=QP-MANY-4",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-quote?proposal=QP-MANY-4",
+      "common": false,
+      "sourceStates": [
+        "many-sent"
+      ],
+      "labels": {
+        "ko": {
+          "many-sent": [
+            "경복궁 역사 산책 · 제안 상세 보기"
+          ]
+        },
+        "en": {
+          "many-sent": [
+            "Gyeongbokgung history walk · View proposal details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-4"
+        },
+        "en": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-4"
+        }
+      },
+      "previewStates": {
+        "many-sent": "fee"
+      },
+      "trigger": "경복궁 역사 산책 · 제안 상세 보기",
+      "condition": "노출 상태: 여러 보낸 제안"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-quote",
+      "state": "fee",
+      "destination": "#guide-quote?proposal=QP-MANY-5",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-quote?proposal=QP-MANY-5",
+      "common": false,
+      "sourceStates": [
+        "many-sent"
+      ],
+      "labels": {
+        "ko": {
+          "many-sent": [
+            "잠실 야경 · 제안 상세 보기"
+          ]
+        },
+        "en": {
+          "many-sent": [
+            "Jamsil night views · View proposal details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-5"
+        },
+        "en": {
+          "many-sent": "#guide-quote?proposal=QP-MANY-5"
+        }
+      },
+      "previewStates": {
+        "many-sent": "fee"
+      },
+      "trigger": "잠실 야경 · 제안 상세 보기",
+      "condition": "노출 상태: 여러 보낸 제안"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-activity",
+      "state": "fee",
+      "destination": "#guide-activity?decline=1&request=RQ-MANY-2",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-activity?decline=1&request=RQ-MANY-2",
+      "common": false,
+      "sourceStates": [
+        "many-pending"
+      ],
+      "labels": {
+        "ko": {
+          "many-pending": [
+            "진행 불가"
+          ]
+        },
+        "en": {
+          "many-pending": [
+            "Unable to proceed"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-pending": "#guide-activity?decline=1&request=RQ-MANY-2"
+        },
+        "en": {
+          "many-pending": "#guide-activity?decline=1&request=RQ-MANY-2"
+        }
+      },
+      "previewStates": {
+        "many-pending": "fee"
+      },
+      "trigger": "진행 불가",
+      "condition": "노출 상태: 여러 예약 · 확정 필요"
+    },
+    {
+      "kind": "이동",
+      "target": "guide-fee",
+      "state": "fee",
+      "destination": "#guide-fee?request=RQ-MANY-2",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#guide-fee?request=RQ-MANY-2",
+      "common": false,
+      "sourceStates": [
+        "many-pending"
+      ],
+      "labels": {
+        "ko": {
+          "many-pending": [
+            "예약 확정"
+          ]
+        },
+        "en": {
+          "many-pending": [
+            "Confirm booking"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "many-pending": "#guide-fee?request=RQ-MANY-2"
+        },
+        "en": {
+          "many-pending": "#guide-fee?request=RQ-MANY-2"
+        }
+      },
+      "previewStates": {
+        "many-pending": "fee"
+      },
+      "trigger": "예약 확정",
+      "condition": "노출 상태: 여러 예약 · 확정 필요"
     },
     {
       "kind": "이동",
@@ -23503,16 +24878,16 @@
       "source": "link:#guide-activity?record=RT-MANY-0",
       "common": false,
       "sourceStates": [
-        "many-bookings"
+        "many-history"
       ],
       "labels": {
         "ko": {
-          "many-bookings": [
+          "many-history": [
             "여행 내역 보기"
           ]
         },
         "en": {
-          "many-bookings": [
+          "many-history": [
             "View trip history"
           ]
         }
@@ -23520,17 +24895,17 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "many-bookings": "#guide-activity?record=RT-MANY-0"
+          "many-history": "#guide-activity?record=RT-MANY-0"
         },
         "en": {
-          "many-bookings": "#guide-activity?record=RT-MANY-0"
+          "many-history": "#guide-activity?record=RT-MANY-0"
         }
       },
       "previewStates": {
-        "many-bookings": "fee"
+        "many-history": "fee"
       },
       "trigger": "여행 내역 보기",
-      "condition": "노출 상태: 여러 예약 · 혼합 상태"
+      "condition": "노출 상태: 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
@@ -23541,34 +24916,34 @@
       "source": "link:#guide-activity?record=RT-MANY-3",
       "common": false,
       "sourceStates": [
-        "many-bookings"
+        "many-history"
       ],
       "labels": {
         "ko": {
-          "many-bookings": [
-            "예약 보기"
+          "many-history": [
+            "여행 내역 보기"
           ]
         },
         "en": {
-          "many-bookings": [
-            "View booking"
+          "many-history": [
+            "View trip history"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "many-bookings": "#guide-activity?record=RT-MANY-3"
+          "many-history": "#guide-activity?record=RT-MANY-3"
         },
         "en": {
-          "many-bookings": "#guide-activity?record=RT-MANY-3"
+          "many-history": "#guide-activity?record=RT-MANY-3"
         }
       },
       "previewStates": {
-        "many-bookings": "fee"
+        "many-history": "fee"
       },
-      "trigger": "예약 보기",
-      "condition": "노출 상태: 여러 예약 · 혼합 상태"
+      "trigger": "여행 내역 보기",
+      "condition": "노출 상태: 여러 예약 · 지난 내역"
     },
     {
       "kind": "이동",
@@ -23579,16 +24954,16 @@
       "source": "link:#guide-activity?record=RT-MANY-5",
       "common": false,
       "sourceStates": [
-        "many-bookings"
+        "many-history"
       ],
       "labels": {
         "ko": {
-          "many-bookings": [
+          "many-history": [
             "여행 내역 보기"
           ]
         },
         "en": {
-          "many-bookings": [
+          "many-history": [
             "View trip history"
           ]
         }
@@ -23596,245 +24971,17 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "many-bookings": "#guide-activity?record=RT-MANY-5"
+          "many-history": "#guide-activity?record=RT-MANY-5"
         },
         "en": {
-          "many-bookings": "#guide-activity?record=RT-MANY-5"
+          "many-history": "#guide-activity?record=RT-MANY-5"
         }
       },
       "previewStates": {
-        "many-bookings": "fee"
+        "many-history": "fee"
       },
       "trigger": "여행 내역 보기",
-      "condition": "노출 상태: 여러 예약 · 혼합 상태"
-    },
-    {
-      "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?proposal=QP-MANY-3",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?proposal=QP-MANY-3",
-      "common": false,
-      "sourceStates": [
-        "many-sent"
-      ],
-      "labels": {
-        "ko": {
-          "many-sent": [
-            "보낸 제안 보기"
-          ]
-        },
-        "en": {
-          "many-sent": [
-            "View sent proposal"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-3"
-        },
-        "en": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-3"
-        }
-      },
-      "previewStates": {
-        "many-sent": "fee"
-      },
-      "trigger": "보낸 제안 보기",
-      "condition": "노출 상태: 여러 보낸 제안"
-    },
-    {
-      "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?proposal=QP-MANY-2",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?proposal=QP-MANY-2",
-      "common": false,
-      "sourceStates": [
-        "many-sent"
-      ],
-      "labels": {
-        "ko": {
-          "many-sent": [
-            "보낸 제안 보기"
-          ]
-        },
-        "en": {
-          "many-sent": [
-            "View sent proposal"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-2"
-        },
-        "en": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-2"
-        }
-      },
-      "previewStates": {
-        "many-sent": "fee"
-      },
-      "trigger": "보낸 제안 보기",
-      "condition": "노출 상태: 여러 보낸 제안"
-    },
-    {
-      "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?proposal=QP-MANY-1",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?proposal=QP-MANY-1",
-      "common": false,
-      "sourceStates": [
-        "many-sent"
-      ],
-      "labels": {
-        "ko": {
-          "many-sent": [
-            "보낸 제안 보기"
-          ]
-        },
-        "en": {
-          "many-sent": [
-            "View sent proposal"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-1"
-        },
-        "en": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-1"
-        }
-      },
-      "previewStates": {
-        "many-sent": "fee"
-      },
-      "trigger": "보낸 제안 보기",
-      "condition": "노출 상태: 여러 보낸 제안"
-    },
-    {
-      "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?proposal=QP-MANY-0",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?proposal=QP-MANY-0",
-      "common": false,
-      "sourceStates": [
-        "many-sent"
-      ],
-      "labels": {
-        "ko": {
-          "many-sent": [
-            "보낸 제안 보기"
-          ]
-        },
-        "en": {
-          "many-sent": [
-            "View sent proposal"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-0"
-        },
-        "en": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-0"
-        }
-      },
-      "previewStates": {
-        "many-sent": "fee"
-      },
-      "trigger": "보낸 제안 보기",
-      "condition": "노출 상태: 여러 보낸 제안"
-    },
-    {
-      "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?proposal=QP-MANY-4",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?proposal=QP-MANY-4",
-      "common": false,
-      "sourceStates": [
-        "many-sent"
-      ],
-      "labels": {
-        "ko": {
-          "many-sent": [
-            "보낸 제안 보기"
-          ]
-        },
-        "en": {
-          "many-sent": [
-            "View sent proposal"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-4"
-        },
-        "en": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-4"
-        }
-      },
-      "previewStates": {
-        "many-sent": "fee"
-      },
-      "trigger": "보낸 제안 보기",
-      "condition": "노출 상태: 여러 보낸 제안"
-    },
-    {
-      "kind": "이동",
-      "target": "guide-activity",
-      "state": "fee",
-      "destination": "#guide-activity?proposal=QP-MANY-5",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#guide-activity?proposal=QP-MANY-5",
-      "common": false,
-      "sourceStates": [
-        "many-sent"
-      ],
-      "labels": {
-        "ko": {
-          "many-sent": [
-            "보낸 제안 보기"
-          ]
-        },
-        "en": {
-          "many-sent": [
-            "View sent proposal"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-5"
-        },
-        "en": {
-          "many-sent": "#guide-activity?proposal=QP-MANY-5"
-        }
-      },
-      "previewStates": {
-        "many-sent": "fee"
-      },
-      "trigger": "보낸 제안 보기",
-      "condition": "노출 상태: 여러 보낸 제안"
+      "condition": "노출 상태: 여러 예약 · 지난 내역"
     }
   ]
 }

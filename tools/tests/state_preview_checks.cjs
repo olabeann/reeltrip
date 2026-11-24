@@ -48,13 +48,16 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
  if(route==='guide-activity'&&fixture.activityMany){
   if(fixture.hash.includes('tab=bookings')){
    const links=[...app.innerHTML.matchAll(/href="#guide-activity\?record=([^"]+)"/g)].map(x=>x[1]);
-   assert.deepEqual(links,['RT-MANY-2','RT-MANY-4','RT-MANY-1','RT-MANY-0','RT-MANY-3','RT-MANY-5'],description+' urgency and date order');
-   assert.equal((app.innerHTML.match(/<section class="card pad quote-section rt-booking-card">/g)||[]).length,7,description+' booking cards');
+   const filter=new URLSearchParams(fixture.hash.split('?')[1]).get('filter')||'upcoming';
+   assert.deepEqual(links,filter==='pending'?[]:filter==='history'?['RT-MANY-0','RT-MANY-3','RT-MANY-5']:['RT-MANY-4','RT-MANY-1'],description+' filtered date order');
+   assert(app.innerHTML.includes('filter='+filter+'" aria-current="page"'),description+' selected filter');
+   assert.equal(app.innerHTML.includes(lang==='ko'?'여행을 함께해요!':'Let’s travel together!'),false,description+' no pending reminder');
+   assert.equal((app.innerHTML.match(/<section class="card pad quote-section rt-booking-card">/g)||[]).length,filter==='history'?3:2,description+' booking cards');
   }
   if(fixture.hash.includes('tab=sent')){
-   assert.equal((app.innerHTML.match(/<article class="card pad quote-section rt-booking-card">/g)||[]).length,6,description+' individual proposal cards');
-   const links=[...app.innerHTML.matchAll(/href="#guide-activity\?proposal=([^"]+)"/g)].map(x=>x[1]);
-   assert.deepEqual(links,['QP-MANY-3','QP-MANY-2','QP-MANY-1','QP-MANY-0','QP-MANY-4','QP-MANY-5'],description+' proposal order');
+   assert.equal((app.innerHTML.match(/<a class="card rt-card-link"/g)||[]).length,6,description+' individual proposal cards');
+   const links=[...app.innerHTML.matchAll(/href="#guide-quote\?proposal=([^"]+)"/g)].map(x=>x[1]);
+   assert.deepEqual(links,['QP-MANY-3','QP-MANY-2','QP-MANY-0','QP-MANY-1','QP-MANY-4','QP-MANY-5'],description+' proposal order');
   }
 
  }

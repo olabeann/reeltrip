@@ -18,7 +18,8 @@ for(const lang of ['ko','en'])for(const reason of ['declined','expired'])for(con
  a.makeQuote(240000,'Day 1: Walk and cafe',undefined,undefined,'jun');
  a.makeQuote(260000,'Day 1: Walk and food',undefined,undefined,'mina');
  assert(a.requestBooking('Traveler','guest@example.com'));
- for(const html of [a.guideDesk(),a.guideActivity(),a.guideQuote(),a.guideFee()]){
+ c.location.hash='#guide-activity?tab=bookings&filter=pending';
+ for(const html of [a.guideActivity(),a.guideQuote(),a.guideFee()]){
   assert(html.includes('href="#guide-activity?decline=1"'),'Pending mate screen exposes decline');
   assert(html.includes(lang==='ko'?'진행 불가':'Unable to proceed'));
  }
@@ -27,16 +28,17 @@ for(const lang of ['ko','en'])for(const reason of ['declined','expired'])for(con
  if(past){a.state.request.date='2000-01-01';a.state.booking.date='2000-01-01';}
  c.window.ReelAccess.mode=()=> 'guide';
  if(reason==='expired'){a.state.booking.feeDeadline=Date.now()-1;assert(a.expireMateFee());assert(!a.expireMateFee());}
+ else if(past){a.state.booking.feeDeadline=Date.now()-1; a.expireMateFee();}
  else {const form=new c.HTMLFormElement();Object.assign(form,{id:'mate-cancel-form',values:{reason:'Cannot attend'}});c.handlers.submit({target:form,preventDefault(){}});}
- assert.equal(a.state.request.id,requestId);assert.equal(a.state.request.rematchReason,reason);
+ assert.equal(a.state.request.id,requestId);assert.equal(a.state.request.rematchReason,past?'expired':reason);
  assert.equal(a.proposals().find(q=>q.guideId==='jun').expires,expires);
  assert(!a.confirmMateFee('success'),'Cancelled selection cannot be paid');
  if(past){assert.equal(a.state.request.status,'withdrawn');assert.equal(a.state.booking.status,'cancelled');assert(a.booking().includes(lang==='ko'?'일정을 변경해':'Change your dates'));}
  else{
   assert.equal(a.state.booking,null);assert.equal(a.state.request.status,'quoted');assert.equal(a.state.bookingHistory.length,1);
   assert(a.proposals().find(q=>q.guideId==='mina').expires<=Date.now());
-  assert(a.requested().includes(lang==='ko'?'다른 메이트의 제안을 받고':'receiving proposals again'));
-  assert(a.booking().includes(lang==='ko'?'다른 메이트의 제안을 받고':'receiving proposals again'));
+  assert(a.requested().includes(lang==='ko'?'다른 메이트의 제안을 선택':'select another mate'));
+  assert(a.booking().includes(lang==='ko'?'다른 메이트의 제안을 선택':'select another mate'));
   const restored=setup(lang,c.storage).api;assert.equal(restored.state.booking,null);assert.equal(restored.state.request.status,'quoted');
   c.window.ReelAccess.mode=()=> 'customer';a.state.quote=alternative;assert(a.requestBooking('Traveler','guest@example.com'));assert(!a.state.request.rematchReason);
  }

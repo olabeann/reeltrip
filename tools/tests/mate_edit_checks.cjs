@@ -10,21 +10,23 @@ for(const lang of ['ko','en']){
  const dialog={dataset:{},classList:{toggle(){}},setAttribute(){},removeAttribute(){},showModal(){this.open=true},close(){this.open=false},innerHTML:''};
  const error={textContent:''},name={value:'',setAttribute(){}},status={textContent:''},form={elements:[]};
  app.document.querySelector=s=>s==='#dialog'?dialog:s==='#mate-edit-error'?error:s==='#mate-name'?name:s==='#mate-name-status'?status:s==='#mate-edit-form'?form:null;
- const original={status:'approved',step:4,reviewedAt:'2026-11-24',fields:{name:'미나',bio:'A friendly local walking guide.',specialty:'0',regions:[{city:0,district:3}],languages:['en'],contact:'01012345678',policy:true,photo:''}};
+ const original={status:'approved',step:4,reviewedAt:'2026-11-24',fields:{name:'미나',bio:'A friendly local walking guide.',specialty:'0',regions:[{city:0,district:3}],languages:['en'],contact:'01012345678',policy:true,photo:'data:image/png;base64,demo'}};
  app.m.saveMate(original);
+ const approve=()=>{app.window.ReelAccess.isAdmin=true;assert(app.m.reviewMate('approved'));app.window.ReelAccess.isAdmin=false;};
  app.m.editMate('profile');assert(dialog.innerHTML.includes('mate-edit-form'));if(lang==='en')assert(!/[가-힣]/.test(dialog.innerHTML.replaceAll('미나','')));
  app.m.getDraft().fields.bio='Unsaved edits must be discarded.';dialog.close();app.m.editMate('profile');assert.equal(app.m.getDraft().fields.bio,original.fields.bio);
  const profileForm=(n,b)=>({elements:[{name:'name',type:'text',value:n},{name:'bio',type:'textarea',value:b}]});
  app.m.saveMateEdit(profileForm('미나','short'));assert(error.textContent);assert.equal(app.m.mateApplication().fields.bio,original.fields.bio);
- app.m.saveMateEdit(profileForm('미나','Updated biography with enough text.'));assert.equal(app.m.mateApplication().fields.bio,'Updated biography with enough text.');
+ app.m.saveMateEdit(profileForm('미나','Updated biography with enough text.'));assert.equal(app.m.mateApplication().fields.bio,original.fields.bio);assert.equal(app.m.mateApplication().revision.status,'pending');approve();assert.equal(app.m.mateApplication().fields.bio,'Updated biography with enough text.');
  app.m.editMate('profile');app.m.saveMateEdit(profileForm('Fresh Mate','Another valid biography.'));assert.notEqual(app.m.mateApplication().fields.name,'Fresh Mate');
- name.value='Fresh Mate';app.m.checkMateName();assert.equal(app.m.mateApplication().fields.name,'미나');app.m.saveMateEdit(profileForm('Fresh Mate','Another valid biography.'));assert.equal(app.m.mateApplication().fields.name,'Fresh Mate');
+ name.value='Fresh Mate';app.m.checkMateName();assert.equal(app.m.mateApplication().fields.name,'미나');app.m.saveMateEdit(profileForm('Fresh Mate','Another valid biography.'));assert.equal(app.m.mateApplication().fields.name,'미나');approve();assert.equal(app.m.mateApplication().fields.name,'Fresh Mate');
  app.m.editMate('profile');app.m.saveMateEdit(profileForm('준','Another valid biography.'));assert.equal(app.m.mateApplication().fields.name,'Fresh Mate');
  app.m.editMate('activity');const activity=checked=>({elements:[{name:'specialty',type:'select-one',value:'2'},{name:'languages',type:'checkbox',value:'en',checked},{name:'languages',type:'checkbox',value:'ja',checked}]});
  app.m.saveMateEdit(activity(false));assert.equal(app.m.mateApplication().fields.specialty,'0');
- app.m.getDraft().fields.regions=[{city:1,district:'all'}];app.m.saveMateEdit(activity(true));
+ app.m.getDraft().fields.regions=[{city:1,district:'all'}];app.m.saveMateEdit(activity(true));assert.equal(app.m.mateApplication().fields.specialty,'0');approve();
  const result=app.m.mateApplication();assert.equal(result.fields.specialty,'2');assert.equal(JSON.stringify(result.fields.languages),'["en","ja"]');assert.equal(result.fields.regions[0].city,1);assert.equal(result.status,'approved');assert.equal(result.reviewedAt,original.reviewedAt);assert.equal(result.fields.contact,original.fields.contact);
  app.m.editMate('activity');const set=app.localStorage.setItem;app.localStorage.setItem=()=>{throw Error('quota')};app.m.saveMateEdit(activity(true));assert(dialog.open);app.localStorage.setItem=set;
+ app.m.editMate('profile');app.m.saveMateEdit(profileForm('Fresh Mate','A rejected edit remains unpublished.'));app.window.ReelAccess.isAdmin=true;assert(app.m.reviewMate('rejected','Please clarify'));app.window.ReelAccess.isAdmin=false;assert.equal(app.m.mateApplication().status,'approved');assert.notEqual(app.m.mateApplication().fields.bio,'A rejected edit remains unpublished.');app.m.editMate('profile');assert.equal(app.m.getDraft().fields.bio,'A rejected edit remains unpublished.');
  app.m.saveMate({...result,status:'pending'});const html=dialog.innerHTML;app.m.editMate('profile');assert.equal(dialog.innerHTML,html);
 }
 console.log('PASS: KO/EN mate edits, discard/reopen, validation, duplicate checks, storage failure, approval and private data preservation.');

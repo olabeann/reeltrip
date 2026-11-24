@@ -32,6 +32,8 @@ def build():
             if any('reviewtools' in x['attrs'].get('class','') or 'developer-only' in x['attrs'].get('class','') for x in parents) or 'developer-only' in a.get('class',''):continue
             if tag=='input' and not a.get('data-select'):continue
             form=next((x['attrs'].get('id') for x in parents if x['tag']=='form'),None)
+            if form and form.startswith('operations-booking-form-'):form='operations-booking-form'
+            if form and form.startswith('operations-ticket-form-'):form='operations-ticket-form'
             label=' '.join((a.get('aria-label') or node['text']).split()) or ('운영 홈' if a.get('href')=='#admin' else a.get('name',''))
             href=a.get('href');action=a.get('data-action') or a.get('data-booking');key='';rule={}
             if action:
