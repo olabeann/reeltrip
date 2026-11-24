@@ -30,7 +30,7 @@
 .ia-inspector{position:static;height:auto;max-height:none;display:flex;flex-direction:column;gap:12px;overflow:visible}
 .ia-state-panel{position:sticky;top:12px;z-index:5;flex:none;box-shadow:0 3px 12px #2435410a}
 .ia-device-panel{flex:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin}
-.ia-device-panel #ia-preview{box-sizing:border-box;width:390px;min-width:390px;max-width:none;height:700px;min-height:700px;max-height:700px;flex:none;margin:0 auto}
+.ia-device-panel #ia-preview{border:0;box-sizing:border-box;width:390px;min-width:390px;max-width:none;height:700px;min-height:700px;max-height:700px;flex:none;margin:0 auto}
 .ia-device-panel #ia-preview.is-admin{width:100%;min-width:390px;height:700px}
 .device-caption{min-width:390px}.device-caption span:last-child{white-space:nowrap}.device-small-note{display:none;font-size:10px;margin:0;color:var(--muted)}
 @media(min-width:801px) and (min-height:1100px){.ia-inspector{position:sticky;top:12px}.ia-state-panel{position:static}}

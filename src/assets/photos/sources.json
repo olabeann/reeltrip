@@ -38,5 +38,83 @@
     "license": "Public domain (US federal government work)",
     "license_url": "https://commons.wikimedia.org/wiki/Template:PD-USGov-Military-Army",
     "changes": "원본 또는 Wikimedia 제공 축소본 사용. 화면에서 CSS로 비율에 맞게 잘라 표시. 사진 보정 없음. CC BY-SA 사진의 표시용 변경에도 같은 라이선스 적용."
+  },
+  {
+    "key": "seoul-campaign-v1",
+    "title": "서울 전철 여행 캠페인 배경",
+    "file": "seoul-campaign-v1.png",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated travel artwork",
+    "notes": "사용자가 제공한 서울 포스터의 분위기를 참고해 새로 생성한 배경. 실제 촬영 사진이나 특정 열차 운행 정보가 아님. SEOUL 타이포는 앱 HTML/CSS로 표시."
+  },
+  {
+    "key": "korea-backpack-campaign-v1",
+    "title": "한국 배낭 여행 캠페인 배경",
+    "file": "korea-backpack-campaign-v1.png",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated travel artwork",
+    "notes": "맑은 하늘과 필름 사진 분위기의 배낭 여행자 이미지. 실제 촬영 사진이 아님. KOREA 타이포는 앱 HTML/CSS로 표시."
+  },
+  {
+    "key": "local-mate-walk-v1",
+    "title": "현지 메이트와 함께하는 한국 여행",
+    "file": "local-mate-walk-v1.png",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated travel artwork",
+    "notes": "홈 서비스 소개용 이미지. 실제 회원·메이트의 사진이나 여행 후기 사진이 아님."
+  },
+  {
+    "key": "mate-benefit-places-v1",
+    "title": "저장한 사진을 보며 원하는 카페를 찾아가는 여행자",
+    "file": "mate-benefit-places-v1.png",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated travel artwork",
+    "notes": "서비스 장점 설명용 연출 이미지. 실제 회원·메이트나 실제 제안·가격을 나타내지 않음."
+  },
+  {
+    "key": "mate-benefit-time-v1",
+    "title": "시계와 일정표를 보며 동행 시간을 조율하는 여행자와 메이트",
+    "file": "mate-benefit-time-v1.png",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated travel artwork",
+    "notes": "서비스 장점 설명용 연출 이미지. 실제 회원·메이트나 실제 제안·가격을 나타내지 않음."
+  },
+  {
+    "key": "mate-benefit-budget-v1",
+    "title": "메이트 제안과 비용을 비교해 예산에 맞게 선택하는 여행자",
+    "file": "mate-benefit-budget-v1.png",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated travel artwork",
+    "notes": "서비스 장점 설명용 연출 이미지. 실제 회원·메이트나 실제 제안·가격을 나타내지 않음."
+  },
+  {
+    "key": "mate-benefit-places-graphic-v1",
+    "file": "mate-benefit-places-graphic-v1.png",
+    "title": "지도와 핀으로 표현한 취향에 맞는 장소 선택",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated 3D clay illustration"
+  },
+  {
+    "key": "mate-benefit-time-graphic-v1",
+    "file": "mate-benefit-time-graphic-v1.png",
+    "title": "시계와 달력으로 표현한 자유로운 동행 시간",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated 3D clay illustration"
+  },
+  {
+    "key": "mate-benefit-budget-graphic-v1",
+    "file": "mate-benefit-budget-graphic-v1.png",
+    "title": "메이트 제안 카드와 동전으로 표현한 예산 비교",
+    "source": "OpenAI image generation",
+    "date": "2026-11-24",
+    "type": "AI-generated 3D clay illustration"
   }
 ]

@@ -66,6 +66,17 @@
         },
         "expect": "is-failed",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -77,47 +88,46 @@
     "zones": [
       "원본 영상 링크 / 추출 상태",
       "지도와 장소 카드",
-      "카테고리 / 지점 확인 / 장소 선택",
+      "번호 핀 / 지점 확인 / 장소 선택",
       "선택한 장소 저장"
     ],
     "action": "장소 선택 → 저장한 장소(board) → 날짜별 일정 만들기",
     "input": "place_id, source_url, 지점 후보, 사용자 선택",
     "rule": "정확한 좌표가 있는 후보만 지도에 표시. 미확인 후보는 별도 목록. place_id 기준 중복 제거. 추출 실패·부분 성공을 구분.",
-    "states": "전체 / 음식 / 카페 / 쇼핑 / 공원 / 미확인 / 결과 없음",
-    "accept": "저장은 보관함만 갱신하며 날짜별 일정을 변경하지 않는다. 중복 저장 방지. 결과가 없어도 직접 장소 추가 가능.",
+    "states": "장소 선택 / 저장 완료 / 위치 미확인 / 결과 없음",
+    "accept": "저장은 보관함만 갱신하며 날짜별 일정을 변경하지 않는다. 중복 저장 방지. 결과 없음에서는 다시 검색하기로 영상 링크 입력 팝업을 연다.",
     "id": "B-03",
     "statePreviews": [
       {
         "id": "selected",
-        "label": "장소 선택됨",
-        "condition": "추출 장소 있음 · 3곳 선택",
-        "transition": "선택한 장소 저장",
+        "label": "장소별 저장 가능",
+        "condition": "추출 장소 있음 · 장소별 저장 버튼 표시",
+        "transition": "장소 저장 → 저장한 장소 보기",
         "fixture": {},
-        "expect": "is-selected",
-        "note": ""
-      },
-      {
-        "id": "unselected",
-        "label": "선택한 장소 없음",
-        "condition": "추출 장소 있음 · 선택 0개",
-        "transition": "장소 선택 → 저장 활성화",
-        "fixture": {
-          "unselected": true
-        },
-        "expect": "0곳 선택",
-        "note": ""
+        "expect": "data-action=\"save-result-place\"",
+        "note": "기존 상태 ID는 공유 링크 호환을 위해 유지. 현재 UI는 개별 저장 방식."
       },
       {
         "id": "empty",
         "label": "추출 결과 없음",
         "condition": "추출 후보 0개",
-        "transition": "장소 검색",
+        "transition": "다시 검색하기 → 영상 링크 입력 팝업 → 장소 찾기 → 검색 결과",
         "fixture": {
           "noPlaces": true,
           "unselected": true
         },
-        "expect": "발견한 장소 0곳",
+        "expect": "data-action=\"board-video\"",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 지도에서 영상 속 장소 확인",
+        "condition": "로그인하지 않은 상태로 공개 화면 이용",
+        "transition": "공개 기능 탐색 / 회원 전용 작업 → 가입 안내",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다."
       }
     ]
   },
@@ -168,6 +178,17 @@
           "emptyLibrary": true
         },
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -357,17 +378,162 @@
       {
         "id": "member",
         "label": "회원 마이",
-        "condition": "회원 · 진행 중 요청 없음",
-        "transition": "프로필 편집 또는 새 여행",
-        "fixture": {},
+        "condition": "회원 · 메이트 미등록 · 여행자 모드",
+        "transition": "프로필 편집 또는 메이트 등록",
+        "fixture": {
+          "mode": "customer",
+          "mateApplication": {
+            "status": "draft",
+            "step": 1,
+            "fields": {}
+          }
+        },
         "expect": "my-profile",
+        "note": ""
+      },
+      {
+        "id": "pending",
+        "label": "메이트 심사 중",
+        "condition": "메이트 심사 중 · 여행자 모드",
+        "transition": "제출 내용 확인 (읽기 전용)",
+        "fixture": {
+          "mode": "customer",
+          "mateApplication": {
+            "status": "pending",
+            "step": 4,
+            "fields": {
+              "name": "미나",
+              "bio": "서울의 골목과 카페를 함께 걸으며 여행을 도와드려요.",
+              "specialty": "0",
+              "regions": [
+                {
+                  "city": 0,
+                  "district": 3
+                }
+              ],
+              "languages": "en",
+              "contact": "mate@example.com",
+              "experience": "동네 산책 안내 경험",
+              "localContext": "성수에서 3년째 살고 있어요.",
+              "pace": "천천히 걸으며 쉬어가요.",
+              "help": "메뉴 주문과 사진 촬영을 도와드려요.",
+              "policy": true,
+              "consent": true
+            }
+          }
+        },
+        "expect": "메이트 등록 심사 중",
+        "note": ""
+      },
+      {
+        "id": "approved",
+        "label": "메이트 승인 완료",
+        "condition": "메이트 승인 완료 · 여행자 모드",
+        "transition": "메이트 모드로 전환 → 여행 요청 확인",
+        "fixture": {
+          "mode": "customer",
+          "mateApplication": {
+            "status": "approved",
+            "step": 4,
+            "fields": {
+              "name": "미나",
+              "bio": "서울의 골목과 카페를 함께 걸으며 여행을 도와드려요.",
+              "specialty": "0",
+              "regions": [
+                {
+                  "city": 0,
+                  "district": 3
+                }
+              ],
+              "languages": "en",
+              "contact": "mate@example.com",
+              "experience": "동네 산책 안내 경험",
+              "localContext": "성수에서 3년째 살고 있어요.",
+              "pace": "천천히 걸으며 쉬어가요.",
+              "help": "메뉴 주문과 사진 촬영을 도와드려요.",
+              "policy": true,
+              "consent": true
+            }
+          }
+        },
+        "expect": "data-access-mode=\"guide\"",
+        "note": ""
+      },
+      {
+        "id": "needs_info",
+        "label": "메이트 보완 요청",
+        "condition": "메이트 보완 요청 · 여행자 모드",
+        "transition": "보완 사유 확인 → 수정 후 재제출",
+        "fixture": {
+          "mode": "customer",
+          "mateApplication": {
+            "status": "needs_info",
+            "step": 4,
+            "fields": {
+              "name": "미나",
+              "bio": "서울의 골목과 카페를 함께 걸으며 여행을 도와드려요.",
+              "specialty": "0",
+              "regions": [
+                {
+                  "city": 0,
+                  "district": 3
+                }
+              ],
+              "languages": "en",
+              "contact": "mate@example.com",
+              "experience": "동네 산책 안내 경험",
+              "localContext": "성수에서 3년째 살고 있어요.",
+              "pace": "천천히 걸으며 쉬어가요.",
+              "help": "메뉴 주문과 사진 촬영을 도와드려요.",
+              "policy": true,
+              "consent": true
+            },
+            "reason": "자기소개에 활동 지역과 가능한 도움을 구체적으로 작성해 주세요."
+          }
+        },
+        "expect": "메이트 신청 보완이 필요해요",
+        "note": ""
+      },
+      {
+        "id": "rejected",
+        "label": "메이트 승인 거절",
+        "condition": "메이트 승인 거절 · 여행자 모드",
+        "transition": "거절 사유 확인 → 수정 후 재제출",
+        "fixture": {
+          "mode": "customer",
+          "mateApplication": {
+            "status": "rejected",
+            "step": 4,
+            "fields": {
+              "name": "미나",
+              "bio": "서울의 골목과 카페를 함께 걸으며 여행을 도와드려요.",
+              "specialty": "0",
+              "regions": [
+                {
+                  "city": 0,
+                  "district": 3
+                }
+              ],
+              "languages": "en",
+              "contact": "mate@example.com",
+              "experience": "동네 산책 안내 경험",
+              "localContext": "성수에서 3년째 살고 있어요.",
+              "pace": "천천히 걸으며 쉬어가요.",
+              "help": "메뉴 주문과 사진 촬영을 도와드려요.",
+              "policy": true,
+              "consent": true
+            },
+            "reason": "자기소개에 활동 지역과 가능한 도움을 구체적으로 작성해 주세요."
+          }
+        },
+        "expect": "메이트 등록이 승인되지 않았어요",
         "note": ""
       },
       {
         "id": "mate",
         "label": "메이트 마이",
         "condition": "승인된 메이트 모드",
-        "transition": "등록 정보 확인 또는 설정",
+        "transition": "프로필·활동 정보 편집 후 저장 또는 취소",
         "fixture": {
           "mode": "guide",
           "mateApplication": {
@@ -425,6 +591,17 @@
         "fixture": {},
         "expect": "support-form",
         "note": "저장됨·처리 완료 화면과 사용자 문의 이력은 제공하지 않는다. 시제품은 로컬 저장만 하며 실제 전송하지 않는다."
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -567,20 +744,30 @@
           "guidesTab": "discover"
         },
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 받은 제안과 자유 견적",
+        "condition": "로그인하지 않은 상태로 공개 화면 이용",
+        "transition": "공개 기능 탐색 / 회원 전용 작업 → 가입 안내",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다."
       }
     ]
   },
   {
     "route": "guide",
-    "name": "메이트 프로필과 코스",
+    "name": "메이트 공개 프로필",
     "role": "customer",
     "both": false,
     "zones": [
-      "메이트 소개 / 언어 / 지역",
-      "도움 범위 / 가격 안내 방식"
+      "등록한 사진 / 활동 이름 / 언어 / 지역",
+      "등록한 자기소개"
     ],
     "action": "소개 열람 후 이전 화면으로 이동",
-    "input": "guide_id, 설명, 지역, course_template_id",
+    "input": "guide_id, photo, name, regions, languages, bio",
     "rule": "메이트 자격 원본·번호·신분증은 비공개. 고객에는 검증 상태와 언어만 노출. 무단 대체 금지.",
     "states": "가능 일정 확인 전 / 심사 완료 예시",
     "accept": "개별 프로필에 공개 견적 요청 버튼을 붙이지 않는다. 특정 메이트 지정으로 오인시키지 않는다.",
@@ -590,22 +777,33 @@
         "id": "mina",
         "label": "미나 프로필",
         "condition": "기본 공개 메이트 미나",
-        "transition": "메이트 요청",
+        "transition": "공개 프로필 확인",
         "fixture": {},
-        "expect": "mate-cover--mina",
+        "expect": "rt-profile-card",
         "note": ""
       },
       {
         "id": "jun",
         "label": "준 프로필",
         "condition": "승인된 예시 메이트 준",
-        "transition": "메이트 요청",
+        "transition": "공개 프로필 확인",
         "fixture": {
           "guide": "jun",
           "approved": true
         },
-        "expect": "mate-cover--jun",
+        "expect": "rt-profile-card",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 메이트 프로필에 직접 접근",
+        "transition": "프로필 비공개 → 가입 안내",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "guest-invite"
       }
     ]
   },
@@ -656,6 +854,17 @@
         },
         "expect": "자유 견적 요청",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -671,7 +880,7 @@
     ],
     "action": "제안 비교 → quote → checkout → 고객 선택 후 booking",
     "input": "request_id, status, response_due_at",
-    "rule": "같은 요청에 여러 제안을 보존. 동일 메이트 유효 제안 수정·중복 발행 금지. 만료 후에만 교체. 요청 일정 고정·하루 4시간·전체 금액 입력, 자유 여행만 코스 입력. 요청 마감 후 새 발행·수락 차단.",
+    "rule": "같은 요청에 여러 제안을 보존. 동일 메이트 유효 제안 수정·중복 발행 금지. 만료 후에만 교체. 요청 일정 고정·하루 4시간·전체 금액 입력, 자유 여행만 코스 입력. 요청 마감 후 새 발행·수락 차단. 확정 전 메이트 거절·수수료 결제 기한 만료 시 여행 시작 전이면 자동 재모집. 다른 유효 제안은 즉시 선택 가능하며 새 제안도 접수. 시작 시각이 지났으면 일정 변경 안내. 여행자의 직접 철회·확정 후 취소는 자동 재모집하지 않음.",
     "states": "requested / reviewing / declined / withdrawn / quoted",
     "accept": "제안이 없으면 결제 진입 차단. 철회 후 메이트 함께할 여행 제안하기 차단.",
     "id": "B-15",
@@ -722,11 +931,22 @@
         "id": "fee",
         "label": "메이트 선택 완료",
         "condition": "예약 있음 · 메이트 수수료 미결제",
-        "transition": "메이트 수수료 10% 결제 → 예약 확정",
+        "transition": "메이트 수수료 결제 → 확정 / 수동 거절·결제 기한 만료 → 시작 전 자동 재모집, 시작 후 일정 변경 안내",
         "fixture": {
           "flow": "fee"
         },
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -777,6 +997,17 @@
           "flow": "expired"
         },
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -803,8 +1034,8 @@
         "condition": "제안 데이터 없음",
         "transition": "제안 확인",
         "fixture": {},
-        "expect": "유효한 여행 제안이 필요해요.",
-        "note": "제안 없음·만료는 같은 예약 진행 차단 안내를 사용합니다."
+        "expect": "예약할 여행 제안을 확인해 주세요.",
+        "note": "예약할 제안을 먼저 확인하도록 안내합니다."
       },
       {
         "id": "proposals",
@@ -825,8 +1056,8 @@
         "fixture": {
           "flow": "expired"
         },
-        "expect": "유효한 여행 제안이 필요해요.",
-        "note": "제안 없음과 같은 차단 안내입니다. 제안 상세에서는 만료 상태를 별도로 확인합니다."
+        "expect": "제안이 만료됐어요.",
+        "note": "제안 만료 이유와 제안 재확인을 안내합니다."
       },
       {
         "id": "fee",
@@ -838,6 +1069,17 @@
         },
         "expect": "이미 예약 진행 중인 제안이에요.",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -855,8 +1097,8 @@
     "action": "chat / cancel",
     "input": "booking_id, quote snapshot, status",
     "rule": "메이트 매칭 수수료 결제 전 미확정. 여행자는 약속 금액을 메이트에게 현금 지급. 플랫폼은 현금 수령·송금·자동 환불하지 않음.",
-    "states": "메이트 확정 대기 / 확정 / 취소 검토 / 취소 / 완료",
-    "accept": "후기 작성·조회 없음. 취소·환불 상태 구분. 요청 수정으로 확정 내역 변경 불가.",
+    "states": "메이트 확정 대기 / 확정 / 취소 / 완료",
+    "accept": "후기 작성·조회 없음. 취소·환불 상태 구분. 요청 수정으로 확정 내역 변경 불가. 확정 전 메이트 거절·수수료 결제 기한 만료 시 여행 시작 전이면 자동 재모집. 다른 유효 제안은 즉시 선택 가능하며 새 제안도 접수. 시작 시각이 지났으면 일정 변경 안내. 여행자의 직접 철회·확정 후 취소는 자동 재모집하지 않음.",
     "id": "B-18",
     "statePreviews": [
       {
@@ -873,7 +1115,7 @@
         "id": "fee",
         "label": "수수료 결제 대기",
         "condition": "예약 awaiting_mate_fee · feeStatus pending",
-        "transition": "메이트 수수료 10% 결제 → 예약 확정",
+        "transition": "메이트 수수료 결제 → 확정 / 수동 거절·결제 기한 만료 → 시작 전 자동 재모집, 시작 후 일정 변경 안내",
         "fixture": {
           "flow": "fee"
         },
@@ -883,19 +1125,9 @@
         "id": "confirmed",
         "label": "예약 확정",
         "condition": "예약 confirmed · feeStatus paid · 현장 여행비 미수령",
-        "transition": "여행 종료 → 여행 완료 / 취소 요청 → 취소 검토",
+        "transition": "여행 종료 → 여행 완료 / 예약 취소 → 취소 완료",
         "fixture": {
           "flow": "confirmed"
-        },
-        "note": ""
-      },
-      {
-        "id": "cancel",
-        "label": "취소 검토 중",
-        "condition": "예약 cancellation_requested",
-        "transition": "운영 취소·수수료 환불 검토",
-        "fixture": {
-          "flow": "cancel"
         },
         "note": ""
       },
@@ -918,6 +1150,17 @@
           "flow": "cancelled"
         },
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -1051,21 +1294,31 @@
         },
         "expect": "종료된 대화는 기록만 확인할 수 있어요.",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 메이트와 대화",
+        "condition": "로그인하지 않은 상태로 공개 화면 이용",
+        "transition": "공개 기능 탐색 / 회원 전용 작업 → 가입 안내",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다."
       }
     ]
   },
   {
     "route": "cancel",
-    "name": "취소 요청과 환불 예상",
+    "name": "예약 취소",
     "role": "customer",
     "both": false,
     "zones": [
       "예약 취소 사유",
       "현금 반환 직접 확인 안내"
     ],
-    "action": "확정 전 cancelled / 확정 후 cancellation_requested",
+    "action": "확정 전·후 즉시 cancelled",
     "input": "booking_id, reason, requested_at",
-    "rule": "확정 전 철회는 수수료 무효. 확정 후 취소 요청 검토. 현금 및 수수료 환불 정책은 별도 확정 필요.",
+    "rule": "확정 전 철회는 수수료 무효. 확정 후 즉시 취소 완료. 수수료 반환은 별도 검토. 현금 및 수수료 환불 정책은 별도 확정 필요.",
     "states": "예상 계산 / 요청됨 / 환불 검토 / 환불 완료",
     "accept": "요청만으로 실제 환불 완료 처리하지 않음. 운영 심사 전 정산 보류. 중복 요청 차단.",
     "id": "B-20",
@@ -1092,7 +1345,7 @@
       },
       {
         "id": "confirmed",
-        "label": "확정 예약 취소 요청",
+        "label": "확정 예약 취소",
         "condition": "예약 confirmed",
         "transition": "사유 제출 → 운영 검토",
         "fixture": {
@@ -1100,6 +1353,17 @@
         },
         "expect": "cancel-form",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -1129,7 +1393,7 @@
       },
       {
         "id": "waiting",
-        "label": "제안 전",
+        "label": "제안 가능",
         "condition": "공개 요청 있음 · 내가 보낸 유효한 제안 없음",
         "transition": "일정 검토 후 제안 발행",
         "fixture": {
@@ -1139,7 +1403,7 @@
       },
       {
         "id": "proposals",
-        "label": "제안 보냄 · 선택 대기",
+        "label": "여행자 선택 대기",
         "condition": "내가 보낸 유효한 제안 있음",
         "transition": "보낸 제안 확인 · 여행자 선택 대기",
         "fixture": {
@@ -1149,7 +1413,7 @@
       },
       {
         "id": "fee",
-        "label": "여행자 선택 완료",
+        "label": "선택받았어요!",
         "condition": "예약 awaiting_mate_fee",
         "transition": "수수료 결제 후 확정",
         "fixture": {
@@ -1186,7 +1450,7 @@
       },
       {
         "id": "waiting",
-        "label": "제안 전",
+        "label": "제안 가능",
         "condition": "공개 요청 있음 · 내가 보낸 유효한 제안 없음",
         "transition": "일정 검토 후 제안 발행",
         "fixture": {
@@ -1196,7 +1460,7 @@
       },
       {
         "id": "proposals",
-        "label": "제안 보냄 · 선택 대기",
+        "label": "여행자 선택 대기",
         "condition": "내가 보낸 유효한 제안 있음",
         "transition": "보낸 제안 확인 · 여행자 선택 대기",
         "fixture": {
@@ -1206,14 +1470,14 @@
       },
       {
         "id": "fee",
-        "label": "여행자 선택 완료",
+        "label": "선택받았어요!",
         "condition": "예약 awaiting_mate_fee",
-        "transition": "수수료 결제 후 확정",
+        "transition": "수수료 확인하고 결제하기 → 매칭 수수료 → 예약 확정",
         "fixture": {
           "flow": "fee"
         },
         "note": "",
-        "expect": "이미 여행자가 선택한 제안이에요."
+        "expect": "여행자가 내 제안을 선택했어요!"
       }
     ]
   },
@@ -1246,7 +1510,7 @@
       {
         "id": "active",
         "label": "운영 처리 항목 있음",
-        "condition": "예약 취소 요청 · 열린 문의 있음",
+        "condition": "예약 취소 완료 · 열린 문의 있음",
         "transition": "각 운영 화면에서 처리",
         "fixture": {
           "flow": "cancel",
@@ -1457,10 +1721,10 @@
       "수수료 결제 상태",
       "취소 요청"
     ],
-    "action": "취소 요청 검토 → 모의 환불 완료",
+    "action": "취소 완료 확인 · 수수료 반환 별도 검토",
     "input": "booking_id, refund_amount, operator_note",
-    "rule": "플랫폼은 여행비 환불을 수행하지 않음. 매칭 수수료 결제와 취소만 운영 확인.",
-    "states": "확정 / 취소 요청 / 환불 처리 중 / 환불 완료",
+    "rule": "플랫폼은 여행비 환불을 수행하지 않음. 예약 취소는 즉시 완료하며 매칭 수수료 반환은 별도 운영 확인.",
+    "states": "확정 / 취소 완료 / 수수료 반환 검토",
     "accept": "취소 요청 없는 예약 환불 승인 차단. 환불액은 결제액 이하. 정산 화면도 갱신.",
     "id": "B-30",
     "statePreviews": [
@@ -1468,7 +1732,7 @@
         "id": "none",
         "label": "예약 없음",
         "condition": "예약·수수료 상태: 예약 없음",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+        "transition": "예약 상태 확인 · 취소하면 즉시 완료",
         "fixture": {
           "flow": "none"
         },
@@ -1478,7 +1742,7 @@
         "id": "fee",
         "label": "수수료 결제 대기",
         "condition": "예약·수수료 상태: 수수료 결제 대기",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+        "transition": "예약 상태 확인 · 취소하면 즉시 완료",
         "fixture": {
           "flow": "fee"
         },
@@ -1488,7 +1752,7 @@
         "id": "failed",
         "label": "수수료 결제 실패",
         "condition": "예약·수수료 상태: 수수료 결제 실패",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+        "transition": "예약 상태 확인 · 취소하면 즉시 완료",
         "fixture": {
           "flow": "failed"
         },
@@ -1498,19 +1762,9 @@
         "id": "confirmed",
         "label": "예약 확정",
         "condition": "예약·수수료 상태: 예약 확정",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+        "transition": "예약 상태 확인 · 취소하면 즉시 완료",
         "fixture": {
           "flow": "confirmed"
-        },
-        "note": ""
-      },
-      {
-        "id": "cancel",
-        "label": "취소 검토",
-        "condition": "예약·수수료 상태: 취소 검토",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
-        "fixture": {
-          "flow": "cancel"
         },
         "note": ""
       },
@@ -1518,7 +1772,7 @@
         "id": "cancelled",
         "label": "취소 완료",
         "condition": "예약·수수료 상태: 취소 완료",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+        "transition": "예약 상태 확인 · 취소하면 즉시 완료",
         "fixture": {
           "flow": "cancelled"
         },
@@ -1528,7 +1782,7 @@
         "id": "completed",
         "label": "여행 완료",
         "condition": "예약·수수료 상태: 여행 완료",
-        "transition": "예약 상태 확인 · 취소 요청은 운영 확인 후 완료",
+        "transition": "예약 상태 확인 · 취소하면 즉시 완료",
         "fixture": {
           "flow": "completed"
         },
@@ -1596,6 +1850,17 @@
         },
         "expect": "is-read",
         "note": ""
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -1663,7 +1928,7 @@
     "input": "booking_id, fee_amount, payment_id",
     "rule": "여행자 예약 요청은 awaiting_mate_fee. 선택된 메이트의 수수료 결제 성공 확인 후에만 예약 확정. 실서비스 PG는 미연동.",
     "states": "결제 대기 / 실패 / 성공 / 취소",
-    "accept": "결제 후 같은 예약 상세에서 만남 조율. 완료와 현금 수령 별도 상태. 기한 이후 결제 금지.",
+    "accept": "결제 후 같은 예약 상세에서 만남 조율. 완료와 현금 수령 별도 상태. 기한 이후 결제 금지. 확정 전 메이트 거절·수수료 결제 기한 만료 시 여행 시작 전이면 자동 재모집. 다른 유효 제안은 즉시 선택 가능하며 새 제안도 접수. 시작 시각이 지났으면 일정 변경 안내. 여행자의 직접 철회·확정 후 취소는 자동 재모집하지 않음.",
     "id": "B-33",
     "statePreviews": [
       {
@@ -1680,7 +1945,7 @@
         "id": "fee",
         "label": "수수료 결제 대기",
         "condition": "예약 awaiting_mate_fee · 수수료 pending",
-        "transition": "메이트 10% 결제 → 예약 확정",
+        "transition": "메이트 수수료 결제 → 확정 / 수동 거절·결제 기한 만료 → 시작 전 자동 재모집, 시작 후 일정 변경 안내",
         "fixture": {
           "flow": "fee"
         },
@@ -1965,6 +2230,16 @@
           "mode": "guide"
         },
         "note": "진행 중 대화가 위에, 종료된 대화가 아래에 표시됩니다. 종료된 대화는 읽지 않음 배지가 없습니다."
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 채팅 목록",
+        "condition": "로그인하지 않은 상태로 공개 화면 이용",
+        "transition": "공개 기능 탐색 / 회원 전용 작업 → 가입 안내",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다."
       }
     ]
   },
@@ -2105,6 +2380,17 @@
             "reason": "소개 내용을 보완해 주세요."
           }
         }
+      },
+      {
+        "id": "guest",
+        "label": "비회원 · 가입 안내",
+        "condition": "로그인하지 않은 상태로 회원 전용 화면 진입",
+        "transition": "가입하고 시작하기 → 회원가입 / 조금 더 둘러보기 → 공개 화면",
+        "fixture": {
+          "guest": true
+        },
+        "note": "실제 앱의 비회원 화면을 그대로 표시하며 기존 체험 데이터는 변경하지 않습니다.",
+        "expect": "id=\"guest-invite-title\""
       }
     ]
   },
@@ -2120,7 +2406,7 @@
     ],
     "action": "예약 상세 → guide-fee / 제안 → guide-quote",
     "input": "booking, proposals, bookingHistory",
-    "rule": "선택 후 24시간 또는 출발 시각 중 빠른 시각까지 확정. 미결제 만료·거절·철회 후 재선택 가능.",
+    "rule": "선택 후 24시간 또는 출발 시각 중 빠른 시각까지 확정. 확정 전 메이트 거절·수수료 결제 기한 만료 시 여행 시작 전이면 자동 재모집. 다른 유효 제안은 즉시 선택 가능하며 새 제안도 접수. 시작 시각이 지났으면 일정 변경 안내. 여행자의 직접 철회·확정 후 취소는 자동 재모집하지 않음.",
     "states": "제안 없음 / 제안 발행 / 확정 대기 / 예약 확정 / 완료 / 취소",
     "accept": "기존 B-* ID 유지. 결제 후 예약 상세. 예약 취소와 수수료 반환 검토 분리.",
     "id": "B-39",
@@ -2149,7 +2435,7 @@
         "id": "fee",
         "label": "확정 대기",
         "condition": "확정 대기",
-        "transition": "예약 상세 또는 제안 확인",
+        "transition": "메이트 수수료 결제 → 확정 / 수동 거절·결제 기한 만료 → 시작 전 자동 재모집, 시작 후 일정 변경 안내",
         "fixture": {
           "flow": "fee"
         },
@@ -2184,6 +2470,30 @@
           "flow": "completed"
         },
         "note": ""
+      },
+      {
+        "id": "many-bookings",
+        "label": "여러 예약 · 혼합 상태",
+        "condition": "결제 기한순 → 확정 여행일순 → 완료·취소 최근 여행일순 · 예약 7개",
+        "transition": "탭 변경 → 목록 확인 → 카드별 상세 확인",
+        "fixture": {
+          "flow": "fee",
+          "activityMany": true,
+          "hash": "guide-activity?tab=bookings"
+        },
+        "note": "기존 체험 데이터와 분리된 다건 예시입니다. 추가 예시 예약은 상세 열람용이며 결제·취소는 기존 현재 예약에서 체험합니다."
+      },
+      {
+        "id": "many-sent",
+        "label": "여러 보낸 제안",
+        "condition": "응답 대기 먼저 · 유효기한 임박순 → 만료·미선택 최근순 · 제안 6개",
+        "transition": "탭 변경 → 목록 확인 → 카드별 상세 확인",
+        "fixture": {
+          "flow": "fee",
+          "activityMany": true,
+          "hash": "guide-activity?tab=sent"
+        },
+        "note": "기존 체험 데이터와 분리된 다건 예시입니다. 추가 예시 예약은 상세 열람용이며 결제·취소는 기존 현재 예약에서 체험합니다."
       }
     ]
   }

@@ -41,6 +41,9 @@
  transition:background-color .15s,transform .15s;
 }
 :is(#app,#dialog,.ds-preview) .btn.secondary{background:var(--rt-subtle);border-color:transparent;color:var(--rt-ink)}
+:is(#app,#dialog,.ds-preview) .btn.secondary.rt-return-button{display:flex;width:100%;box-sizing:border-box;margin-top:var(--rt-space-5);background:var(--rt-surface);border-color:var(--rt-border);box-shadow:none}
+:is(#app,#dialog,.ds-preview) .btn.secondary.rt-return-button:hover{background:var(--rt-subtle)}
+.rt-return-button>.rt-icon{flex-shrink:0}
 :is(#app,#dialog,.ds-preview) .btn.light{background:var(--rt-surface);border-color:var(--rt-border);color:var(--rt-primary)}
 :is(#app,#dialog,.ds-preview) .btn.danger{background:var(--rt-danger);color:var(--rt-surface);border-color:transparent}
 :is(#app,#dialog,.ds-preview) .btn.small{min-height:44px;padding:8px 12px;font-size:13px}
@@ -103,6 +106,23 @@ body[data-surface=admin] #toast{bottom:24px}
 :is(#app,#dialog,.ds-preview) :is(.my-trip-card,.request-inbox-card):hover{border-color:var(--rt-primary)}
 :is(#app,#dialog,.ds-preview) .badge{background:var(--rt-subtle);color:var(--rt-ink);border:0;border-radius:8px;padding:4px 8px;font-size:12px;line-height:1.5;box-shadow:none}
 :is(#app,#dialog,.ds-preview) .badge.warm{background:var(--rt-warning-bg);color:var(--rt-warning)}
+/* Shared workflow chips: always pair color with a visible status label. */
+:root{
+ --rt-status-available-bg:var(--rt-blue-50);--rt-status-available-fg:var(--rt-blue-800);
+ --rt-status-waiting-bg:#F3EEFF;--rt-status-waiting-fg:#6941A5;
+ --rt-status-selected-bg:#FFF3E0;--rt-status-selected-fg:#914C00;
+ --rt-status-confirmed-bg:#E8F5ED;--rt-status-confirmed-fg:#23633E;
+ --rt-status-completed-bg:var(--rt-gray-100);--rt-status-completed-fg:var(--rt-gray-600);
+ --rt-status-expired-bg:var(--rt-gray-100);--rt-status-expired-fg:var(--rt-gray-600);
+ --rt-status-cancelled-bg:var(--rt-red-50);--rt-status-cancelled-fg:var(--rt-red-800);
+}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-available{background:var(--rt-status-available-bg);color:var(--rt-status-available-fg)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-waiting{background:var(--rt-status-waiting-bg);color:var(--rt-status-waiting-fg)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-selected{background:var(--rt-status-selected-bg);color:var(--rt-status-selected-fg)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-confirmed{background:var(--rt-status-confirmed-bg);color:var(--rt-status-confirmed-fg)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-completed{background:var(--rt-status-completed-bg);color:var(--rt-status-completed-fg)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-expired{background:var(--rt-status-expired-bg);color:var(--rt-status-expired-fg)}
+:is(#app,#dialog,.ds-preview) .badge.rt-status-cancelled{background:var(--rt-status-cancelled-bg);color:var(--rt-status-cancelled-fg)}
 /* All functional icons use icon(), including custom screen controls. */
 :is(#app,#dialog,.ds-preview) svg.rt-icon{width:var(--rt-icon-size,24px);height:var(--rt-icon-size,24px);flex:none;vertical-align:middle;stroke-width:1.7}
 :is(#app,#dialog,.ds-preview) :is(.app-back,.library-add,.mate-close,.notification-bell,.trip-library-shortcut,.profile-photo-clear,.profile-camera-button){min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--rt-radius-control)}
@@ -241,6 +261,8 @@ body:is([data-route=signup],[data-route=signup-email]){background:radial-gradien
 
 /* Centered card action variant for invitation cards. */
 :is(#app,.ds-preview) .rt-card-actions-centered > .btn{display:flex;width:fit-content;max-width:100%;margin:var(--rt-space-4) auto 0;align-self:center;justify-self:center;flex:0 0 auto}
+
+:is(#app,.ds-preview) .rt-card-actions-centered > :is(.buttons,.rt-card-actions,.guest-invite-actions){justify-content:center}
 
 /* Shared empty-state card: centered icon, explanation and action. */
 :is(#app,.ds-preview) .rt-card-stack{display:grid;gap:var(--rt-space-4)}
@@ -445,3 +467,112 @@ body:has(#dialog.rt-bottom-sheet[open]){overflow:hidden}
 :is(#app,.ds-preview) .rt-info-card--private{background:var(--rt-subtle)}
 .rt-private-label{margin-left:auto;flex-shrink:0;font-size:11px;font-weight:500;color:var(--rt-muted)}
 :is(#app,.ds-preview) .rt-info-note{margin:var(--rt-space-3) 0 0;font-size:12px;line-height:1.6;color:var(--rt-muted)}
+
+/* Submitted information: consistent section rhythm and aligned facts. */
+:is(#app,.ds-preview) .rt-review-stack{display:grid;gap:var(--rt-space-6);min-width:0}
+:is(#app,.ds-preview) .rt-review-section{display:grid;gap:var(--rt-space-3);min-width:0}
+:is(#app,.ds-preview) .rt-review-section>h2{margin:0;font-size:18px;line-height:1.5}
+:is(#app,.ds-preview) .rt-review-section>.badge{justify-self:start;margin:0}
+:is(#app,.ds-preview) .rt-profile-card--review{display:grid;gap:var(--rt-space-4);min-width:0}
+:is(#app,.ds-preview) .rt-profile-card--review>h3{margin:0;font-size:16px;line-height:1.5}
+:is(#app,.ds-preview) .rt-profile-card--review>.rt-profile-bio{margin:calc(-1 * var(--rt-space-2)) 0 0}
+:is(#app,.ds-preview) .rt-profile-card--review .my-avatar{flex-shrink:0;overflow:hidden}
+:is(#app,.ds-preview) .rt-review-stack .rt-fact-list>div{grid-template-columns:72px minmax(0,1fr)}
+:is(#app,.ds-preview) .rt-review-section>.rt-fact-list>div:first-child{padding-top:0}
+
+/* The app and IA preview share one mobile canvas, including fixed controls. */
+:root{--rt-app-width:390px}
+body:not([data-surface="admin"]):has(>#app){max-width:var(--rt-app-width);container:reeltrip-app / inline-size}
+body:not([data-surface="admin"]) .mobiletabs{width:min(100%,var(--rt-app-width))}
+body:not([data-surface="admin"]) .bottomaction{max-width:calc(var(--rt-app-width) - 32px)}
+body:not([data-surface="admin"]) #dialog{max-width:calc(var(--rt-app-width) - 32px)}
+body:not([data-surface="admin"]) #dialog[data-kind="trip-calendar"],
+body:not([data-surface="admin"]) #dialog.rt-bottom-sheet{max-width:var(--rt-app-width)}
+/* Keep desktop scrollbars from shrinking the 390px embedded app viewport. */
+html:has(body:not([data-surface="admin"])>#app){scrollbar-width:none}
+html:has(body:not([data-surface="admin"])>#app)::-webkit-scrollbar{display:none}
+
+/* Editorial travel poster: full photograph and oversized campaign type. */
+:root{--rt-campaign-sun:#FFB600}
+.rt-campaign-poster{height:330px;position:relative;isolation:isolate;overflow:hidden;border-radius:var(--rt-radius-card);background:var(--rt-blue-400)}
+.rt-campaign-background{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 65%}
+.rt-campaign-type{position:absolute;top:58px;inset-inline:0;text-align:center;color:var(--rt-campaign-sun)}
+.rt-campaign-type>span{display:block;font-size:18px;font-weight:500;line-height:1.1;letter-spacing:-.5px}
+.rt-campaign-type>strong{display:block;font-family:Impact,'Arial Narrow',sans-serif;font-stretch:condensed;font-size:96px;line-height:.95;letter-spacing:-3px;font-weight:900}
+.rt-campaign-signature{position:absolute;bottom:12px;inset-inline:0;text-align:center;color:var(--rt-surface);font-size:8px;font-weight:700;letter-spacing:1.7px;text-shadow:0 1px 5px var(--rt-blue-800)}
+.rt-campaign-message{text-align:center;margin:18px 0}
+:is(#app,.ds-preview) .rt-campaign-message h1{font-size:24px;line-height:1.25;letter-spacing:-.8px;color:var(--rt-ink)}
+:is(#app,.ds-preview) .rt-campaign-message p{font-size:12px;line-height:1.6;color:var(--rt-muted);margin-top:8px}
+:is(#app,.ds-preview) .rt-campaign-action>.btn{display:flex;width:100%;min-height:50px;margin:0}
+@media(max-height:650px){.rt-campaign-poster{height:270px}.rt-campaign-type{top:32px}.rt-campaign-type>strong{font-size:84px}.rt-campaign-message{margin:12px 0}:is(#app,.ds-preview) .rt-campaign-message h1{font-size:22px}}
+html[lang=en] .rt-campaign-message h1{font-size:22px}
+
+/* Shared editorial image layouts for service introductions. */
+.rt-editorial-hero{position:relative;overflow:hidden;margin:0 0 20px;border-radius:var(--rt-radius-card);background:var(--rt-subtle)}
+.rt-editorial-hero>img{display:block;width:100%;height:240px;object-fit:cover;object-position:50% 55%}
+.rt-editorial-hero figcaption{position:absolute;inset:auto 0 0;padding:40px 18px 18px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:var(--rt-surface)}
+.rt-editorial-hero figcaption span{display:block;font-size:9px;letter-spacing:2px;margin-bottom:6px}
+.rt-editorial-hero figcaption strong{display:block;font-size:17px;line-height:1.4;font-weight:750}
+:is(#app,.ds-preview) .card.rt-editorial-card{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:stretch;gap:0;padding:0;overflow:hidden}
+.rt-editorial-card-photo{min-height:146px;background:var(--rt-subtle)}
+.rt-editorial-card-photo .travel-photo{display:block;width:100%;height:100%;object-fit:cover}
+.rt-editorial-card-copy{align-self:center;padding:18px 16px}
+.rt-editorial-number{display:block;font-size:9px;letter-spacing:.8px;font-weight:700;color:var(--rt-primary);margin-bottom:8px}
+@media(max-width:360px){:is(#app,.ds-preview) .card.rt-editorial-card{grid-template-columns:92px minmax(0,1fr)}.rt-editorial-card-copy{padding:15px 12px}.rt-editorial-hero>img{height:220px}}
+
+/* Compact media card with an independent save action. */
+:is(#app,.ds-preview) .rt-place-card{display:grid;grid-template-columns:64px minmax(0,1fr) 44px;align-items:start;gap:var(--rt-space-3);padding:var(--rt-space-4);margin-block:var(--rt-space-3)}
+:is(#app,.ds-preview) .rt-place-card-photo{width:64px;height:80px;overflow:hidden;border-radius:var(--rt-radius-media);background:var(--rt-subtle)}
+:is(#app,.ds-preview) .rt-place-card-photo :is(img,svg){width:100%;height:100%;object-fit:cover}
+:is(#app,.ds-preview) .rt-place-card-body{min-width:0}
+:is(#app,.ds-preview) .rt-place-card-body h3{margin:0 0 var(--rt-space-2);font-size:16px;line-height:1.4;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-place-card-body p{margin:var(--rt-space-1) 0 0;color:var(--rt-muted);font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-save-action{width:44px;height:44px;padding:0;margin:0;border:1px solid var(--rt-border);background:var(--rt-surface);color:var(--rt-primary);box-shadow:none}
+:is(#app,.ds-preview) .rt-save-action:disabled{opacity:1;background:var(--rt-selected);border-color:var(--rt-blue-200);color:var(--rt-primary)}
+
+/* Shared map and selectable place list. Mobile stacks the two panels. */
+:is(#app,.ds-preview) .rt-map-browser{display:grid;gap:var(--rt-space-3)}
+:is(#app,.ds-preview) .rt-map-browser .map-workspace{margin:0;min-width:0}
+:is(#app,.ds-preview) .rt-map-browser :is(.google-map-host,.review-map-image){height:260px;min-height:260px}
+:is(#app,.ds-preview) .rt-map-browser-list{min-width:0}
+:is(#app,.ds-preview) .rt-map-browser-list .rt-place-card:first-child{margin-top:0}
+:is(#app,.ds-preview) .rt-place-card.is-focused{border-color:var(--rt-primary);background:var(--rt-selected)}
+:is(#app,.ds-preview) .rt-place-select{display:flex;align-items:center;gap:var(--rt-space-2);width:100%;min-height:44px;padding:0;border:0;background:transparent;color:var(--rt-ink);font:inherit;text-align:start;cursor:pointer;overflow-wrap:anywhere}
+:is(#app,.ds-preview) .rt-place-number{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;border-radius:50%;background:var(--rt-ink);color:var(--rt-surface);font-size:12px}
+@container reeltrip-app (min-width:680px){.rt-map-browser{grid-template-columns:minmax(0,1fr) minmax(280px,1fr)}.rt-map-browser-list{max-height:420px;overflow:auto}}
+
+/* Original content link with a readable label and truncating URL. */
+:is(#app,.ds-preview) .rt-source-link{display:flex;align-items:center;gap:var(--rt-space-3);min-height:48px;padding:var(--rt-space-3) var(--rt-space-4);border:1px solid var(--rt-border);border-radius:var(--rt-radius-control);background:var(--rt-surface);color:var(--rt-primary);text-decoration:none}
+:is(#app,.ds-preview) .rt-source-link>span{flex:1;min-width:0}
+:is(#app,.ds-preview) .rt-source-link>.rt-icon{flex:none}
+:is(#app,.ds-preview) .rt-source-link small{display:block;color:var(--rt-muted);font-size:12px;margin-bottom:var(--rt-space-1)}
+:is(#app,.ds-preview) .rt-source-link-url{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+
+/* Full-width next-screen action after page content. */
+:is(#app,.ds-preview) .rt-page-action{margin-top:var(--rt-space-5);width:100%}
+:is(#app,.ds-preview) .rt-page-action>.btn{display:flex;align-items:center;justify-content:space-between;gap:var(--rt-space-3);width:100%;min-height:48px;box-sizing:border-box;margin:0}
+:is(#app,.ds-preview) .rt-page-action>.btn>.rt-icon{flex:none}
+
+/* Shared public mate profile and proposal identity link. */
+:is(#app,.ds-preview) .rt-profile-card--public{padding:0;overflow:hidden}
+.rt-profile-cover{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--rt-space-6);background:linear-gradient(145deg,var(--rt-blue-50),var(--rt-blue-100))}
+:is(#app,.ds-preview) .rt-profile-cover .my-avatar{width:88px;height:88px;margin-bottom:var(--rt-space-4);border:4px solid var(--rt-surface);background:var(--rt-surface);color:var(--rt-primary)}
+:is(#app,.ds-preview) .rt-profile-cover h2{margin:0;font-size:26px;line-height:1.4;overflow-wrap:anywhere;max-width:100%}
+.rt-profile-cover .rt-profile-label{color:var(--rt-blue-600)}
+.rt-profile-body{padding:var(--rt-space-6)}
+.rt-profile-details{display:grid;gap:var(--rt-space-5);margin:0}
+.rt-profile-details>div{min-width:0}
+.rt-profile-details dt{display:flex;align-items:center;gap:var(--rt-space-2);font-size:12px;color:var(--rt-muted)}
+.rt-profile-details dt .rt-icon{color:var(--rt-primary);flex-shrink:0}
+.rt-profile-details dd{margin:var(--rt-space-2) 0 0 28px;font-size:15px;font-weight:600;color:var(--rt-ink);overflow-wrap:anywhere}
+.rt-profile-story{margin-top:var(--rt-space-6);padding-top:var(--rt-space-6);border-top:1px solid var(--rt-border)}
+:is(#app,.ds-preview) .rt-profile-story h3{margin:0;font-size:15px}
+:is(#app,.ds-preview) .rt-profile-story .rt-profile-bio{margin-top:var(--rt-space-3);color:var(--rt-ink)}
+:is(#app,.ds-preview) .rt-profile-link{display:flex;align-items:center;gap:var(--rt-space-3);color:var(--rt-ink);text-decoration:none;border-radius:var(--rt-radius-control);min-height:64px}
+.rt-profile-link>div{flex:1;min-width:0}
+.rt-profile-link> .rt-icon{flex-shrink:0;color:var(--rt-muted)}
+:is(#app,.ds-preview) .rt-profile-link p{color:var(--rt-primary);font-size:12px}
+.rt-profile-link:hover{background:var(--rt-blue-50)}
+
+/* Booking cards separate the status chip from the trip heading. */
+:is(#app,.ds-preview) .rt-booking-card > h2{margin-top:var(--rt-space-3)}
