@@ -198,22 +198,17 @@
   {
     "role": "admin",
     "label": "운영 웹",
-    "description": "앱과 분리된 운영 공간에서 장소·문의·메이트·예약을 관리해요.",
+    "description": "앱과 분리된 운영 공간에서 메이트 심사·예약과 수수료 반환·문의·신고를 관리해요.",
     "groups": [
       {
         "label": "운영 웹 메뉴",
         "routes": [
           "admin",
-          "admin-places",
           "admin-support",
           "admin-guides",
           "admin-bookings"
         ],
         "entries": {
-          "admin-places": {
-            "parent": "admin",
-            "relation": "menu"
-          },
           "admin-support": {
             "parent": "admin",
             "relation": "menu"

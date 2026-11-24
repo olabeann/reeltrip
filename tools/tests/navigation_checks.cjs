@@ -6,7 +6,7 @@ function setup(lang,mode='customer',admin=false){
  vm.createContext(ctx);
  for(const file of ['assets/nickname-bases.js','assets/signup-copy.js','assets/access.js',`assets/catalog${lang==='en'?'.en':''}.js`])vm.runInContext(fs.readFileSync(root+file,'utf8'),ctx);
  const code=fs.readFileSync(root+`assets/app${lang==='en'?'.en':''}.js`,'utf8').split('window.ReelBookingTools.init(')[0];
- vm.runInContext(code+'globalThis.nav={current,travelLeg,discoveryNext,discoveryPlaces,guideDiscovery,booking,results,board,planner,request,quote,checkout,messages,chat,layout,account,settingsPage,normalizeNickname,nicknameProblem,home,trips,guideDesk,state,libraryIds,proposals,makeQuote,quoteValid,requestBooking,confirmMateFee,guides,setGuidesTab(value){guidesTab=value},notificationItems,notificationBell,notifications,markNotificationsRead};})();',ctx);return ctx;
+ vm.runInContext(code+'globalThis.nav={adminSupport,admin,adminBookings,current,travelLeg,discoveryNext,discoveryPlaces,guideDiscovery,booking,results,board,planner,request,quote,checkout,messages,chat,layout,account,settingsPage,normalizeNickname,nicknameProblem,home,trips,guideDesk,state,libraryIds,proposals,makeQuote,quoteValid,requestBooking,confirmMateFee,guides,setGuidesTab(value){guidesTab=value},notificationItems,notificationBell,notifications,markNotificationsRead};})();',ctx);return ctx;
 }
 for(const lang of ['ko','en']){
  const c=setup(lang);
@@ -182,6 +182,12 @@ for(const lang of ['ko','en']){
  assert(!g.window.ReelAccess.allowed('customer','checkout'));
  g.location.hash='#guide-desk';assert(g.nav.layout('content').includes('href="#account"'));assert(!g.nav.layout('content').includes('<header'));
  g.location.hash='#account';const my=g.nav.layout(g.nav.account());assert(my.includes('href="#settings"'));assert(my.includes('aria-current="page"'));g.location.hash='#settings';const settings=g.nav.layout(g.nav.settingsPage());assert(settings.includes('data-access-mode="customer"'));assert(settings.includes('english.html?lang=en#settings') && settings.includes('index.html?lang=ja#settings'));assert(!settings.includes('data-action="reset"'));assert(!settings.includes('data-action="export-data"'));assert(settings.includes('href="#policies?section=terms"'));assert(!settings.includes('href="#policies?section=privacy"'));assert(settings.includes('summary class="guest-account-row"'));assert(settings.includes('href="#support"'));assert(settings.includes('class="app-back" href="#account"'));
- const a=setup(lang,'customer',true);a.location.hash='#admin';const h=a.nav.layout('admin');assert(h.includes('class="topbar"'));assert(h.includes('brand-lockup'));assert(!h.includes('class="mobiletabs"'));assert(!a.window.ReelAccess.allowed('customer','account'));
+ const a=setup(lang,'customer',true);a.location.hash='#admin';const h=a.nav.layout(a.nav.admin());assert(h.includes('rt-admin-sidebar'));assert(h.includes('aria-current="page"'));assert(!h.includes('href="#admin-places"'));assert(h.includes('href="#admin-guides"'));assert(h.includes('rt-admin-content'));a.location.hash='#admin-places';assert.equal(a.nav.current(),'admin');assert(!h.includes('class="mobiletabs"'));assert(!a.window.ReelAccess.allowed('customer','account'));
+ a.nav.state.tickets=[{id:'TK-TEST',type:'Help',body:'Example inquiry details',email:'test@example.com',status:'open'}];
+ a.location.hash='#admin-support';assert(a.nav.adminSupport().includes('record=TK-TEST'));assert(!a.nav.adminSupport().includes('id="operations-ticket-form-TK-TEST"'));
+ a.location.hash='#admin-support?record=TK-TEST';assert(a.nav.adminSupport().includes('id="operations-ticket-form-TK-TEST"'));
+ a.location.hash='#admin-support?record=missing';assert(!a.nav.adminSupport().includes('id="operations-ticket-form-TK-TEST"'));
+ a.location.hash='#admin-support?status=resolved';assert(!a.nav.adminSupport().includes('record=TK-TEST'));
+
 }
-console.log('PASS: KO/EN main tabs without top bars; home logo; shared My preferences; guide mode escape path; detail back links; separate admin header.');
+console.log('PASS: KO/EN main tabs without top bars; home logo; shared My preferences; guide mode escape path; detail back links; separate admin sidebar and retired place-review redirect.');

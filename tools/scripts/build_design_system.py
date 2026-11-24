@@ -1,81 +1,74 @@
-"""Generate the UI Kit from shared production icons, palette and HTML template."""
+"""Build the guide from production tokens, icons and isolated application previews.
+
+Never duplicate screen markup here: previews run the actual app and its stylesheet
+cascade through the existing storage-isolated frontend entry.
+"""
 from pathlib import Path
+from html import escape
+import json
+import hashlib
 import re
 from urllib.parse import quote
-ROOT=Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2]
+
 
 def build_design_system():
- source=(ROOT/'src/assets/app.js').read_text()
- registry=re.search(r'function icon\(name,size=24\)\{const shapes=\{(.*?)\};return',source).group(1)
- shapes=dict(re.findall(r"(\w+):'([^']+)'",registry))
+ source = (ROOT / 'src/assets/app.js').read_text()
+ styles = (ROOT / 'src/assets/design-system.css').read_text()
+ registry = re.search(r'function icon\(name,size=24\)\{const shapes=\{(.*?)\};return', source).group(1)
+ shapes = dict(re.findall(r"(\w+):'([^']+)'", registry))
  def icon(name):
   return f'<svg xmlns="http://www.w3.org/2000/svg" class="rt-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{shapes[name]}</svg>'
- html=(ROOT/'tools/templates/design-system.html').read_text()
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><div class="rt-info-chip-list"><span class="rt-info-chip rt-info-chip--primary">여행자</span><span class="rt-info-chip rt-info-chip--primary">메이트</span><span class="rt-info-chip">알림함</span><span class="rt-info-chip">결제 기한 만료인 경우에만 메이트도 수신.</span></div></div><p class="rule">rt-info-chip / rt-info-chip-list: 클릭 동작 없는 정보 칩. 수신자·항목명은 primary, 채널·조건은 중립 색상으로 구분합니다. 조건은 문장 단위로 표시하며 줄바꿈을 허용해 내용을 생략하지 않습니다. rt-message-review-rules는 데스크톱에서 항목명과 내용을 두 열로, 모바일에서는 세로로 배치합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-message-review: 알림 검토 공통 카드. 한 행에 상황·수신자·채널과 최대 390px 미리보기를 배치합니다. 제목·본문은 한 벌만 사용하고 문구 확인에서 생략 없는 원문을 보여줍니다. 720px 이하에서는 세로 배치합니다. 제목 18px, 상세 본문 15px, 메타 14px로 정보 위계를 구분합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><article class="rt-notification-preview"><div><strong>메이트의 제안이 도착했어요</strong><p>여행일 2026-12-01 · 제안 도착</p><time datetime="2026-11-24">2026-11-24</time></div><span aria-hidden="true">›</span></article></div><p class="rule">rt-notification-preview: 알림 문구 검토용 공통 카드. 읽지 않은 점·파란 제목·본문·발생 날짜를 표시합니다. 제목·본문은 각각 최대 2줄 말줄임이며 날짜는 별도 표시합니다. 원문은 보존하고 문서의 문구 확인에서 제공합니다. 별도 짧은 문구나 푸시 요약은 만들지 않습니다. 우측 꺾쇠는 비동작 미리보기입니다.</p>')
- html=html.replace('<section id="navigation">', '<section id="navigation"><p class="rule">rt-floating-actions: bottomaction 공통 고정 푸터에 동일 너비의 보조 → 실행 버튼을 배치합니다. 하단 메뉴와 안전 영역 위에 고정하고 rt-floating-actions-space로 본문 끝 여백을 확보합니다. 폼 밖의 제출 버튼은 form 속성으로 원래 폼에 연결하여 필수 동의 검증을 유지합니다.</p>')
- html=html.replace('<section id="navigation">', '<section id="navigation"><p class="rule">탭은 목록 탐색에만 사용합니다. 진행 거절·예약 취소 등 별도 입력 작업은 탭 없는 전용 화면 또는 팝업으로 분리합니다. 목록 탭과 하위 필터 사이에 입력 폼을 삽입하지 않습니다. 전용 화면에는 작업 제목·대상 예약·돌아가기와 실행 버튼을 표시합니다. 검색·날짜 선택처럼 탐색에 필요한 입력은 유지합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-feedback-card--error / rt-feedback-card--compact: 실패 안내는 흰 배경·중립 테두리에 작은 빨간 warning 아이콘으로 표시합니다. 32px 아이콘 영역과 본문을 가로 배치하고 내부 여백 16px·열 간격 12px·제목 16px·본문 13px·줄높이 1.5를 사용합니다. 카드 전체를 빨갛게 채우지 않습니다. rt-payment-deadline은 14px 기한·12px 시간대 안내입니다. 재시도는 기본 파란 버튼을 사용합니다.</p><div class="ds-preview"><section class="card pad rt-feedback-card rt-feedback-card--error rt-feedback-card--compact"><span class="rt-feedback-symbol" aria-hidden="true">'+icon('warning')+'</span><div class="rt-feedback-copy"><h2>결제하지 못했어요</h2><p>예약이 아직 확정되지 않았어요.<br>결제 기한 안에 다시 시도해 주세요.</p></div></section></div>')
- html=html.replace('<section id="dialogs">', '<section id="dialogs"><p class="rule">rt-preference-dialog: 설정 팝업은 제목 18px·설명 13px, 영역 간 16px, 설정 행 상하 16px와 구분선으로 구성합니다. rt-preference-row는 체크박스 18px와 텍스트 사이 12px, 항목 제목 14px·설명 12px를 사용합니다. rt-preference-notes는 보조 안내 12px·간격 8px, 하단 버튼은 콘텐츠와 24px 간격이며 취소 → 저장 순서입니다. 빈 오류 영역은 공간을 차지하지 않습니다.</p>')
- html=html.replace('<section id="controls">', '<section id="controls"><p class="rule">rt-consent-list: 동의 항목을 간격 8px, 항목 내부 상하 여백 8px, 최소 높이 44px로 묶습니다. 본문 13px·줄높이 1.5와 상단 정렬 체크박스를 사용합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-card-link: 카드 전체가 상세로 이동하는 공통 카드. 상태·제목·날짜·금액과 우측 화살표로 구성하며 내부에 별도 버튼을 중첩하지 않습니다. 철회 등 부가 동작은 상세 화면에 둡니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-booking-card: 예약 카드의 상태 칩과 여행 제목 사이에 공통 간격 토큰으로 12px 여백을 둡니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><a class="btn secondary rt-return-button" href="#states">'+icon('chevronLeft')+'<span>도착한 제안으로 돌아가기</span></a></div><p class="rule">rt-return-button: 콘텐츠 아래 24px 간격으로 배치하는 전체 너비 보조 이동 버튼. 흰 배경·회색 테두리·공통 14px 모서리·최소 48px 높이를 사용하고 왼쪽 방향 아이콘을 제공합니다. 하단에 고정하지 않고 문서 흐름을 유지합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-profile-card--public: 블루 배경의 중앙 정렬 사진·이름 헤더, 활동 지역·언어 정보, 구분선 아래 자기소개로 구성하는 공개 프로필 카드. 공개 프로필 미리보기 팝업도 동일한 카드와 스타일을 재사용하며 닫기 버튼은 카드 아래에 배치합니다. rt-profile-link: 받은 제안의 사진·이름 전체를 누르는 프로필 링크이며 화살표와 키보드 포커스를 제공합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-editorial-hero: 240px 서비스 소개 이미지와 하단 그라데이션 캡션. rt-editorial-card: 110px 사진 열과 설명 열로 구성하는 공통 카드 변형이며 좁은 화면은 92px 사진 열을 사용합니다. rt-editorial-number는 작은 순번·테마 라벨입니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-campaign: 비회원 가입을 위한 공통 포스터 구성. rt-campaign-poster는 한국 배낭 여행 배경과 대형 KOREA 타이포, rt-campaign-message는 서비스 소개, rt-campaign-action은 전체 너비 가입 버튼입니다. 타이포 강조색은 --rt-campaign-sun 토큰을 사용합니다. 이미지에는 클릭 동작을 부여하지 않으며 390×700 화면에서 버튼까지 표시합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">앱 공통 너비: --rt-app-width(390px). 실제 앱과 IA 미리보기는 같은 카드·하단 메뉴·팝업 너비를 사용합니다. 폼의 반응형 배치는 reeltrip-app 컨테이너 너비를 기준으로 하며 운영 웹은 별도 레이아웃을 유지합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-review-stack / rt-review-section: 제출 정보는 영역 간 32px, 제목·배지·카드 간 12px 간격으로 배치합니다. 신청 전 확인·제출 신청서·운영 심사·팝업의 프로필 미리보기는 모두 rt-profile-card--public을 재사용합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-card-stack: 카드 간격 16px. rt-profile-card: 사진·이름 아래 전체 너비 소개. rt-info-card / rt-fact-list: 제목 16px, 항목과 값을 나란히 배치하고 마지막 구분선을 생략합니다. rt-info-card--private: 비공개 정보의 중립 배경과 잠금 아이콘.</p><div class="ds-preview"><div class="rt-card-stack"><section class="card pad rt-profile-card"><div class="rt-profile-identity"><div><span class="rt-profile-label">메이트 프로필</span><h2>미나</h2></div></div><p class="rt-profile-bio">서울의 골목과 카페를 함께 걸으며 여행을 도와드려요.</p></section><section class="card pad rt-info-card"><h2>메이트 활동 정보</h2><dl class="rt-fact-list"><div><dt>활동 지역</dt><dd>서울 성동구</dd></div><div><dt>사용 언어</dt><dd>영어</dd></div></dl></section><section class="card pad rt-info-card rt-info-card--private"><h2>'+icon('lock')+'신청 정보<span class="rt-private-label">비공개</span></h2><dl class="rt-fact-list"><div><dt>핸드폰 번호</dt><dd>010-0000-0000</dd></div><div><dt>이메일</dt><dd>mate@example.com</dd></div></dl><p class="rt-info-note">연락처와 심사 정보는 공개하지 않아요.</p></section></div></div>')
-
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><section class="card pad rt-request-card"><div class="rt-request-badges"><span class="badge rt-status-available">제안 가능</span></div><h2>2026-12-01</h2><p class="rt-request-region">'+icon('location')+'<span>서울 성수</span></p><dl class="rt-request-facts"><div><dt>시작 시간</dt><dd>13:00</dd></div><div><dt>여행 인원</dt><dd>2명</dd></div><div><dt>사용 언어</dt><dd>영어</dd></div></dl><div class="rt-card-actions"><button class="btn">일정 보고 제안하기</button></div></section></div><p class="rule">rt-request-card / rt-request-facts: 공개 여행 요청의 공통 카드 변형. 상태 → 날짜 → 지역 → 시작 시간·인원·언어 → 전체 너비 실행 버튼 순서로 배치합니다. 지역 필드가 비어 있으면 방문 장소의 지역을 사용하며, 둘 다 없으면 지역 행을 생략합니다. 긴 날짜·지역·언어는 줄바꿈하고 항목 간격은 16px을 유지합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><article class="inbox-empty rt-card-actions-centered rt-card-compact"><span class="inbox-start-icon">'+icon('board')+'</span><h2>아직 도착한 제안이 없어요!</h2><p>메이트에게 일정과 금액을 제안받을 수 있어요.</p><button class="btn">여행 메이트 찾기</button></article></div><p class="rule">rt-card-compact: 제안 카드와 빈 상태 카드에 사용하는 공통 간격 변형. 안쪽 여백 20px, 항목 사이 12px, 버튼 위 추가 간격 4px로 설정하고 직계 항목의 상하 margin 중첩을 제거합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><div class="kit-row"><span class="rt-status-text-primary">제안 도착</span><span class="rt-status-text-ink">요청 마감</span></div></div><p class="rule">카드 상태 텍스트: 제안 도착은 rt-status-text-primary(파란색), 요청 마감은 rt-status-text-ink(블랙)를 사용합니다.</p>')
- html=html.replace('<section id="controls">', '<section id="controls"><div class="ds-preview"><div class="rt-stop-row"><button class="trip-stop-content"><span><strong>방문 장소</strong><small>공원 · 성수</small></span></button><button class="iconbtn" aria-label="장소 메뉴">'+icon('more')+'</button></div></div><p class="rule">rt-stop-row: 장소 카드와 44px 메뉴 버튼을 한 행에 배치합니다. 메뉴에서 위·아래 이동과 일정에서 빼기를 제공하며 변경은 자동 저장합니다.</p>')
- html=html.replace('<section id="controls">', '<section id="controls"><div class="ds-preview"><div class="rt-action-menu"><div class="rt-action-menu-list"><button class="rt-action-menu-item" aria-pressed="false">'+icon('star')+'<span>꼭 가볼 곳으로 지정</span></button><button class="rt-action-menu-item rt-action-menu-item--danger">'+icon('trash')+'<span>삭제</span></button></div></div></div><p class="rule">rt-action-menu / rt-action-menu-item: 장소 더보기와 신고·차단 팝업의 공통 액션 메뉴. 신고·차단 팝업은 제목·닉네임 아래 아이콘 메뉴 행을 배치하고 하단에 공통 1버튼 닫기를 사용합니다. 연한 회색 표면과 테두리, 왼쪽 아이콘, 최소 48px 행 높이를 사용합니다. 선택은 aria-pressed와 블루 배경으로, 삭제는 구분선과 연한 레드 배경으로 구별합니다. Tab으로 버튼을 이동하며 장소 메뉴는 Esc·바깥 클릭·실행 시 닫힙니다.</p>')
- html=html.replace('<section id="controls">', '<section id="controls"><div class="ds-preview"><div class="rt-stop-editor"><span class="rt-stop-editor-label">방문 순서</span><div class="rt-stop-editor-actions"><button class="iconbtn" aria-label="위로 이동" disabled>'+icon('arrowUp')+'</button><button class="iconbtn" aria-label="아래로 이동">'+icon('arrowDown')+'</button><button class="btn secondary small">'+icon('trash')+'일정에서 빼기</button></div></div></div><p class="rule">rt-stop-editor: 방문 순서와 일정에서 빼기를 한 행에 배치합니다. 위·아래 이동은 44px 버튼을 사용하고 첫 장소의 위 이동과 마지막 장소의 아래 이동은 비활성화합니다. 좁은 화면에서는 줄바꿈을 허용합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><section class="card rt-mate-invite"><span class="rt-mate-invite-eyebrow">'+icon('guides')+'메이트와 함께하는 여행</span><h3>같이 걸으면,<br>더 좋아질 여행</h3><p>가고 싶던 곳에 메이트의 취향을 더해요.<br>혼자서는 지나쳤을 순간까지 만나보세요.</p><ul class="rt-mate-invite-moments"><li>'+icon('local')+'<span>동네의 작은 발견</span></li><li>'+icon('cafe')+'<span>취향이 닮은 카페</span></li><li>'+icon('camera')+'<span>함께 남기는 사진</span></li></ul><div class="rt-mate-invite-footer"><p>가고 싶은 장소 하나부터 담아볼까요?</p><button class="btn">함께 갈 장소 담기</button></div></section></div><p class="rule">rt-mate-invite: 메이트 여행 초대 카드. 공통 블루 토큰의 은은한 배경, 경험 3열, 전체 너비 행동 버튼을 사용합니다. 장소가 없으면 장소 추가, 장소가 있으면 요청, 진행 중이면 기존 상태별 행동을 유지합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><section class="card pad rt-status-card"><span class="rt-status-symbol">'+icon('clock')+'</span><span class="badge">심사 중</span><h1>신청서를 검토하고 있어요</h1><p>관리자가 승인하면 메이트로 활동할 수 있어요!</p></section><details class="card rt-disclosure-card"><summary><span>제출한 신청서 보기</span>'+icon('chevronDown')+'</summary><div class="rt-disclosure-body">제출한 프로필과 연락처를 확인합니다.</div></details></div><p class="rule">rt-status-card / rt-status-symbol: 상태 아이콘, 배지, 제목, 안내를 중앙 정렬하는 공통 카드. rt-disclosure-card / rt-disclosure-body: 제출 정보의 접기·펼치기 카드로 기본 닫힘, 키보드 조작과 펼침 방향 아이콘을 지원합니다. rt-status-note는 카드 밖 보조 안내입니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="ds-preview"><article class="card rt-place-card"><div class="rt-place-card-photo"></div><div class="rt-place-card-body"><h3>서울숲</h3><p>서울 성동구 뚝섬로 273</p></div><button class="iconbtn rt-save-action" aria-label="서울숲 · 장소 저장" aria-pressed="false">'+icon('board')+'</button></article></div><p class="rule">rt-place-card: 사진 64px·장소 정보·44px 저장 버튼으로 구성하는 공통 카드. 긴 이름과 주소는 줄바꿈합니다. rt-save-action은 북마크로 저장하며 완료 시 파란색으로 채운 북마크와 aria-pressed 상태를 표시합니다. 다시 누르면 저장을 해제합니다. 저장 시 페이지와 스크롤을 유지하고 저장 완료 토스트만 표시합니다. 아이콘 버튼에는 동작명과 장소명을 접근성 이름으로 제공합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><p class="rule">rt-map-browser / rt-map-browser-list: 지도와 저장 가능한 장소 목록. 모바일에서는 지도 아래 목록을, 680px 이상 컨테이너에서는 좌우 패널을 사용합니다. rt-place-select로 장소를 선택하고 rt-place-number로 지도 핀과 연결합니다. is-focused로 선택을 표시하며 저장 버튼은 독립 동작입니다. 장소 확인 단계에서는 분류 탭과 일정 경로선을 표시하지 않습니다.</p>')
- html=html.replace('<section id="controls">', '<section id="controls"><p class="rule">rt-source-link: 원본 콘텐츠 링크. 링크 아이콘·원본 영상 라벨·입력 URL·외부 이동 아이콘을 배치합니다. URL은 한 줄 말줄임하며 전체 URL을 title과 접근성 이름에 유지합니다. 원본 링크가 있을 때만 표시합니다.</p><div class="ds-preview"><a class="rt-source-link" href="https://www.youtube.com/shorts/example" target="_blank" rel="noopener noreferrer">'+icon('link')+'<span><small>원본 영상</small><span class="rt-source-link-url">https://www.youtube.com/shorts/example</span></span>'+icon('external')+'</a></div>')
- html=html.replace('<section id="controls">', '<section id="controls"><div class="ds-preview"><div class="rt-page-action"><a class="btn" href="#controls"><span>저장한 장소 보기</span>'+icon('arrowRight')+'</a></div></div><p class="rule">rt-page-action: 페이지 목록 다음의 주요 이동 버튼. 전체 너비·최소 48px 높이이며 왼쪽 목적지 문구와 오른쪽 화살표를 사용합니다. 하단 메뉴와 겹치지 않도록 일반 문서 흐름에 배치합니다.</p>')
- # Workflow chips share the production tokens and visible labels.
- status_chips=[('available','제안 가능','파랑','제안할 수 있는 요청'),('waiting','여행자 선택 대기','보라','보낸 제안의 응답 대기'),('selected','수수료 결제 대기','주황','여행자가 선택하여 결제 필요'),('confirmed','예약 확정','초록','확정된 예약'),('completed','여행 완료','회색','완료된 여행'),('expired','유효기간 만료','회색','만료 또는 미선택'),('cancelled','취소 완료','빨강','취소된 예약')]
- chip_samples=''.join(f'<span class="badge rt-status-{key}">{label}</span>' for key,label,color,meaning in status_chips)
- chip_rows=''.join(f'<tr><td>{label}</td><td>{color} · {meaning}</td><td><code>rt-status-{key}</code><br><code>--rt-status-{key}-bg / -fg</code></td></tr>' for key,label,color,meaning in status_chips)
- html=html.replace('<section id="states">','<section id="states"><h3>메이트 여행 상태 칩</h3><div class="ds-preview"><div class="kit-row">'+chip_samples+'</div></div><table><thead><tr><th>상태</th><th>색상과 의미</th><th>공통 클래스 · 토큰</th></tr></thead><tbody>'+chip_rows+'</tbody></table><p class="rule">badge에 rt-status-* 변형을 조합합니다. 여행 찾기와 내 활동에서 같은 상태는 같은 색을 사용합니다. 여행자에게 선택받아 결제가 필요한 상태는 주황, 예약 확정은 초록입니다. 완료·만료는 중립 회색을 공유합니다. 색상과 상태 문구를 항상 함께 표시합니다. 글자와 배경의 대비는 4.5:1 이상이며 크기·간격·모서리는 공통 badge를 따릅니다. 상태 칩은 클릭하는 필터가 아닙니다.</p>')
- html=html.replace('>ICONS<','>'+''.join(f'<div class="icon-sample">{icon(name)}<code>{name}</code></div>' for name in shapes)+'<')
- html=re.sub(r'ICON_(\w+)',lambda m:icon(m[1]),html)
- palette=''
- for family,steps in [('blue',[50,100,200,400,500,600,800]),('red',[50,100,200,400,500,600,800]),('gray',[0,50,100,200,400,500,600,800,900])]:
-  palette+='<div class="tone-scale">'+''.join(f'<div><i style="background:var(--rt-{family}-{step})"></i><small>{step}</small></div>' for step in steps)+'</div>'
- html=html.replace('<section id="dialogs">', '<section id="dialogs"><p class="rule">trip-add-grid: 팝업의 보조 선택 버튼이 하나이면 전체 열을 사용해 위 선택 버튼과 너비를 맞추고, 두 개이면 동일 너비로 나란히 배치합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="kit-row"><span>읽지 않은 알림 <span class="rt-count-badge">1</span></span><span>읽지 않은 알림 <span class="rt-count-badge">12</span></span></div><p class="rule">rt-count-badge: 미읽음 개수는 파란 배경과 흰색 굵은 숫자로 표시합니다. 최소 22px 높이를 유지하고 필터 선택 여부와 관계없이 같은 대비를 사용합니다. 알림 제목은 읽음·미읽음 모두 같은 색상과 굵기(700)를 유지하고 미읽음 점만 제거합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="kit-row"><button class="btn rt-round-action" aria-label="메시지 보내기">'+icon('send')+'</button></div><p class="rule">chat-person: 닉네임 영역은 남은 너비를 채우며 더보기 원형 버튼은 오른쪽 끝에 정렬하며 secondary 원형 버튼의 아이콘은 남색(--rt-blue-800)을 사용합니다. 역할·대화 상태는 헤더에 표시하지 않습니다. rt-round-action: 전송 버튼은 흰색 종이비행기 아이콘을 중앙에 표시합니다. 공통 버튼의 좌우 여백을 적용하지 않고 원형과 아이콘 공간을 유지합니다. chat-trip-context: 채팅의 예약 정보 카드는 흰색 배경을 사용합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><button class="trip-create-banner" type="button"><span aria-hidden="true">'+icon('plus')+'</span><span><strong>여행 일정 만들기</strong><small>새로운 여행을 준비해 보세요.</small></span></button><p class="rule">trip-create-banner: 블루 배경과 흰색 제목·설명을 함께 적용하는 여행 생성 카드입니다. 내 여행과 나의 장소 빈 상태는 rt-empty-card의 아이콘·본문 간격과 중앙 버튼 정렬을 사용합니다.</p>')
- html=html.replace('<section id="states">', '<section id="states"><div class="card pad rt-card-actions-centered"><button class="btn">함께할 메이트 찾기</button></div><p class="rule">rt-card-actions-centered: 안내 카드의 단일 실행 버튼과 buttons / rt-card-actions / guest-invite-actions 버튼 묶음을 카드 중앙에 정렬합니다.</p>')
- html=html.replace('EMPTY_CARD_RULE', 'rt-empty-card: 활동이 없으면 안내와 실행을 한 카드로 통합합니다. 모든 빈 상태는 아이콘·안내·버튼을 중앙 정렬하며 버튼은 내용 너비를 사용합니다. 채팅 빈 상태의 메이트 둘러보기는 기본 블루 버튼을 사용하며 일반 카드의 우측 정렬보다 중앙 정렬을 우선합니다. rt-empty-plain: 알림처럼 독립된 빈 상태는 테두리·배경 없이 아이콘과 문구를 가로·세로 중앙에 정렬합니다. rt-card-stack: 카드 간 16px 간격. 활동이 있으면 실제 데이터만 표시합니다.')
- html=html.replace('<section id="navigation">', '<section id="navigation"><div class="ds-preview"><nav class="rt-filter-chips" aria-label="예약 상태 필터 예시"><a class="rt-filter-chip" href="#navigation">예정된 여행<span class="rt-filter-count">2</span></a><a class="rt-filter-chip" href="#navigation" aria-current="page">확정 필요<span class="rt-filter-count">3</span></a><a class="rt-filter-chip" href="#navigation">지난 내역<span class="rt-filter-count">0</span></a></nav></div><p class="rule">rt-filter-chips / rt-filter-chip / rt-filter-count: 예약 상태·나의 장소 필터·여행 일정과 제안 상세의 날짜별 보기에 공통 적용합니다. 링크는 aria-current, 버튼은 aria-pressed로 선택 상태를 표시합니다. 상태 필터는 흰색 알약 형태, 선택은 기본 파란색 면과 흰색 글자로 표시합니다. 최소 높이 44px, 글자·건수는 flex로 가로·세로 중앙 정렬하며 건수 배지는 20px입니다. 필터 간 8px, 상단 탭 아래 20px, 목록까지 20px 간격을 사용합니다. 좁은 화면에서는 스크롤바를 숨기고 손가락의 좌우 스와이프로 이동합니다. 기본 터치 관성 스크롤과 세로 페이지 스크롤을 유지하며 두 줄로 꺾지 않습니다.</p>')
- html=html.replace('SEGMENTED_TABS_RULE', 'rt-segmented-tabs: 동일 화면의 목록을 분류하는 링크 탭. 선택 상태는 aria-current로 표시하고 각 탭의 건수를 함께 보여줍니다.')
- html=html.replace('<section id="states">', '<section id="states"><div class="kit-row"><button class="signup-provider signup-provider--kakao">카카오로 계속하기</button><button class="signup-provider signup-provider--naver">네이버로 계속하기</button></div><p class="rule">signup-provider: 소셜 버튼은 공급자 배경색을 유지합니다. 카카오는 노란 배경과 어두운 글자, 네이버는 초록 배경과 흰 글자를 사용하며 공통 표면 그라데이션으로 덮지 않습니다.</p>')
- html=html.replace('<section id="controls">', '<section id="controls"><p class="rule">rt-textarea-large: 자기소개 등 여러 내용을 함께 작성하는 전체 너비 입력 영역. 최소 높이 224px, 세로 크기 조절 가능. 메이트 프로필의 사진·활동 이름·자기소개는 모두 필수이며 제목은 같은 14px·600 서식을 사용합니다.</p>')
- # Reuse the same photo control for account and mate profile forms.
- html=html.replace('<section id="controls">', '<section id="controls"><p class="rule">profilePhotoControl / profile-photo-editor: 유저 프로필과 메이트 등록은 동일한 원형 사진·카메라 업로드·우측 상단 삭제 버튼을 재사용합니다. 사진이 없으면 카메라, 있으면 삭제 버튼을 표시하며 삭제 후 다시 선택합니다. JPG·PNG·WebP, 최대 1MB. 기능 아이콘은 공통 icon()을 사용합니다.</p>')
- # Multi-choice controls share the radio choice appearance and use checkbox semantics.
- html=html.replace('<section id="controls">', '<section id="controls"><div class="ds-preview"><fieldset><legend>다중 선택 버튼</legend><div class="rt-multi-choice-group"><label class="rt-multi-choice"><input type="checkbox" checked><span>영어</span></label><label class="rt-multi-choice"><input type="checkbox" checked><span>일본어</span></label><label class="rt-multi-choice"><input type="checkbox"><span>중국어</span></label><label class="rt-multi-choice"><input type="checkbox" disabled><span>한국어 · 비활성</span></label></div></fieldset><div class="rt-choice-grid"><button type="button" class="rt-choice-button" aria-pressed="true">종로구</button><button type="button" class="rt-choice-button" aria-pressed="false">중구</button></div></div><p class="rule">rt-multi-choice-group / rt-multi-choice: 여러 항목을 독립적으로 선택·해제하는 체크박스. 단일 선택과 같은 공통 색상·테두리·굵기·포커스 스타일을 사용합니다. 지역 선택의 rt-choice-button은 같은 스타일과 aria-pressed를 사용하며 바텀시트의 90% 축소 크기·4열 배치를 유지합니다. 언어는 최소 하나를 선택하고 저장값은 언어 코드 배열이며 기존 단일 문자열도 읽습니다.</p>')
- # Shared single-choice buttons: native radio behavior and chip state tokens.
- html=html.replace('<section id="controls">', '<section id="controls"><div class="ds-preview"><fieldset><legend>단일 선택 버튼</legend><div class="rt-single-choice-group"><label class="rt-single-choice"><input type="radio" name="kit-language" value="en" checked><span>영어</span></label><label class="rt-single-choice"><input type="radio" name="kit-language" value="ja"><span>일본어</span></label><label class="rt-single-choice"><input type="radio" name="kit-language" value="zh"><span>중국어</span></label><label class="rt-single-choice"><input type="radio" name="kit-language" value="ko" disabled><span>한국어 · 비활성</span></label></div></fieldset></div><p class="rule">rt-single-choice-group / rt-single-choice: 하나만 고르는 라디오 버튼. 공통 칩과 같은 중립 배경·테두리, 선택 시 연한 블루 배경·블루 테두리와 텍스트를 사용합니다. 높이 최소 44px, 글자 14px, 2열 간격 8px. fieldset·legend로 그룹 이름을 제공하고 같은 name의 radio를 사용합니다. Tab 진입, 방향키 선택, 포커스 표시와 비활성 상태를 지원합니다.</p>')
- # Document the shared dialog action layout independently of screen styles.
- html=html.replace('취소 → 실행 · 동일 너비 · Esc로 닫기', '취소 → 실행 · 가로 배치 · 동일 너비 · 기본 높이 48px · 간격 8px · Esc로 닫기')
- html=html.replace('<section id="dialogs">', '<p class="rule">rt-detail-actions / rt-booking-actions: 상세 화면 하단의 버튼은 전체 너비·최소 높이 48px·14px 모서리·14px 글자로 통일합니다. 콘텐츠와 24px, 버튼 간 12px 간격을 둡니다. 주 실행은 파란색, 철회·종료·취소·대화 등 보조 실행은 흰 배경과 회색 테두리로 표시하며 rt-return-button도 같은 모양을 사용합니다. 폼의 마지막 제출 버튼과 고정 하단 journey-action도 동일 너비·높이·모서리를 사용합니다. 두 버튼은 rt-card-actions-equal로 같은 너비에 배치합니다. 최종 철회 확인 팝업의 실행 버튼은 danger를 유지합니다. rt-field는 이름·이메일 등 단일 행 입력창에 동일한 48px 높이를 적용합니다. 내부 input의 바깥 여백은 0이며 아이콘과 입력 문구를 세로 가운데 정렬합니다. 아이콘을 입력 요소 밖에 두어 자동완성 시에도 유지합니다.</p><section id="dialogs">')
- # Register the shared bottom sheet and compact multi-select layout.
- html=html.replace('<section id="dialogs">', '<section id="dialogs"><p class="rule">rt-bottom-sheet / rt-sheet: 화면 하단에 붙는 바텀시트. 제목·필터와 하단 선택 요약·실행 버튼은 고정하고 rt-sheet-body만 스크롤합니다. rt-choice-grid는 기본 4열, 360px 미만에서는 3열이며 내용은 기본 대비 약 90% 크기의 글자·여백을 사용하고 선택 버튼은 최소 40px을 유지합니다. 시도 선택 글자는 모바일 자동 확대를 막기 위해 16px을 유지합니다. 선택 요약은 최대 두 줄 높이 안에서 스크롤하고 하단 안전 영역을 확보합니다.</p><div class="ds-preview"><section class="rt-sheet"><div class="rt-sheet-head"><h3>활동 지역 선택</h3></div><div class="rt-sheet-body"><div class="rt-choice-grid"><button class="rt-choice-button" aria-pressed="true">종로구</button><button class="rt-choice-button" aria-pressed="false">중구</button><button class="rt-choice-button" aria-pressed="false">용산구</button><button class="rt-choice-button" aria-pressed="false">성동구</button></div></div><footer class="rt-sheet-footer"><p>서울 종로구</p><button class="btn">선택 완료</button></footer></section></div>')
- # Register the shared card action layout in the generated guide.
- html=html.replace('CARD_ACTION_RULE', '일반 카드 실행 버튼은 본문 아래 우측 하단에 배치합니다. 빈 상태 카드의 버튼은 중앙에 배치합니다. 여러 버튼은 rt-card-actions로 묶고 좁은 화면에서는 우측 정렬로 줄바꿈합니다. 로그인·회원가입처럼 나란히 배치할 버튼 쌍은 rt-card-actions-equal을 추가해 카드 전체 너비를 동일하게 나누고 높이를 맞춥니다. 기본 최소 높이는 48px, 글자 크기는 14px, 안쪽 여백은 세로 12px·가로 16px이며 짧은 동작명을 사용합니다.')
- html=html.replace('>PALETTE<','>'+palette+'<')
- html=html.replace('>SPACING<','>'+''.join(f'<div><i style="height:{n}px"></i><code>{n}</code></div>' for n in [4,8,12,16,24,32])+'<')
+ catalog = (ROOT / 'src/assets/catalog.js').read_text()
+ screens = json.loads(re.search(r'window.REEL_SCREENS\s*=\s*(\[.*?\]);', catalog, re.S).group(1))
+ # Read only the primary state registry; the file also contains transition data.
+ states_source = (ROOT / 'src/frontend/state-catalog.js').read_text()
+ states, _ = json.JSONDecoder().raw_decode(states_source.split('window.REEL_SCREEN_STATES=', 1)[1])
+ options = []
+ for screen in screens:
+  route = screen['route']
+  entry = 'preview-admin.html' if screen['role'] == 'admin' else 'preview.html'
+  variants = states.get(route) or [{'id': 'default', 'label': '기본'}]
+  items = []
+  for state in variants:
+   target = state.get("fixture", {}).get("hash", route)
+   url = f"../src/frontend/{entry}?lang=ko&screen={quote(route)}&state={quote(state['id'])}#{target}"
+   label = f"{screen['id']} · {screen['name']} · {state['label']}"
+   selected = ' selected' if route == 'signup' and state == variants[0] else ''
+   items.append(f'<option value="{escape(url)}"{selected}>{escape(label)}</option>')
+  options.append(f'<optgroup label="{escape(screen["name"])}">{"".join(items)}</optgroup>')
+ # Preserve responsive scopes and declaration order instead of flattening overrides.
+ token_rows = []
+ stack = []
+ clean_styles = re.sub(r'/\*.*?\*/', '', styles, flags=re.S)
+ body = ''
+ for delimiter in re.split(r'([{}])', clean_styles):
+  if delimiter not in ['{', '}']:
+   body = delimiter
+   continue
+  if delimiter == '{':
+   stack.append(body.rsplit(';', 1)[-1].strip())
+  else:
+   for name, value in re.findall(r'(--rt-[\w-]+)\s*:\s*([^;{}]+)', body):
+    scope = ' → '.join(stack)
+    swatch = f'<i class="token-swatch" style="background:{value.strip()}"></i>' if re.fullmatch(r'#[0-9A-Fa-f]{3,8}', value.strip()) else ''
+    token_rows.append(f'<tr><td><code>{name}</code></td><td>{swatch}<code>{escape(value.strip())}</code></td><td><code>{escape(scope)}</code></td></tr>')
+   if stack:
+    stack.pop()
+ # List shared classes only when production code actually refers to them.
+ production = source + (ROOT / 'src/assets/access.js').read_text()
+ components = sorted(name for name in set(re.findall(r'\.(rt-[\w-]+)', styles)) if re.search(r'(?<![\w-])' + re.escape(name) + r'(?![\w-])', production))
+ html = (ROOT / 'tools/templates/design-system.html').read_text()
+ # Bundle the guide layout with its HTML so cached legacy CSS cannot break it.
+ layout_css = (ROOT / 'src/assets/ui-kit.css').read_text()
+ html = html.replace('GUIDE_LAYOUT_CSS', layout_css)
+ html = html.replace('DESIGN_STYLE_VERSION', hashlib.sha256(styles.encode()).hexdigest()[:12])
+ html = html.replace('SCREEN_OPTIONS', ''.join(options))
+ html = html.replace('TOKEN_ROWS', ''.join(token_rows))
+ # Operations web reuses these registered compact panel, filter and navigation variants.
+ components = sorted(set(components) | {'rt-admin-panel', 'rt-admin-filter', 'rt-admin-sidebar', 'rt-admin-row-actions'})
+ html = html.replace('COMPONENT_LIST', ''.join(f'<li><code>{name}</code></li>' for name in components))
+ html = html.replace('ICON_SAMPLES', ''.join(f'<div class="icon-sample">{icon(name)}<code>{name}</code></div>' for name in shapes))
  # Native form fields reuse the icon registry, without changing form semantics.
  css='/* Generated by build_design_system.py from icon(). */\n'
  for typ,name in [('email','mail'),('password','lock'),('search','search')]:

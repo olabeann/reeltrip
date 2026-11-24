@@ -92,7 +92,12 @@ for(const lang of ['ko','en']){
  app.m.saveMate({...a,step:3});const contactHTML=app.m.mateRegistration();assert(contactHTML.includes('type="tel"'));assert(contactHTML.includes('data-action="mate-contact-support"'));assert(!contactHTML.includes('<p class="notice">'));
  assert(app.m.validMate(a));assert(!app.m.validMate({...a,fields:{...a.fields,regions:[]}}));assert(!app.m.validMate({...a,fields:{...a.fields,languages:'English Japanese'}}));assert(!app.m.validMateRegions([{city:0,district:99}]));assert(app.m.validMateRegions([{city:0,district:'all'},{city:1,district:'all'}]));assert(!app.m.validMate({...a,fields:{...a.fields,consent:false}}));assert(!app.m.validMate({...a,fields:{...a.fields,contact:'bad'}}));
  app.m.saveMate(a);assert.equal(setup(lang,false,store).m.mateApplication().fields.name,'Test mate');
- a.status='pending';app.m.saveMate(a);assert(!app.window.ReelAccess.allowed('guide'));assert(!app.m.reviewMate('approved'));
+ a.status='pending';app.m.saveMate(a);
+ ops.location.hash='#admin-guides';const listing=ops.m.mateAdmin();assert(listing.includes('record=application'));assert(!listing.includes('id="mate-review-form"'));
+ ops.location.hash='#admin-guides?record=application';assert(ops.m.mateAdmin().includes('id="mate-review-form"'));
+ ops.location.hash='#admin-guides?record=missing';assert(!ops.m.mateAdmin().includes('id="mate-review-form"'));
+ ops.location.hash='#admin-guides?query=unmatched';assert(!ops.m.mateAdmin().includes('record=application'));
+ assert(!app.window.ReelAccess.allowed('guide'));assert(!app.m.reviewMate('approved'));
  assert(ops.m.reviewMate('needs_info','Please expand your experience'));assert.equal(app.m.mateApplication().status,'needs_info');assert(app.m.mateRegistration().includes('Please expand your experience'));
  a.status='pending';app.m.saveMate(a);assert(ops.m.reviewMate('rejected','Please correct your area'));assert(!app.window.ReelAccess.allowed('guide'));
  a.status='pending';app.m.saveMate(a);assert(ops.m.reviewMate('approved'));app.window.ReelAccess.syncMate();assert(app.window.ReelAccess.controls().includes('data-access-mode="guide"'));assert(!ops.m.reviewMate('approved'));assert(app.m.mateRegistration().includes('data-access-mode="guide"'));

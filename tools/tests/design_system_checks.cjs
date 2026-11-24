@@ -43,3 +43,25 @@ for(const lang of ['ko','en']){
  assert.equal(context.window.ReelBookingTools.saved(), '');
 }
 console.log('PASS: shared design system and MVP external booking links hidden.');
+// The guide must use actual isolated screen entries, including each fixture's deep link.
+const guide=fs.readFileSync(path.join(root,'docs/design-guide.html'),'utf8');
+const catalogContext={window:{}};vm.createContext(catalogContext);
+for(const file of ['src/assets/catalog.js','src/frontend/state-catalog.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),catalogContext);
+const decode=s=>s.replaceAll('&amp;','&').replaceAll('&quot;','"');
+const options=[...guide.matchAll(/<option value="([^"]+)"[^>]*>/g)].map(m=>new URL(decode(m[1]),'https://example.test/docs/design-guide.html'));
+for(const screen of catalogContext.window.REEL_SCREENS){
+ const variants=catalogContext.window.REEL_SCREEN_STATES[screen.route]||[{id:'default'}];
+ for(const state of variants){
+  const url=options.find(url=>url.searchParams.get('screen')===screen.route&&url.searchParams.get('state')===state.id);
+  assert(url,`${screen.route}/${state.id} missing from guide`);
+  assert.equal(url.hash.slice(1),state.fixture?.hash||screen.route,'preview must honor fixture deep links');
+  assert.equal(path.basename(url.pathname),screen.role==='admin'?'preview-admin.html':'preview.html');
+ }
+}
+for(const match of guide.matchAll(/data-screen="([^"]+)"(?: data-state="([^"]+)")?/g)){
+ assert(options.some(url=>url.searchParams.get('screen')===match[1]&&(!match[2]||url.searchParams.get('state')===match[2])), 'guide shortcut must resolve: '+match[1]);
+}
+assert(guide.includes('<iframe id="app-preview"'));
+for(const obsolete of ['mood-device','kit-toggle','kit-range','kit-tabs','kit-bubble','rt-stop-editor'])assert(!guide.includes(obsolete),'guide-only or retired UI: '+obsolete);
+assert(guide.includes('@media(max-width:360px)'),'responsive token scope must remain visible');
+console.log('PASS: guide uses every current screen/state, fixture deep links and production previews; no retired mock UI.');

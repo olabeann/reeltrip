@@ -4,7 +4,7 @@
  const nodes=[...document.querySelectorAll('.ia-node')],roles=[...document.querySelectorAll('.ia-role')],filters=[...document.querySelectorAll('[data-role-filter]')];
  const $=s=>document.querySelector(s),search=$('#ia-search');let activeRole='all',selected='home',selectedState='',previewRun=0,expectedPreview='';
  const frame=$('#ia-preview'),language=$('#ia-language');
- let liveSnapshot=null;
+ let liveSnapshot=null, fitPreview=()=>{};
  const stateRole=(route,id)=>id==='__live'&&liveSnapshot?liveSnapshot.role:registry[route].find(v=>v.id===id)?.fixture?.mode||screens.find(s=>s.route===route).role;
  const entryKey=(route,id)=>route+':'+stateRole(route,id);
  function matches(node){const screen=screens.find(s=>s.route===node.dataset.route),query=search.value.trim().toLowerCase();return !query||[screen.id,screen.name,screen.route,node.textContent].join(' ').toLowerCase().includes(query);}
@@ -106,6 +106,7 @@
   const note=document.createElement('p');note.textContent='공통 메뉴는 저장 데이터를 유지하며 이동합니다. 비회원의 회원 전용 작업은 가입 안내로 연결됩니다. 구조도 버튼은 독립된 예시를 엽니다.';common.append(note);
  }
  function select(route,{history=true,locate=false,state=null,lang=language.value||'ko',live=null}={}){
+  if(route==='admin-places'){route='admin';state=null;}
   const entry=nodes.find(n=>n.getAttribute('href')==='#ia-'+route);
   const screen=screens.find(s=>s.route===(entry?.dataset.route||route))||screens.find(s=>s.route==='home');selected=screen.route;
   liveSnapshot=live;
@@ -142,6 +143,11 @@
   $('#copy-status').textContent='';
   const hash=node.getAttribute('href')+'?'+new URLSearchParams({state:live?'':selectedState,lang:language.value});
   if(location.hash!==hash&&(history||location.hash))window.history[history&&!live?'pushState':'replaceState'](null,'',hash);
+  frame.classList.toggle('is-admin',screen.role==='admin');
+  const web=screen.role==='admin';
+  if($('#device-label'))$('#device-label').textContent=web?'웹 미리보기':'앱 미리보기';
+  if($('.ia-device-panel'))$('.ia-device-panel').setAttribute('aria-label',web?'독립된 웹 미리보기':'독립된 앱 미리보기');
+  fitPreview();
   if(live){$('#ia-preview-status').textContent='앱 이동·조작에 맞춰 동기화 중 · 예시 상태를 누르면 해당 예시로 초기화됩니다.';return;}
   const url=new URL(`preview${screen.role==='admin'?'-admin':''}${language.value==='en'?'-en':''}.html`,location.href);
   url.search=new URLSearchParams({lang:language.value,screen:selected,state:selectedState,previewRun:String(++previewRun)}).toString();url.hash=variant.fixture?.hash||selected;
@@ -190,7 +196,7 @@
   }
   $('#ia-preview-status').textContent=current.hash!==expected.hash?'다른 화면으로 이동했습니다. 선택 상태로 되돌릴 수 있어요.':event.data.changed?'미리보기에서 조작한 상태입니다. 되돌리면 처음 상태를 다시 확인해요.':'선택한 상태 표시 중 · 기존 체험 데이터와 분리된 미리보기';
  });
- // Only the review shell scales; the embedded app always lays out at 390 × 700.
+ // Preserve the actual viewport: mobile app 390 × 700; operations web 1440 × 900.
  if(typeof ResizeObserver!=='undefined'){
   const inspector=$('.ia-inspector'),layout=$('.ia-layout'),viewport=$('.device-viewport'),stage=$('.device-stage');
   let scheduled=false;
@@ -199,10 +205,13 @@
    const top=window.innerWidth>800?Math.max(12,layout.getBoundingClientRect().top):8;
    const available=window.innerWidth>800?Math.min(window.innerHeight-top-12,layout.getBoundingClientRect().bottom-top):window.innerHeight-16;
    inspector.style.setProperty('--inspector-height',Math.max(240,available)+'px');
-   const scale=Math.max(0.01,Math.min(1,viewport.clientWidth/390,viewport.clientHeight/700));
-   stage.style.width=(390*scale)+'px';stage.style.height=(700*scale)+'px';
+   const web=frame.classList.contains('is-admin'),width=web?1440:390,height=web?900:700;
+   frame.style.width=width+'px';frame.style.minWidth=width+'px';
+   frame.style.height=height+'px';frame.style.minHeight=height+'px';frame.style.maxHeight=height+'px';
+   const scale=Math.max(0.01,Math.min(1,viewport.clientWidth/width,viewport.clientHeight/height));
+   stage.style.width=(width*scale)+'px';stage.style.height=(height*scale)+'px';
    frame.style.transform='scale('+scale+')';
-   $('#device-scale').textContent='390 × 700 · '+Math.round(scale*100)+'%';
+   $('#device-scale').textContent=width+' × '+height+' · '+Math.round(scale*100)+'%';
   };
   const expand=$('#preview-expand');
   const backgrounds=[...document.querySelectorAll('.ia-header,.ia-toolbar,.ia-map,main>footer')];
@@ -228,6 +237,7 @@
   document.addEventListener('keydown',onKey);
   frame.addEventListener('load',()=>{try{frame.contentDocument.addEventListener('keydown',event=>{if(event.key==='Escape')onKey(event);});}catch{}});
   const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(fit);}};
+  fitPreview=schedule;
   new ResizeObserver(schedule).observe(viewport);
   window.addEventListener('resize',schedule);window.addEventListener('scroll',schedule,{passive:true});schedule();
  }

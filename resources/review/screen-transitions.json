@@ -3965,6 +3965,50 @@
       "condition": "노출 상태: 장소별 저장 가능, 추출 결과 없음, 비회원 · 지도에서 영상 속 장소 확인"
     },
     {
+      "kind": "외부",
+      "target": null,
+      "state": null,
+      "destination": "https://www.youtube.com/shorts/example",
+      "effect": "새 탭에서 링크 열기; 앱 데이터 변경 없음",
+      "source": "link:https://www.youtube.com/shorts/example",
+      "common": false,
+      "sourceStates": [
+        "selected",
+        "empty"
+      ],
+      "labels": {
+        "ko": {
+          "selected": [
+            "원본 영상 확인 · https://www.youtube.com/shorts/example"
+          ],
+          "empty": [
+            "원본 영상 확인 · https://www.youtube.com/shorts/example"
+          ]
+        },
+        "en": {
+          "selected": [
+            "View original video · https://www.youtube.com/shorts/example"
+          ],
+          "empty": [
+            "View original video · https://www.youtube.com/shorts/example"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "selected": "https://www.youtube.com/shorts/example",
+          "empty": "https://www.youtube.com/shorts/example"
+        },
+        "en": {
+          "selected": "https://www.youtube.com/shorts/example",
+          "empty": "https://www.youtube.com/shorts/example"
+        }
+      },
+      "trigger": "원본 영상 확인 · https://www.youtube.com/shorts/example",
+      "condition": "노출 상태: 장소별 저장 가능, 추출 결과 없음"
+    },
+    {
       "target": null,
       "state": null,
       "kind": "화면 내 변경",
@@ -4023,24 +4067,22 @@
       "labels": {
         "ko": {
           "selected": [
-            "서울숲 · 저장됨",
-            "성수동 카페 · 저장됨",
-            "성수동 카메라 상점 · 저장됨",
+            "서울숲 · 저장 해제",
+            "성수동 카페 · 저장 해제",
+            "성수동 카메라 상점 · 저장 해제",
             "광장시장 먹거리 · 장소 저장"
           ]
         },
         "en": {
           "selected": [
-            "Seoul Forest · Saved",
-            "Seongsu cafe · Saved",
-            "Seongsu camera shop · Saved",
+            "Seoul Forest · Unsave",
+            "Seongsu cafe · Unsave",
+            "Seongsu camera shop · Unsave",
             "Gwangjang Market food · Save place"
           ]
         }
       },
-      "disabledStates": [
-        "selected"
-      ],
+      "disabledStates": [],
       "destinations": {
         "ko": {
           "selected": ""
@@ -4049,7 +4091,7 @@
           "selected": ""
         }
       },
-      "trigger": "서울숲 · 저장됨",
+      "trigger": "서울숲 · 저장 해제",
       "condition": "노출 상태: 장소별 저장 가능"
     },
     {
@@ -4605,13 +4647,13 @@
         },
         "en": {
           "examples": [
-            "Search results"
+            "Results"
           ],
           "saved": [
-            "Search results"
+            "Results"
           ],
           "empty": [
-            "Search results"
+            "Results"
           ]
         }
       },
@@ -5743,7 +5785,7 @@
         },
         "en": {
           "saved": [
-            "Seoul Forest · Manage this place"
+            "Seoul Forest · Place management"
           ]
         }
       },
@@ -5845,7 +5887,7 @@
         },
         "en": {
           "saved": [
-            "Seongsu cafe · Manage this place"
+            "Seongsu cafe · Place management"
           ]
         }
       },
@@ -5879,7 +5921,7 @@
         },
         "en": {
           "saved": [
-            "Seongsu camera shop · Manage this place"
+            "Seongsu camera shop · Place management"
           ]
         }
       },
@@ -5913,7 +5955,7 @@
         },
         "en": {
           "saved": [
-            "N Seoul Tower Observatory · Manage this place"
+            "N Seoul Tower Observatory · Place management"
           ]
         }
       },
@@ -5947,7 +5989,7 @@
         },
         "en": {
           "saved": [
-            "Seoul Forest · Manage this place"
+            "Seoul Forest · Place management"
           ]
         }
       },
@@ -5981,7 +6023,7 @@
         },
         "en": {
           "saved": [
-            "Seongsu cafe · Manage this place"
+            "Seongsu cafe · Place management"
           ]
         }
       },
@@ -6015,7 +6057,7 @@
         },
         "en": {
           "saved": [
-            "Seongsu camera shop · Manage this place"
+            "Seongsu camera shop · Place management"
           ]
         }
       },
@@ -19051,18 +19093,18 @@
       "labels": {
         "ko": {
           "empty": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "active": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ]
         },
         "en": {
           "empty": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "active": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ]
         }
       },
@@ -19081,7 +19123,50 @@
         "empty": "empty",
         "active": "active"
       },
-      "trigger": "운영 홈",
+      "trigger": "RAdministrator운영 · admin",
+      "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:1",
+      "common": false,
+      "sourceStates": [
+        "empty",
+        "active"
+      ],
+      "labels": {
+        "ko": {
+          "empty": [
+            "릴트립"
+          ],
+          "active": [
+            "릴트립"
+          ]
+        },
+        "en": {
+          "empty": [
+            "Reeltrip"
+          ],
+          "active": [
+            "Reeltrip"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "empty": "",
+          "active": ""
+        },
+        "en": {
+          "empty": "",
+          "active": ""
+        }
+      },
+      "trigger": "릴트립",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
@@ -19099,18 +19184,18 @@
       "labels": {
         "ko": {
           "empty": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "active": [
-            "운영 대시보드"
+            "대시보드"
           ]
         },
         "en": {
           "empty": [
-            "Operations"
+            "Dashboard"
           ],
           "active": [
-            "Operations"
+            "Dashboard"
           ]
         }
       },
@@ -19129,103 +19214,7 @@
         "empty": "empty",
         "active": "active"
       },
-      "trigger": "운영 대시보드",
-      "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-places",
-      "state": "pending",
-      "destination": "#admin-places",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-places",
-      "common": true,
-      "sourceStates": [
-        "empty",
-        "active"
-      ],
-      "labels": {
-        "ko": {
-          "empty": [
-            "장소 오류 검수"
-          ],
-          "active": [
-            "장소 오류 검수"
-          ]
-        },
-        "en": {
-          "empty": [
-            "Review places"
-          ],
-          "active": [
-            "Review places"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "empty": "#admin-places",
-          "active": "#admin-places"
-        },
-        "en": {
-          "empty": "#admin-places",
-          "active": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "empty": "pending",
-        "active": "pending"
-      },
-      "trigger": "장소 오류 검수",
-      "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-support",
-      "state": "none",
-      "destination": "#admin-support",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-support",
-      "common": true,
-      "sourceStates": [
-        "empty",
-        "active"
-      ],
-      "labels": {
-        "ko": {
-          "empty": [
-            "문의와 데이터 요청 관리"
-          ],
-          "active": [
-            "문의와 데이터 요청 관리"
-          ]
-        },
-        "en": {
-          "empty": [
-            "Support requests"
-          ],
-          "active": [
-            "Support requests"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "empty": "#admin-support",
-          "active": "#admin-support"
-        },
-        "en": {
-          "empty": "#admin-support",
-          "active": "#admin-support"
-        }
-      },
-      "previewStates": {
-        "empty": "none",
-        "active": "none"
-      },
-      "trigger": "문의와 데이터 요청 관리",
+      "trigger": "대시보드",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
@@ -19243,18 +19232,18 @@
       "labels": {
         "ko": {
           "empty": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "active": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ]
         },
         "en": {
           "empty": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "active": [
-            "Mate verification"
+            "Mate reviews"
           ]
         }
       },
@@ -19273,7 +19262,7 @@
         "empty": "draft",
         "active": "draft"
       },
-      "trigger": "메이트 자격 심사",
+      "trigger": "메이트 심사",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
@@ -19291,18 +19280,18 @@
       "labels": {
         "ko": {
           "empty": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "active": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ]
         },
         "en": {
           "empty": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "active": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ]
         }
       },
@@ -19321,55 +19310,7 @@
         "empty": "none",
         "active": "none"
       },
-      "trigger": "예약·환불 운영",
-      "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-places",
-      "state": "pending",
-      "destination": "#admin-places",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-places",
-      "common": false,
-      "sourceStates": [
-        "empty",
-        "active"
-      ],
-      "labels": {
-        "ko": {
-          "empty": [
-            "장소 후보와 지점 확인 →"
-          ],
-          "active": [
-            "장소 후보와 지점 확인 →"
-          ]
-        },
-        "en": {
-          "empty": [
-            "Review places and locations →"
-          ],
-          "active": [
-            "Review places and locations →"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "empty": "#admin-places",
-          "active": "#admin-places"
-        },
-        "en": {
-          "empty": "#admin-places",
-          "active": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "empty": "pending",
-        "active": "pending"
-      },
-      "trigger": "장소 후보와 지점 확인 →",
+      "trigger": "매칭·예약 관리",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
@@ -19379,7 +19320,7 @@
       "destination": "#admin-support",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
       "source": "link:#admin-support",
-      "common": false,
+      "common": true,
       "sourceStates": [
         "empty",
         "active"
@@ -19387,22 +19328,18 @@
       "labels": {
         "ko": {
           "empty": [
-            "사용자 신고 0건 · 차단 0건 →",
-            "고객 문의 0건 →"
+            "문의·신고·차단"
           ],
           "active": [
-            "사용자 신고 0건 · 차단 0건 →",
-            "고객 문의 1건 →"
+            "문의·신고·차단"
           ]
         },
         "en": {
           "empty": [
-            "User reports 0 · Blocks 0 →",
-            "Support tickets: 0 →"
+            "Support & safety"
           ],
           "active": [
-            "User reports 0 · Blocks 0 →",
-            "Support tickets: 1 →"
+            "Support & safety"
           ]
         }
       },
@@ -19421,7 +19358,7 @@
         "empty": "none",
         "active": "none"
       },
-      "trigger": "사용자 신고 0건 · 차단 0건 →",
+      "trigger": "문의·신고·차단",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
@@ -19439,18 +19376,22 @@
       "labels": {
         "ko": {
           "empty": [
-            "메이트 등록 심사: 작성 중 →"
+            "메이트 심사 대기0건목록 확인",
+            "메이트 등록·재심사신청 내용과 본인·자격 확인 결과를 검토하세요.0건"
           ],
           "active": [
-            "메이트 등록 심사: 작성 중 →"
+            "메이트 심사 대기0건목록 확인",
+            "메이트 등록·재심사신청 내용과 본인·자격 확인 결과를 검토하세요.0건"
           ]
         },
         "en": {
           "empty": [
-            "Mate application review: Draft →"
+            "Pending mate reviews0건View list",
+            "Mate registration & profile reviewReview the application, identity and qualification checks.0건"
           ],
           "active": [
-            "Mate application review: Draft →"
+            "Pending mate reviews0건View list",
+            "Mate registration & profile reviewReview the application, identity and qualification checks.0건"
           ]
         }
       },
@@ -19469,7 +19410,7 @@
         "empty": "draft",
         "active": "draft"
       },
-      "trigger": "메이트 등록 심사: 작성 중 →",
+      "trigger": "메이트 심사 대기0건목록 확인",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
@@ -19487,18 +19428,26 @@
       "labels": {
         "ko": {
           "empty": [
-            "예약·환불 상태 확인 →"
+            "전체 예약0건목록 확인",
+            "수수료 반환 검토취소·노쇼·중단 사유와 PG 취소 기록을 확인하세요.0건",
+            "전체 보기"
           ],
           "active": [
-            "예약·환불 상태 확인 →"
+            "전체 예약1건목록 확인",
+            "수수료 반환 검토취소·노쇼·중단 사유와 PG 취소 기록을 확인하세요.0건",
+            "전체 보기"
           ]
         },
         "en": {
           "empty": [
-            "Check bookings and refunds →"
+            "Total bookings0건View list",
+            "Fee refund reviewReview cancellation, no-show and interruption reasons and payment cancellation records.0건",
+            "View all"
           ],
           "active": [
-            "Check bookings and refunds →"
+            "Total bookings1건View list",
+            "Fee refund reviewReview cancellation, no-show and interruption reasons and payment cancellation records.0건",
+            "View all"
           ]
         }
       },
@@ -19517,184 +19466,8 @@
         "empty": "none",
         "active": "none"
       },
-      "trigger": "예약·환불 상태 확인 →",
+      "trigger": "전체 예약0건목록 확인",
       "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
-    }
-  ],
-  "admin-places": [
-    {
-      "kind": "이동",
-      "target": "admin",
-      "state": "empty",
-      "destination": "#admin",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin",
-      "common": false,
-      "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "pending": [
-            "운영 홈"
-          ],
-          "verified": [
-            "운영 홈"
-          ],
-          "rejected": [
-            "운영 홈"
-          ]
-        },
-        "en": {
-          "pending": [
-            "운영 홈"
-          ],
-          "verified": [
-            "운영 홈"
-          ],
-          "rejected": [
-            "운영 홈"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "pending": "#admin",
-          "verified": "#admin",
-          "rejected": "#admin"
-        },
-        "en": {
-          "pending": "#admin",
-          "verified": "#admin",
-          "rejected": "#admin"
-        }
-      },
-      "previewStates": {
-        "pending": "empty",
-        "verified": "empty",
-        "rejected": "empty"
-      },
-      "trigger": "운영 홈",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
-    },
-    {
-      "kind": "이동",
-      "target": "admin",
-      "state": "empty",
-      "destination": "#admin",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin",
-      "common": true,
-      "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "pending": [
-            "운영 대시보드"
-          ],
-          "verified": [
-            "운영 대시보드"
-          ],
-          "rejected": [
-            "운영 대시보드"
-          ]
-        },
-        "en": {
-          "pending": [
-            "Operations"
-          ],
-          "verified": [
-            "Operations"
-          ],
-          "rejected": [
-            "Operations"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "pending": "#admin",
-          "verified": "#admin",
-          "rejected": "#admin"
-        },
-        "en": {
-          "pending": "#admin",
-          "verified": "#admin",
-          "rejected": "#admin"
-        }
-      },
-      "previewStates": {
-        "pending": "empty",
-        "verified": "empty",
-        "rejected": "empty"
-      },
-      "trigger": "운영 대시보드",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-places",
-      "state": "pending",
-      "destination": "#admin-places",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-places",
-      "common": true,
-      "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "pending": [
-            "장소 오류 검수"
-          ],
-          "verified": [
-            "장소 오류 검수"
-          ],
-          "rejected": [
-            "장소 오류 검수"
-          ]
-        },
-        "en": {
-          "pending": [
-            "Review places"
-          ],
-          "verified": [
-            "Review places"
-          ],
-          "rejected": [
-            "Review places"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "pending": "#admin-places",
-          "verified": "#admin-places",
-          "rejected": "#admin-places"
-        },
-        "en": {
-          "pending": "#admin-places",
-          "verified": "#admin-places",
-          "rejected": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "pending": "pending",
-        "verified": "pending",
-        "rejected": "pending"
-      },
-      "trigger": "장소 오류 검수",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
     },
     {
       "kind": "이동",
@@ -19703,272 +19476,92 @@
       "destination": "#admin-support",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
       "source": "link:#admin-support",
-      "common": true,
+      "common": false,
       "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
+        "empty",
+        "active"
       ],
       "labels": {
         "ko": {
-          "pending": [
-            "문의와 데이터 요청 관리"
+          "empty": [
+            "미처리 문의0건목록 확인",
+            "사용자 신고0건목록 확인",
+            "문의·신고 확인문의 내용과 확인 자료를 검토하고 이메일로 답변하세요.0건"
           ],
-          "verified": [
-            "문의와 데이터 요청 관리"
-          ],
-          "rejected": [
-            "문의와 데이터 요청 관리"
+          "active": [
+            "미처리 문의1건목록 확인",
+            "사용자 신고0건목록 확인",
+            "문의·신고 확인문의 내용과 확인 자료를 검토하고 이메일로 답변하세요.1건"
           ]
         },
         "en": {
-          "pending": [
-            "Support requests"
+          "empty": [
+            "Open inquiries0건View list",
+            "User reports0건View list",
+            "Inquiries & reportsReview inquiries and supporting materials and reply by email.0건"
           ],
-          "verified": [
-            "Support requests"
-          ],
-          "rejected": [
-            "Support requests"
+          "active": [
+            "Open inquiries1건View list",
+            "User reports0건View list",
+            "Inquiries & reportsReview inquiries and supporting materials and reply by email.1건"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "pending": "#admin-support",
-          "verified": "#admin-support",
-          "rejected": "#admin-support"
+          "empty": "#admin-support",
+          "active": "#admin-support"
         },
         "en": {
-          "pending": "#admin-support",
-          "verified": "#admin-support",
-          "rejected": "#admin-support"
+          "empty": "#admin-support",
+          "active": "#admin-support"
         }
       },
       "previewStates": {
-        "pending": "none",
-        "verified": "none",
-        "rejected": "none"
+        "empty": "none",
+        "active": "none"
       },
-      "trigger": "문의와 데이터 요청 관리",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-guides",
-      "state": "draft",
-      "destination": "#admin-guides",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-guides",
-      "common": true,
-      "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "pending": [
-            "메이트 자격 심사"
-          ],
-          "verified": [
-            "메이트 자격 심사"
-          ],
-          "rejected": [
-            "메이트 자격 심사"
-          ]
-        },
-        "en": {
-          "pending": [
-            "Mate verification"
-          ],
-          "verified": [
-            "Mate verification"
-          ],
-          "rejected": [
-            "Mate verification"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "pending": "#admin-guides",
-          "verified": "#admin-guides",
-          "rejected": "#admin-guides"
-        },
-        "en": {
-          "pending": "#admin-guides",
-          "verified": "#admin-guides",
-          "rejected": "#admin-guides"
-        }
-      },
-      "previewStates": {
-        "pending": "draft",
-        "verified": "draft",
-        "rejected": "draft"
-      },
-      "trigger": "메이트 자격 심사",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
+      "trigger": "미처리 문의0건목록 확인",
+      "condition": "노출 상태: 예약·문의 없음, 운영 처리 항목 있음"
     },
     {
       "kind": "이동",
       "target": "admin-bookings",
       "state": "none",
-      "destination": "#admin-bookings",
+      "destination": "#admin-bookings?record=RT-PREVIEW",
       "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-bookings",
-      "common": true,
+      "source": "link:#admin-bookings?record=RT-PREVIEW",
+      "common": false,
       "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
+        "active"
       ],
       "labels": {
         "ko": {
-          "pending": [
-            "예약·환불 운영"
-          ],
-          "verified": [
-            "예약·환불 운영"
-          ],
-          "rejected": [
-            "예약·환불 운영"
+          "active": [
+            "상세 보기"
           ]
         },
         "en": {
-          "pending": [
-            "Bookings and refunds"
-          ],
-          "verified": [
-            "Bookings and refunds"
-          ],
-          "rejected": [
-            "Bookings and refunds"
+          "active": [
+            "View details"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "pending": "#admin-bookings",
-          "verified": "#admin-bookings",
-          "rejected": "#admin-bookings"
+          "active": "#admin-bookings?record=RT-PREVIEW"
         },
         "en": {
-          "pending": "#admin-bookings",
-          "verified": "#admin-bookings",
-          "rejected": "#admin-bookings"
+          "active": "#admin-bookings?record=RT-PREVIEW"
         }
       },
       "previewStates": {
-        "pending": "none",
-        "verified": "none",
-        "rejected": "none"
+        "active": "none"
       },
-      "trigger": "예약·환불 운영",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
-    },
-    {
-      "target": null,
-      "state": null,
-      "kind": "구현 제한",
-      "effect": "현재 구현: manual?resolve=장소ID로 이동하지만 운영 모드에서 고객 화면 접근이 차단됨. 운영 검수 편집 연결 보완 필요.",
-      "destination": "#manual?resolve=장소ID",
-      "source": "action:correct",
-      "common": false,
-      "sourceStates": [
-        "pending",
-        "verified",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "pending": [
-            "검토·수정"
-          ],
-          "verified": [
-            "검토·수정"
-          ],
-          "rejected": [
-            "검토·수정"
-          ]
-        },
-        "en": {
-          "pending": [
-            "Review and edit"
-          ],
-          "verified": [
-            "Review and edit"
-          ],
-          "rejected": [
-            "Review and edit"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "pending": "#manual?resolve=장소ID",
-          "verified": "#manual?resolve=장소ID",
-          "rejected": "#manual?resolve=장소ID"
-        },
-        "en": {
-          "pending": "#manual?resolve=장소ID",
-          "verified": "#manual?resolve=장소ID",
-          "rejected": "#manual?resolve=장소ID"
-        }
-      },
-      "trigger": "검토·수정",
-      "condition": "노출 상태: 장소 확인 필요, 장소 확인 완료, 장소 반려"
-    },
-    {
-      "target": "admin-places",
-      "state": "rejected",
-      "kind": "화면 내 변경",
-      "effect": "rejected=true, verified=false, 반려 사유 기록; 장소 목록 갱신",
-      "source": "action:reject-place",
-      "common": false,
-      "sourceStates": [
-        "pending",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "pending": [
-            "반려"
-          ],
-          "rejected": [
-            "반려"
-          ]
-        },
-        "en": {
-          "pending": [
-            "Rejected"
-          ],
-          "rejected": [
-            "Rejected"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "pending": "#admin-places",
-          "rejected": "#admin-places"
-        },
-        "en": {
-          "pending": "#admin-places",
-          "rejected": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "pending": "rejected",
-        "rejected": "rejected"
-      },
-      "trigger": "반려",
-      "condition": "노출 상태: 장소 확인 필요, 장소 반려"
+      "trigger": "상세 보기",
+      "condition": "노출 상태: 운영 처리 항목 있음"
     }
   ],
   "admin-support": [
@@ -19983,29 +19576,43 @@
       "sourceStates": [
         "none",
         "open",
-        "resolved"
+        "resolved",
+        "detail-open",
+        "detail-resolved"
       ],
       "labels": {
         "ko": {
           "none": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "open": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "resolved": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
+          ],
+          "detail-open": [
+            "RAdministrator운영 · admin"
+          ],
+          "detail-resolved": [
+            "RAdministrator운영 · admin"
           ]
         },
         "en": {
           "none": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "open": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "resolved": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
+          ],
+          "detail-open": [
+            "RAdministratorOperations · admin"
+          ],
+          "detail-resolved": [
+            "RAdministratorOperations · admin"
           ]
         }
       },
@@ -20014,21 +19621,97 @@
         "ko": {
           "none": "#admin",
           "open": "#admin",
-          "resolved": "#admin"
+          "resolved": "#admin",
+          "detail-open": "#admin",
+          "detail-resolved": "#admin"
         },
         "en": {
           "none": "#admin",
           "open": "#admin",
-          "resolved": "#admin"
+          "resolved": "#admin",
+          "detail-open": "#admin",
+          "detail-resolved": "#admin"
         }
       },
       "previewStates": {
         "none": "empty",
         "open": "empty",
-        "resolved": "empty"
+        "resolved": "empty",
+        "detail-open": "empty",
+        "detail-resolved": "empty"
       },
-      "trigger": "운영 홈",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
+      "trigger": "RAdministrator운영 · admin",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:1",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "open",
+        "resolved",
+        "detail-open",
+        "detail-resolved"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "릴트립"
+          ],
+          "open": [
+            "릴트립"
+          ],
+          "resolved": [
+            "릴트립"
+          ],
+          "detail-open": [
+            "릴트립"
+          ],
+          "detail-resolved": [
+            "릴트립"
+          ]
+        },
+        "en": {
+          "none": [
+            "Reeltrip"
+          ],
+          "open": [
+            "Reeltrip"
+          ],
+          "resolved": [
+            "Reeltrip"
+          ],
+          "detail-open": [
+            "Reeltrip"
+          ],
+          "detail-resolved": [
+            "Reeltrip"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "",
+          "open": "",
+          "resolved": "",
+          "detail-open": "",
+          "detail-resolved": ""
+        },
+        "en": {
+          "none": "",
+          "open": "",
+          "resolved": "",
+          "detail-open": "",
+          "detail-resolved": ""
+        }
+      },
+      "trigger": "릴트립",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
     },
     {
       "kind": "이동",
@@ -20041,29 +19724,43 @@
       "sourceStates": [
         "none",
         "open",
-        "resolved"
+        "resolved",
+        "detail-open",
+        "detail-resolved"
       ],
       "labels": {
         "ko": {
           "none": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "open": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "resolved": [
-            "운영 대시보드"
+            "대시보드"
+          ],
+          "detail-open": [
+            "대시보드"
+          ],
+          "detail-resolved": [
+            "대시보드"
           ]
         },
         "en": {
           "none": [
-            "Operations"
+            "Dashboard"
           ],
           "open": [
-            "Operations"
+            "Dashboard"
           ],
           "resolved": [
-            "Operations"
+            "Dashboard"
+          ],
+          "detail-open": [
+            "Dashboard"
+          ],
+          "detail-resolved": [
+            "Dashboard"
           ]
         }
       },
@@ -20072,137 +19769,27 @@
         "ko": {
           "none": "#admin",
           "open": "#admin",
-          "resolved": "#admin"
+          "resolved": "#admin",
+          "detail-open": "#admin",
+          "detail-resolved": "#admin"
         },
         "en": {
           "none": "#admin",
           "open": "#admin",
-          "resolved": "#admin"
+          "resolved": "#admin",
+          "detail-open": "#admin",
+          "detail-resolved": "#admin"
         }
       },
       "previewStates": {
         "none": "empty",
         "open": "empty",
-        "resolved": "empty"
+        "resolved": "empty",
+        "detail-open": "empty",
+        "detail-resolved": "empty"
       },
-      "trigger": "운영 대시보드",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-places",
-      "state": "pending",
-      "destination": "#admin-places",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-places",
-      "common": true,
-      "sourceStates": [
-        "none",
-        "open",
-        "resolved"
-      ],
-      "labels": {
-        "ko": {
-          "none": [
-            "장소 오류 검수"
-          ],
-          "open": [
-            "장소 오류 검수"
-          ],
-          "resolved": [
-            "장소 오류 검수"
-          ]
-        },
-        "en": {
-          "none": [
-            "Review places"
-          ],
-          "open": [
-            "Review places"
-          ],
-          "resolved": [
-            "Review places"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "none": "#admin-places",
-          "open": "#admin-places",
-          "resolved": "#admin-places"
-        },
-        "en": {
-          "none": "#admin-places",
-          "open": "#admin-places",
-          "resolved": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "none": "pending",
-        "open": "pending",
-        "resolved": "pending"
-      },
-      "trigger": "장소 오류 검수",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-support",
-      "state": "none",
-      "destination": "#admin-support",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-support",
-      "common": true,
-      "sourceStates": [
-        "none",
-        "open",
-        "resolved"
-      ],
-      "labels": {
-        "ko": {
-          "none": [
-            "문의와 데이터 요청 관리"
-          ],
-          "open": [
-            "문의와 데이터 요청 관리"
-          ],
-          "resolved": [
-            "문의와 데이터 요청 관리"
-          ]
-        },
-        "en": {
-          "none": [
-            "Support requests"
-          ],
-          "open": [
-            "Support requests"
-          ],
-          "resolved": [
-            "Support requests"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "none": "#admin-support",
-          "open": "#admin-support",
-          "resolved": "#admin-support"
-        },
-        "en": {
-          "none": "#admin-support",
-          "open": "#admin-support",
-          "resolved": "#admin-support"
-        }
-      },
-      "previewStates": {
-        "none": "none",
-        "open": "none",
-        "resolved": "none"
-      },
-      "trigger": "문의와 데이터 요청 관리",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
+      "trigger": "대시보드",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
     },
     {
       "kind": "이동",
@@ -20215,29 +19802,43 @@
       "sourceStates": [
         "none",
         "open",
-        "resolved"
+        "resolved",
+        "detail-open",
+        "detail-resolved"
       ],
       "labels": {
         "ko": {
           "none": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "open": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "resolved": [
-            "메이트 자격 심사"
+            "메이트 심사"
+          ],
+          "detail-open": [
+            "메이트 심사"
+          ],
+          "detail-resolved": [
+            "메이트 심사"
           ]
         },
         "en": {
           "none": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "open": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "resolved": [
-            "Mate verification"
+            "Mate reviews"
+          ],
+          "detail-open": [
+            "Mate reviews"
+          ],
+          "detail-resolved": [
+            "Mate reviews"
           ]
         }
       },
@@ -20246,21 +19847,27 @@
         "ko": {
           "none": "#admin-guides",
           "open": "#admin-guides",
-          "resolved": "#admin-guides"
+          "resolved": "#admin-guides",
+          "detail-open": "#admin-guides",
+          "detail-resolved": "#admin-guides"
         },
         "en": {
           "none": "#admin-guides",
           "open": "#admin-guides",
-          "resolved": "#admin-guides"
+          "resolved": "#admin-guides",
+          "detail-open": "#admin-guides",
+          "detail-resolved": "#admin-guides"
         }
       },
       "previewStates": {
         "none": "draft",
         "open": "draft",
-        "resolved": "draft"
+        "resolved": "draft",
+        "detail-open": "draft",
+        "detail-resolved": "draft"
       },
-      "trigger": "메이트 자격 심사",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
+      "trigger": "메이트 심사",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
     },
     {
       "kind": "이동",
@@ -20273,29 +19880,43 @@
       "sourceStates": [
         "none",
         "open",
-        "resolved"
+        "resolved",
+        "detail-open",
+        "detail-resolved"
       ],
       "labels": {
         "ko": {
           "none": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "open": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "resolved": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
+          ],
+          "detail-open": [
+            "매칭·예약 관리"
+          ],
+          "detail-resolved": [
+            "매칭·예약 관리"
           ]
         },
         "en": {
           "none": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "open": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "resolved": [
-            "Bookings and refunds"
+            "Matching & bookings"
+          ],
+          "detail-open": [
+            "Matching & bookings"
+          ],
+          "detail-resolved": [
+            "Matching & bookings"
           ]
         }
       },
@@ -20304,21 +19925,339 @@
         "ko": {
           "none": "#admin-bookings",
           "open": "#admin-bookings",
-          "resolved": "#admin-bookings"
+          "resolved": "#admin-bookings",
+          "detail-open": "#admin-bookings",
+          "detail-resolved": "#admin-bookings"
         },
         "en": {
           "none": "#admin-bookings",
           "open": "#admin-bookings",
-          "resolved": "#admin-bookings"
+          "resolved": "#admin-bookings",
+          "detail-open": "#admin-bookings",
+          "detail-resolved": "#admin-bookings"
         }
       },
       "previewStates": {
         "none": "none",
         "open": "none",
-        "resolved": "none"
+        "resolved": "none",
+        "detail-open": "none",
+        "detail-resolved": "none"
       },
-      "trigger": "예약·환불 운영",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
+      "trigger": "매칭·예약 관리",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-support",
+      "state": "none",
+      "destination": "#admin-support",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-support",
+      "common": true,
+      "sourceStates": [
+        "none",
+        "open",
+        "resolved",
+        "detail-open",
+        "detail-resolved"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "문의·신고·차단"
+          ],
+          "open": [
+            "문의·신고·차단"
+          ],
+          "resolved": [
+            "문의·신고·차단"
+          ],
+          "detail-open": [
+            "문의·신고·차단"
+          ],
+          "detail-resolved": [
+            "문의·신고·차단"
+          ]
+        },
+        "en": {
+          "none": [
+            "Support & safety"
+          ],
+          "open": [
+            "Support & safety"
+          ],
+          "resolved": [
+            "Support & safety"
+          ],
+          "detail-open": [
+            "Support & safety"
+          ],
+          "detail-resolved": [
+            "Support & safety"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "#admin-support",
+          "open": "#admin-support",
+          "resolved": "#admin-support",
+          "detail-open": "#admin-support",
+          "detail-resolved": "#admin-support"
+        },
+        "en": {
+          "none": "#admin-support",
+          "open": "#admin-support",
+          "resolved": "#admin-support",
+          "detail-open": "#admin-support",
+          "detail-resolved": "#admin-support"
+        }
+      },
+      "previewStates": {
+        "none": "none",
+        "open": "none",
+        "resolved": "none",
+        "detail-open": "none",
+        "detail-resolved": "none"
+      },
+      "trigger": "문의·신고·차단",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
+    },
+    {
+      "kind": "입력 변경",
+      "target": null,
+      "state": null,
+      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
+      "source": "field:status",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "open",
+        "resolved",
+        "detail-open",
+        "detail-resolved"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "전체접수검토 중보완 요청처리 완료"
+          ],
+          "open": [
+            "전체접수검토 중보완 요청처리 완료"
+          ],
+          "resolved": [
+            "전체접수검토 중보완 요청처리 완료"
+          ],
+          "detail-open": [
+            "접수검토 중보완 요청처리 완료"
+          ],
+          "detail-resolved": [
+            "접수검토 중보완 요청처리 완료"
+          ]
+        },
+        "en": {
+          "none": [
+            "AllReceivedUnder reviewMore information neededResolved"
+          ],
+          "open": [
+            "AllReceivedUnder reviewMore information neededResolved"
+          ],
+          "resolved": [
+            "AllReceivedUnder reviewMore information neededResolved"
+          ],
+          "detail-open": [
+            "ReceivedUnder reviewMore information neededResolved"
+          ],
+          "detail-resolved": [
+            "ReceivedUnder reviewMore information neededResolved"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "",
+          "open": "",
+          "resolved": "",
+          "detail-open": "",
+          "detail-resolved": ""
+        },
+        "en": {
+          "none": "",
+          "open": "",
+          "resolved": "",
+          "detail-open": "",
+          "detail-resolved": ""
+        }
+      },
+      "trigger": "전체접수검토 중보완 요청처리 완료",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
+    },
+    {
+      "target": null,
+      "state": null,
+      "kind": "검색",
+      "effect": "검색어와 상태를 URL에 반영하고 현재 운영 목록을 필터링. 데이터 변경 없음.",
+      "source": "form:admin-filter-form",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "open",
+        "resolved"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "검색"
+          ],
+          "open": [
+            "검색"
+          ],
+          "resolved": [
+            "검색"
+          ]
+        },
+        "en": {
+          "none": [
+            "검색"
+          ],
+          "open": [
+            "검색"
+          ],
+          "resolved": [
+            "검색"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "",
+          "open": "",
+          "resolved": ""
+        },
+        "en": {
+          "none": "",
+          "open": "",
+          "resolved": ""
+        }
+      },
+      "trigger": "검색",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-support",
+      "state": "none",
+      "destination": "#admin-support",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-support",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "open",
+        "resolved",
+        "detail-open",
+        "detail-resolved"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "초기화"
+          ],
+          "open": [
+            "초기화"
+          ],
+          "resolved": [
+            "초기화"
+          ],
+          "detail-open": [
+            "목록으로"
+          ],
+          "detail-resolved": [
+            "목록으로"
+          ]
+        },
+        "en": {
+          "none": [
+            "Reset"
+          ],
+          "open": [
+            "Reset"
+          ],
+          "resolved": [
+            "Reset"
+          ],
+          "detail-open": [
+            "Back to list"
+          ],
+          "detail-resolved": [
+            "Back to list"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "#admin-support",
+          "open": "#admin-support",
+          "resolved": "#admin-support",
+          "detail-open": "#admin-support",
+          "detail-resolved": "#admin-support"
+        },
+        "en": {
+          "none": "#admin-support",
+          "open": "#admin-support",
+          "resolved": "#admin-support",
+          "detail-open": "#admin-support",
+          "detail-resolved": "#admin-support"
+        }
+      },
+      "previewStates": {
+        "none": "none",
+        "open": "none",
+        "resolved": "none",
+        "detail-open": "none",
+        "detail-resolved": "none"
+      },
+      "trigger": "초기화",
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록, 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:11",
+      "common": false,
+      "sourceStates": [
+        "none"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "사용자 신고·차단 내역"
+          ]
+        },
+        "en": {
+          "none": [
+            "User reports and blocks"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": ""
+        },
+        "en": {
+          "none": ""
+        }
+      },
+      "trigger": "사용자 신고·차단 내역",
+      "condition": "노출 상태: 접수 문의 없음"
     },
     {
       "kind": "상태 변경",
@@ -20370,14 +20309,15 @@
         }
       },
       "trigger": "목록 새로고침",
-      "condition": "노출 상태: 접수 문의 없음, 접수된 문의, 처리 완료된 문의"
+      "condition": "노출 상태: 접수 문의 없음, 접수된 문의 · 목록, 처리 완료된 문의 · 목록"
     },
     {
-      "kind": "입력 변경",
-      "target": null,
-      "state": null,
-      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
-      "source": "field:status",
+      "kind": "이동",
+      "target": "admin-support",
+      "state": "detail-open",
+      "destination": "#admin-support?record=TK-PREVIEW",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-support?record=TK-PREVIEW",
       "common": false,
       "sourceStates": [
         "open",
@@ -20386,18 +20326,65 @@
       "labels": {
         "ko": {
           "open": [
-            "접수검토 중보완 요청처리 완료"
+            "상세 검토"
           ],
           "resolved": [
-            "접수검토 중보완 요청처리 완료"
+            "상세 검토"
           ]
         },
         "en": {
           "open": [
-            "ReceivedUnder reviewMore information neededResolved"
+            "Review details"
           ],
           "resolved": [
-            "ReceivedUnder reviewMore information neededResolved"
+            "Review details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "open": "#admin-support?record=TK-PREVIEW",
+          "resolved": "#admin-support?record=TK-PREVIEW"
+        },
+        "en": {
+          "open": "#admin-support?record=TK-PREVIEW",
+          "resolved": "#admin-support?record=TK-PREVIEW"
+        }
+      },
+      "previewStates": {
+        "open": "detail-open",
+        "resolved": "detail-open"
+      },
+      "trigger": "상세 검토",
+      "condition": "노출 상태: 접수된 문의 · 목록, 처리 완료된 문의 · 목록"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:12",
+      "common": false,
+      "sourceStates": [
+        "open",
+        "resolved"
+      ],
+      "labels": {
+        "ko": {
+          "open": [
+            "사용자 신고·차단 내역"
+          ],
+          "resolved": [
+            "사용자 신고·차단 내역"
+          ]
+        },
+        "en": {
+          "open": [
+            "User reports and blocks"
+          ],
+          "resolved": [
+            "User reports and blocks"
           ]
         }
       },
@@ -20412,8 +20399,8 @@
           "resolved": ""
         }
       },
-      "trigger": "접수검토 중보완 요청처리 완료",
-      "condition": "노출 상태: 접수된 문의, 처리 완료된 문의"
+      "trigger": "사용자 신고·차단 내역",
+      "condition": "노출 상태: 접수된 문의 · 목록, 처리 완료된 문의 · 목록"
     },
     {
       "target": "admin-support",
@@ -20423,23 +20410,23 @@
       "source": "form:operations-ticket-form",
       "common": false,
       "sourceStates": [
-        "open",
-        "resolved"
+        "detail-open",
+        "detail-resolved"
       ],
       "labels": {
         "ko": {
-          "open": [
+          "detail-open": [
             "처리 기록 저장"
           ],
-          "resolved": [
+          "detail-resolved": [
             "처리 기록 저장"
           ]
         },
         "en": {
-          "open": [
+          "detail-open": [
             "Save processing record"
           ],
-          "resolved": [
+          "detail-resolved": [
             "Save processing record"
           ]
         }
@@ -20447,20 +20434,20 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "open": "#admin-support",
-          "resolved": "#admin-support"
+          "detail-open": "#admin-support",
+          "detail-resolved": "#admin-support"
         },
         "en": {
-          "open": "#admin-support",
-          "resolved": "#admin-support"
+          "detail-open": "#admin-support",
+          "detail-resolved": "#admin-support"
         }
       },
       "previewStates": {
-        "open": "none",
-        "resolved": "none"
+        "detail-open": "none",
+        "detail-resolved": "none"
       },
       "trigger": "처리 기록 저장",
-      "condition": "노출 상태: 접수된 문의, 처리 완료된 문의"
+      "condition": "노출 상태: 접수된 문의 · 상세, 처리 완료된 문의 · 상세"
     }
   ],
   "admin-guides": [
@@ -20477,41 +20464,69 @@
         "pending",
         "approved",
         "needs_info",
-        "rejected"
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
       ],
       "labels": {
         "ko": {
           "draft": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "pending": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "approved": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "needs_info": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "rejected": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
+          ],
+          "detail-pending": [
+            "RAdministrator운영 · admin"
+          ],
+          "detail-approved": [
+            "RAdministrator운영 · admin"
+          ],
+          "detail-needs_info": [
+            "RAdministrator운영 · admin"
+          ],
+          "detail-rejected": [
+            "RAdministrator운영 · admin"
           ]
         },
         "en": {
           "draft": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "pending": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "approved": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "needs_info": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "rejected": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
+          ],
+          "detail-pending": [
+            "RAdministratorOperations · admin"
+          ],
+          "detail-approved": [
+            "RAdministratorOperations · admin"
+          ],
+          "detail-needs_info": [
+            "RAdministratorOperations · admin"
+          ],
+          "detail-rejected": [
+            "RAdministratorOperations · admin"
           ]
         }
       },
@@ -20522,14 +20537,22 @@
           "pending": "#admin",
           "approved": "#admin",
           "needs_info": "#admin",
-          "rejected": "#admin"
+          "rejected": "#admin",
+          "detail-pending": "#admin",
+          "detail-approved": "#admin",
+          "detail-needs_info": "#admin",
+          "detail-rejected": "#admin"
         },
         "en": {
           "draft": "#admin",
           "pending": "#admin",
           "approved": "#admin",
           "needs_info": "#admin",
-          "rejected": "#admin"
+          "rejected": "#admin",
+          "detail-pending": "#admin",
+          "detail-approved": "#admin",
+          "detail-needs_info": "#admin",
+          "detail-rejected": "#admin"
         }
       },
       "previewStates": {
@@ -20537,10 +20560,120 @@
         "pending": "empty",
         "approved": "empty",
         "needs_info": "empty",
-        "rejected": "empty"
+        "rejected": "empty",
+        "detail-pending": "empty",
+        "detail-approved": "empty",
+        "detail-needs_info": "empty",
+        "detail-rejected": "empty"
       },
-      "trigger": "운영 홈",
-      "condition": "노출 상태: 신청 없음, 신청 심사, 등록 완료, 보완 요청, 승인 거절"
+      "trigger": "RAdministrator운영 · admin",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:1",
+      "common": false,
+      "sourceStates": [
+        "draft",
+        "pending",
+        "approved",
+        "needs_info",
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
+      ],
+      "labels": {
+        "ko": {
+          "draft": [
+            "릴트립"
+          ],
+          "pending": [
+            "릴트립"
+          ],
+          "approved": [
+            "릴트립"
+          ],
+          "needs_info": [
+            "릴트립"
+          ],
+          "rejected": [
+            "릴트립"
+          ],
+          "detail-pending": [
+            "릴트립"
+          ],
+          "detail-approved": [
+            "릴트립"
+          ],
+          "detail-needs_info": [
+            "릴트립"
+          ],
+          "detail-rejected": [
+            "릴트립"
+          ]
+        },
+        "en": {
+          "draft": [
+            "Reeltrip"
+          ],
+          "pending": [
+            "Reeltrip"
+          ],
+          "approved": [
+            "Reeltrip"
+          ],
+          "needs_info": [
+            "Reeltrip"
+          ],
+          "rejected": [
+            "Reeltrip"
+          ],
+          "detail-pending": [
+            "Reeltrip"
+          ],
+          "detail-approved": [
+            "Reeltrip"
+          ],
+          "detail-needs_info": [
+            "Reeltrip"
+          ],
+          "detail-rejected": [
+            "Reeltrip"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "draft": "",
+          "pending": "",
+          "approved": "",
+          "needs_info": "",
+          "rejected": "",
+          "detail-pending": "",
+          "detail-approved": "",
+          "detail-needs_info": "",
+          "detail-rejected": ""
+        },
+        "en": {
+          "draft": "",
+          "pending": "",
+          "approved": "",
+          "needs_info": "",
+          "rejected": "",
+          "detail-pending": "",
+          "detail-approved": "",
+          "detail-needs_info": "",
+          "detail-rejected": ""
+        }
+      },
+      "trigger": "릴트립",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
     },
     {
       "kind": "이동",
@@ -20555,41 +20688,69 @@
         "pending",
         "approved",
         "needs_info",
-        "rejected"
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
       ],
       "labels": {
         "ko": {
           "draft": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "pending": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "approved": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "needs_info": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "rejected": [
-            "운영 대시보드"
+            "대시보드"
+          ],
+          "detail-pending": [
+            "대시보드"
+          ],
+          "detail-approved": [
+            "대시보드"
+          ],
+          "detail-needs_info": [
+            "대시보드"
+          ],
+          "detail-rejected": [
+            "대시보드"
           ]
         },
         "en": {
           "draft": [
-            "Operations"
+            "Dashboard"
           ],
           "pending": [
-            "Operations"
+            "Dashboard"
           ],
           "approved": [
-            "Operations"
+            "Dashboard"
           ],
           "needs_info": [
-            "Operations"
+            "Dashboard"
           ],
           "rejected": [
-            "Operations"
+            "Dashboard"
+          ],
+          "detail-pending": [
+            "Dashboard"
+          ],
+          "detail-approved": [
+            "Dashboard"
+          ],
+          "detail-needs_info": [
+            "Dashboard"
+          ],
+          "detail-rejected": [
+            "Dashboard"
           ]
         }
       },
@@ -20600,14 +20761,22 @@
           "pending": "#admin",
           "approved": "#admin",
           "needs_info": "#admin",
-          "rejected": "#admin"
+          "rejected": "#admin",
+          "detail-pending": "#admin",
+          "detail-approved": "#admin",
+          "detail-needs_info": "#admin",
+          "detail-rejected": "#admin"
         },
         "en": {
           "draft": "#admin",
           "pending": "#admin",
           "approved": "#admin",
           "needs_info": "#admin",
-          "rejected": "#admin"
+          "rejected": "#admin",
+          "detail-pending": "#admin",
+          "detail-approved": "#admin",
+          "detail-needs_info": "#admin",
+          "detail-rejected": "#admin"
         }
       },
       "previewStates": {
@@ -20615,166 +20784,14 @@
         "pending": "empty",
         "approved": "empty",
         "needs_info": "empty",
-        "rejected": "empty"
+        "rejected": "empty",
+        "detail-pending": "empty",
+        "detail-approved": "empty",
+        "detail-needs_info": "empty",
+        "detail-rejected": "empty"
       },
-      "trigger": "운영 대시보드",
-      "condition": "노출 상태: 신청 없음, 신청 심사, 등록 완료, 보완 요청, 승인 거절"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-places",
-      "state": "pending",
-      "destination": "#admin-places",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-places",
-      "common": true,
-      "sourceStates": [
-        "draft",
-        "pending",
-        "approved",
-        "needs_info",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "draft": [
-            "장소 오류 검수"
-          ],
-          "pending": [
-            "장소 오류 검수"
-          ],
-          "approved": [
-            "장소 오류 검수"
-          ],
-          "needs_info": [
-            "장소 오류 검수"
-          ],
-          "rejected": [
-            "장소 오류 검수"
-          ]
-        },
-        "en": {
-          "draft": [
-            "Review places"
-          ],
-          "pending": [
-            "Review places"
-          ],
-          "approved": [
-            "Review places"
-          ],
-          "needs_info": [
-            "Review places"
-          ],
-          "rejected": [
-            "Review places"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "draft": "#admin-places",
-          "pending": "#admin-places",
-          "approved": "#admin-places",
-          "needs_info": "#admin-places",
-          "rejected": "#admin-places"
-        },
-        "en": {
-          "draft": "#admin-places",
-          "pending": "#admin-places",
-          "approved": "#admin-places",
-          "needs_info": "#admin-places",
-          "rejected": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "draft": "pending",
-        "pending": "pending",
-        "approved": "pending",
-        "needs_info": "pending",
-        "rejected": "pending"
-      },
-      "trigger": "장소 오류 검수",
-      "condition": "노출 상태: 신청 없음, 신청 심사, 등록 완료, 보완 요청, 승인 거절"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-support",
-      "state": "none",
-      "destination": "#admin-support",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-support",
-      "common": true,
-      "sourceStates": [
-        "draft",
-        "pending",
-        "approved",
-        "needs_info",
-        "rejected"
-      ],
-      "labels": {
-        "ko": {
-          "draft": [
-            "문의와 데이터 요청 관리"
-          ],
-          "pending": [
-            "문의와 데이터 요청 관리"
-          ],
-          "approved": [
-            "문의와 데이터 요청 관리"
-          ],
-          "needs_info": [
-            "문의와 데이터 요청 관리"
-          ],
-          "rejected": [
-            "문의와 데이터 요청 관리"
-          ]
-        },
-        "en": {
-          "draft": [
-            "Support requests"
-          ],
-          "pending": [
-            "Support requests"
-          ],
-          "approved": [
-            "Support requests"
-          ],
-          "needs_info": [
-            "Support requests"
-          ],
-          "rejected": [
-            "Support requests"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "draft": "#admin-support",
-          "pending": "#admin-support",
-          "approved": "#admin-support",
-          "needs_info": "#admin-support",
-          "rejected": "#admin-support"
-        },
-        "en": {
-          "draft": "#admin-support",
-          "pending": "#admin-support",
-          "approved": "#admin-support",
-          "needs_info": "#admin-support",
-          "rejected": "#admin-support"
-        }
-      },
-      "previewStates": {
-        "draft": "none",
-        "pending": "none",
-        "approved": "none",
-        "needs_info": "none",
-        "rejected": "none"
-      },
-      "trigger": "문의와 데이터 요청 관리",
-      "condition": "노출 상태: 신청 없음, 신청 심사, 등록 완료, 보완 요청, 승인 거절"
+      "trigger": "대시보드",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
     },
     {
       "kind": "이동",
@@ -20789,41 +20806,69 @@
         "pending",
         "approved",
         "needs_info",
-        "rejected"
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
       ],
       "labels": {
         "ko": {
           "draft": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "pending": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "approved": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "needs_info": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "rejected": [
-            "메이트 자격 심사"
+            "메이트 심사"
+          ],
+          "detail-pending": [
+            "메이트 심사"
+          ],
+          "detail-approved": [
+            "메이트 심사"
+          ],
+          "detail-needs_info": [
+            "메이트 심사"
+          ],
+          "detail-rejected": [
+            "메이트 심사"
           ]
         },
         "en": {
           "draft": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "pending": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "approved": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "needs_info": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "rejected": [
-            "Mate verification"
+            "Mate reviews"
+          ],
+          "detail-pending": [
+            "Mate reviews"
+          ],
+          "detail-approved": [
+            "Mate reviews"
+          ],
+          "detail-needs_info": [
+            "Mate reviews"
+          ],
+          "detail-rejected": [
+            "Mate reviews"
           ]
         }
       },
@@ -20834,14 +20879,22 @@
           "pending": "#admin-guides",
           "approved": "#admin-guides",
           "needs_info": "#admin-guides",
-          "rejected": "#admin-guides"
+          "rejected": "#admin-guides",
+          "detail-pending": "#admin-guides",
+          "detail-approved": "#admin-guides",
+          "detail-needs_info": "#admin-guides",
+          "detail-rejected": "#admin-guides"
         },
         "en": {
           "draft": "#admin-guides",
           "pending": "#admin-guides",
           "approved": "#admin-guides",
           "needs_info": "#admin-guides",
-          "rejected": "#admin-guides"
+          "rejected": "#admin-guides",
+          "detail-pending": "#admin-guides",
+          "detail-approved": "#admin-guides",
+          "detail-needs_info": "#admin-guides",
+          "detail-rejected": "#admin-guides"
         }
       },
       "previewStates": {
@@ -20849,10 +20902,14 @@
         "pending": "draft",
         "approved": "draft",
         "needs_info": "draft",
-        "rejected": "draft"
+        "rejected": "draft",
+        "detail-pending": "draft",
+        "detail-approved": "draft",
+        "detail-needs_info": "draft",
+        "detail-rejected": "draft"
       },
-      "trigger": "메이트 자격 심사",
-      "condition": "노출 상태: 신청 없음, 신청 심사, 등록 완료, 보완 요청, 승인 거절"
+      "trigger": "메이트 심사",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
     },
     {
       "kind": "이동",
@@ -20867,41 +20924,69 @@
         "pending",
         "approved",
         "needs_info",
-        "rejected"
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
       ],
       "labels": {
         "ko": {
           "draft": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "pending": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "approved": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "needs_info": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "rejected": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
+          ],
+          "detail-pending": [
+            "매칭·예약 관리"
+          ],
+          "detail-approved": [
+            "매칭·예약 관리"
+          ],
+          "detail-needs_info": [
+            "매칭·예약 관리"
+          ],
+          "detail-rejected": [
+            "매칭·예약 관리"
           ]
         },
         "en": {
           "draft": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "pending": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "approved": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "needs_info": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "rejected": [
-            "Bookings and refunds"
+            "Matching & bookings"
+          ],
+          "detail-pending": [
+            "Matching & bookings"
+          ],
+          "detail-approved": [
+            "Matching & bookings"
+          ],
+          "detail-needs_info": [
+            "Matching & bookings"
+          ],
+          "detail-rejected": [
+            "Matching & bookings"
           ]
         }
       },
@@ -20912,14 +20997,22 @@
           "pending": "#admin-bookings",
           "approved": "#admin-bookings",
           "needs_info": "#admin-bookings",
-          "rejected": "#admin-bookings"
+          "rejected": "#admin-bookings",
+          "detail-pending": "#admin-bookings",
+          "detail-approved": "#admin-bookings",
+          "detail-needs_info": "#admin-bookings",
+          "detail-rejected": "#admin-bookings"
         },
         "en": {
           "draft": "#admin-bookings",
           "pending": "#admin-bookings",
           "approved": "#admin-bookings",
           "needs_info": "#admin-bookings",
-          "rejected": "#admin-bookings"
+          "rejected": "#admin-bookings",
+          "detail-pending": "#admin-bookings",
+          "detail-approved": "#admin-bookings",
+          "detail-needs_info": "#admin-bookings",
+          "detail-rejected": "#admin-bookings"
         }
       },
       "previewStates": {
@@ -20927,10 +21020,458 @@
         "pending": "none",
         "approved": "none",
         "needs_info": "none",
-        "rejected": "none"
+        "rejected": "none",
+        "detail-pending": "none",
+        "detail-approved": "none",
+        "detail-needs_info": "none",
+        "detail-rejected": "none"
       },
-      "trigger": "예약·환불 운영",
-      "condition": "노출 상태: 신청 없음, 신청 심사, 등록 완료, 보완 요청, 승인 거절"
+      "trigger": "매칭·예약 관리",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-support",
+      "state": "none",
+      "destination": "#admin-support",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-support",
+      "common": true,
+      "sourceStates": [
+        "draft",
+        "pending",
+        "approved",
+        "needs_info",
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
+      ],
+      "labels": {
+        "ko": {
+          "draft": [
+            "문의·신고·차단"
+          ],
+          "pending": [
+            "문의·신고·차단"
+          ],
+          "approved": [
+            "문의·신고·차단"
+          ],
+          "needs_info": [
+            "문의·신고·차단"
+          ],
+          "rejected": [
+            "문의·신고·차단"
+          ],
+          "detail-pending": [
+            "문의·신고·차단"
+          ],
+          "detail-approved": [
+            "문의·신고·차단"
+          ],
+          "detail-needs_info": [
+            "문의·신고·차단"
+          ],
+          "detail-rejected": [
+            "문의·신고·차단"
+          ]
+        },
+        "en": {
+          "draft": [
+            "Support & safety"
+          ],
+          "pending": [
+            "Support & safety"
+          ],
+          "approved": [
+            "Support & safety"
+          ],
+          "needs_info": [
+            "Support & safety"
+          ],
+          "rejected": [
+            "Support & safety"
+          ],
+          "detail-pending": [
+            "Support & safety"
+          ],
+          "detail-approved": [
+            "Support & safety"
+          ],
+          "detail-needs_info": [
+            "Support & safety"
+          ],
+          "detail-rejected": [
+            "Support & safety"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "draft": "#admin-support",
+          "pending": "#admin-support",
+          "approved": "#admin-support",
+          "needs_info": "#admin-support",
+          "rejected": "#admin-support",
+          "detail-pending": "#admin-support",
+          "detail-approved": "#admin-support",
+          "detail-needs_info": "#admin-support",
+          "detail-rejected": "#admin-support"
+        },
+        "en": {
+          "draft": "#admin-support",
+          "pending": "#admin-support",
+          "approved": "#admin-support",
+          "needs_info": "#admin-support",
+          "rejected": "#admin-support",
+          "detail-pending": "#admin-support",
+          "detail-approved": "#admin-support",
+          "detail-needs_info": "#admin-support",
+          "detail-rejected": "#admin-support"
+        }
+      },
+      "previewStates": {
+        "draft": "none",
+        "pending": "none",
+        "approved": "none",
+        "needs_info": "none",
+        "rejected": "none",
+        "detail-pending": "none",
+        "detail-approved": "none",
+        "detail-needs_info": "none",
+        "detail-rejected": "none"
+      },
+      "trigger": "문의·신고·차단",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
+    },
+    {
+      "kind": "입력 변경",
+      "target": null,
+      "state": null,
+      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
+      "source": "field:status",
+      "common": false,
+      "sourceStates": [
+        "draft",
+        "pending",
+        "approved",
+        "needs_info",
+        "rejected"
+      ],
+      "labels": {
+        "ko": {
+          "draft": [
+            "전체심사 대기보완 요청승인 거절등록 완료"
+          ],
+          "pending": [
+            "전체심사 대기보완 요청승인 거절등록 완료"
+          ],
+          "approved": [
+            "전체심사 대기보완 요청승인 거절등록 완료"
+          ],
+          "needs_info": [
+            "전체심사 대기보완 요청승인 거절등록 완료"
+          ],
+          "rejected": [
+            "전체심사 대기보완 요청승인 거절등록 완료"
+          ]
+        },
+        "en": {
+          "draft": [
+            "AllPending reviewMore information neededNot approvedRegistration complete"
+          ],
+          "pending": [
+            "AllPending reviewMore information neededNot approvedRegistration complete"
+          ],
+          "approved": [
+            "AllPending reviewMore information neededNot approvedRegistration complete"
+          ],
+          "needs_info": [
+            "AllPending reviewMore information neededNot approvedRegistration complete"
+          ],
+          "rejected": [
+            "AllPending reviewMore information neededNot approvedRegistration complete"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "draft": "",
+          "pending": "",
+          "approved": "",
+          "needs_info": "",
+          "rejected": ""
+        },
+        "en": {
+          "draft": "",
+          "pending": "",
+          "approved": "",
+          "needs_info": "",
+          "rejected": ""
+        }
+      },
+      "trigger": "전체심사 대기보완 요청승인 거절등록 완료",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록"
+    },
+    {
+      "target": null,
+      "state": null,
+      "kind": "검색",
+      "effect": "검색어와 상태를 URL에 반영하고 현재 운영 목록을 필터링. 데이터 변경 없음.",
+      "source": "form:admin-filter-form",
+      "common": false,
+      "sourceStates": [
+        "draft",
+        "pending",
+        "approved",
+        "needs_info",
+        "rejected"
+      ],
+      "labels": {
+        "ko": {
+          "draft": [
+            "검색"
+          ],
+          "pending": [
+            "검색"
+          ],
+          "approved": [
+            "검색"
+          ],
+          "needs_info": [
+            "검색"
+          ],
+          "rejected": [
+            "검색"
+          ]
+        },
+        "en": {
+          "draft": [
+            "검색"
+          ],
+          "pending": [
+            "검색"
+          ],
+          "approved": [
+            "검색"
+          ],
+          "needs_info": [
+            "검색"
+          ],
+          "rejected": [
+            "검색"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "draft": "",
+          "pending": "",
+          "approved": "",
+          "needs_info": "",
+          "rejected": ""
+        },
+        "en": {
+          "draft": "",
+          "pending": "",
+          "approved": "",
+          "needs_info": "",
+          "rejected": ""
+        }
+      },
+      "trigger": "검색",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-guides",
+      "state": "draft",
+      "destination": "#admin-guides",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-guides",
+      "common": false,
+      "sourceStates": [
+        "draft",
+        "pending",
+        "approved",
+        "needs_info",
+        "rejected",
+        "detail-pending",
+        "detail-approved",
+        "detail-needs_info",
+        "detail-rejected"
+      ],
+      "labels": {
+        "ko": {
+          "draft": [
+            "초기화"
+          ],
+          "pending": [
+            "초기화"
+          ],
+          "approved": [
+            "초기화"
+          ],
+          "needs_info": [
+            "초기화"
+          ],
+          "rejected": [
+            "초기화"
+          ],
+          "detail-pending": [
+            "목록으로"
+          ],
+          "detail-approved": [
+            "목록으로"
+          ],
+          "detail-needs_info": [
+            "목록으로"
+          ],
+          "detail-rejected": [
+            "목록으로"
+          ]
+        },
+        "en": {
+          "draft": [
+            "Reset"
+          ],
+          "pending": [
+            "Reset"
+          ],
+          "approved": [
+            "Reset"
+          ],
+          "needs_info": [
+            "Reset"
+          ],
+          "rejected": [
+            "Reset"
+          ],
+          "detail-pending": [
+            "Back to list"
+          ],
+          "detail-approved": [
+            "Back to list"
+          ],
+          "detail-needs_info": [
+            "Back to list"
+          ],
+          "detail-rejected": [
+            "Back to list"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "draft": "#admin-guides",
+          "pending": "#admin-guides",
+          "approved": "#admin-guides",
+          "needs_info": "#admin-guides",
+          "rejected": "#admin-guides",
+          "detail-pending": "#admin-guides",
+          "detail-approved": "#admin-guides",
+          "detail-needs_info": "#admin-guides",
+          "detail-rejected": "#admin-guides"
+        },
+        "en": {
+          "draft": "#admin-guides",
+          "pending": "#admin-guides",
+          "approved": "#admin-guides",
+          "needs_info": "#admin-guides",
+          "rejected": "#admin-guides",
+          "detail-pending": "#admin-guides",
+          "detail-approved": "#admin-guides",
+          "detail-needs_info": "#admin-guides",
+          "detail-rejected": "#admin-guides"
+        }
+      },
+      "previewStates": {
+        "draft": "draft",
+        "pending": "draft",
+        "approved": "draft",
+        "needs_info": "draft",
+        "rejected": "draft",
+        "detail-pending": "draft",
+        "detail-approved": "draft",
+        "detail-needs_info": "draft",
+        "detail-rejected": "draft"
+      },
+      "trigger": "초기화",
+      "condition": "노출 상태: 신청 없음, 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록, 신청 심사 · 상세, 등록 완료 · 상세, 보완 요청 · 상세, 승인 거절 · 상세"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-guides",
+      "state": "detail-pending",
+      "destination": "#admin-guides?record=application",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-guides?record=application",
+      "common": false,
+      "sourceStates": [
+        "pending",
+        "approved",
+        "needs_info",
+        "rejected"
+      ],
+      "labels": {
+        "ko": {
+          "pending": [
+            "상세 검토"
+          ],
+          "approved": [
+            "상세 검토"
+          ],
+          "needs_info": [
+            "상세 검토"
+          ],
+          "rejected": [
+            "상세 검토"
+          ]
+        },
+        "en": {
+          "pending": [
+            "Review details"
+          ],
+          "approved": [
+            "Review details"
+          ],
+          "needs_info": [
+            "Review details"
+          ],
+          "rejected": [
+            "Review details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "pending": "#admin-guides?record=application",
+          "approved": "#admin-guides?record=application",
+          "needs_info": "#admin-guides?record=application",
+          "rejected": "#admin-guides?record=application"
+        },
+        "en": {
+          "pending": "#admin-guides?record=application",
+          "approved": "#admin-guides?record=application",
+          "needs_info": "#admin-guides?record=application",
+          "rejected": "#admin-guides?record=application"
+        }
+      },
+      "previewStates": {
+        "pending": "detail-pending",
+        "approved": "detail-pending",
+        "needs_info": "detail-pending",
+        "rejected": "detail-pending"
+      },
+      "trigger": "상세 검토",
+      "condition": "노출 상태: 신청 심사 · 목록, 등록 완료 · 목록, 보완 요청 · 목록, 승인 거절 · 목록"
     },
     {
       "kind": "상태 변경",
@@ -20940,16 +21481,16 @@
       "source": "form:mate-review-form",
       "common": false,
       "sourceStates": [
-        "pending"
+        "detail-pending"
       ],
       "labels": {
         "ko": {
-          "pending": [
+          "detail-pending": [
             "승인 · 메이트 등록 완료"
           ]
         },
         "en": {
-          "pending": [
+          "detail-pending": [
             "Approve registration"
           ]
         }
@@ -20957,14 +21498,14 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "pending": ""
+          "detail-pending": ""
         },
         "en": {
-          "pending": ""
+          "detail-pending": ""
         }
       },
       "trigger": "승인 · 메이트 등록 완료",
-      "condition": "노출 상태: 신청 심사"
+      "condition": "노출 상태: 신청 심사 · 상세"
     },
     {
       "kind": "상태 변경",
@@ -20974,17 +21515,17 @@
       "source": "action:mate-review",
       "common": false,
       "sourceStates": [
-        "pending"
+        "detail-pending"
       ],
       "labels": {
         "ko": {
-          "pending": [
+          "detail-pending": [
             "보완 요청",
             "거절"
           ]
         },
         "en": {
-          "pending": [
+          "detail-pending": [
             "More information needed",
             "Declined"
           ]
@@ -20993,14 +21534,14 @@
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "pending": ""
+          "detail-pending": ""
         },
         "en": {
-          "pending": ""
+          "detail-pending": ""
         }
       },
       "trigger": "보완 요청",
-      "condition": "노출 상태: 신청 심사"
+      "condition": "노출 상태: 신청 심사 · 상세"
     },
     {
       "target": "admin-guides",
@@ -21010,34 +21551,34 @@
       "source": "form:activity-restriction-form",
       "common": false,
       "sourceStates": [
-        "approved"
+        "detail-approved"
       ],
       "labels": {
         "ko": {
-          "approved": [
-            "제한 상태 저장"
+          "detail-approved": [
+            "활동 제한 설정 저장"
           ]
         },
         "en": {
-          "approved": [
-            "Save restriction status"
+          "detail-approved": [
+            "Save activity restriction settings"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
-          "approved": "#admin-guides"
+          "detail-approved": "#admin-guides"
         },
         "en": {
-          "approved": "#admin-guides"
+          "detail-approved": "#admin-guides"
         }
       },
       "previewStates": {
-        "approved": "draft"
+        "detail-approved": "draft"
       },
-      "trigger": "제한 상태 저장",
-      "condition": "노출 상태: 등록 완료"
+      "trigger": "활동 제한 설정 저장",
+      "condition": "노출 상태: 등록 완료 · 상세"
     }
   ],
   "admin-bookings": [
@@ -21060,42 +21601,42 @@
       "labels": {
         "ko": {
           "none": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "fee": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "failed": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "confirmed": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "cancelled": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ],
           "completed": [
-            "운영 홈"
+            "RAdministrator운영 · admin"
           ]
         },
         "en": {
           "none": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "fee": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "failed": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "confirmed": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "cancelled": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ],
           "completed": [
-            "운영 홈"
+            "RAdministratorOperations · admin"
           ]
         }
       },
@@ -21126,7 +21667,86 @@
         "cancelled": "empty",
         "completed": "empty"
       },
-      "trigger": "운영 홈",
+      "trigger": "RAdministrator운영 · admin",
+      "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "kind": "펼침",
+      "target": null,
+      "state": null,
+      "effect": "현재 화면의 상세 설명·메뉴를 펼치거나 접기; 데이터 변경 없음",
+      "source": "disclosure:1",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "릴트립"
+          ],
+          "fee": [
+            "릴트립"
+          ],
+          "failed": [
+            "릴트립"
+          ],
+          "confirmed": [
+            "릴트립"
+          ],
+          "cancelled": [
+            "릴트립"
+          ],
+          "completed": [
+            "릴트립"
+          ]
+        },
+        "en": {
+          "none": [
+            "Reeltrip"
+          ],
+          "fee": [
+            "Reeltrip"
+          ],
+          "failed": [
+            "Reeltrip"
+          ],
+          "confirmed": [
+            "Reeltrip"
+          ],
+          "cancelled": [
+            "Reeltrip"
+          ],
+          "completed": [
+            "Reeltrip"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "",
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        },
+        "en": {
+          "none": "",
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        }
+      },
+      "trigger": "릴트립",
       "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
     },
     {
@@ -21148,42 +21768,42 @@
       "labels": {
         "ko": {
           "none": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "fee": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "failed": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "confirmed": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "cancelled": [
-            "운영 대시보드"
+            "대시보드"
           ],
           "completed": [
-            "운영 대시보드"
+            "대시보드"
           ]
         },
         "en": {
           "none": [
-            "Operations"
+            "Dashboard"
           ],
           "fee": [
-            "Operations"
+            "Dashboard"
           ],
           "failed": [
-            "Operations"
+            "Dashboard"
           ],
           "confirmed": [
-            "Operations"
+            "Dashboard"
           ],
           "cancelled": [
-            "Operations"
+            "Dashboard"
           ],
           "completed": [
-            "Operations"
+            "Dashboard"
           ]
         }
       },
@@ -21214,183 +21834,7 @@
         "cancelled": "empty",
         "completed": "empty"
       },
-      "trigger": "운영 대시보드",
-      "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-places",
-      "state": "pending",
-      "destination": "#admin-places",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-places",
-      "common": true,
-      "sourceStates": [
-        "none",
-        "fee",
-        "failed",
-        "confirmed",
-        "cancelled",
-        "completed"
-      ],
-      "labels": {
-        "ko": {
-          "none": [
-            "장소 오류 검수"
-          ],
-          "fee": [
-            "장소 오류 검수"
-          ],
-          "failed": [
-            "장소 오류 검수"
-          ],
-          "confirmed": [
-            "장소 오류 검수"
-          ],
-          "cancelled": [
-            "장소 오류 검수"
-          ],
-          "completed": [
-            "장소 오류 검수"
-          ]
-        },
-        "en": {
-          "none": [
-            "Review places"
-          ],
-          "fee": [
-            "Review places"
-          ],
-          "failed": [
-            "Review places"
-          ],
-          "confirmed": [
-            "Review places"
-          ],
-          "cancelled": [
-            "Review places"
-          ],
-          "completed": [
-            "Review places"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "none": "#admin-places",
-          "fee": "#admin-places",
-          "failed": "#admin-places",
-          "confirmed": "#admin-places",
-          "cancelled": "#admin-places",
-          "completed": "#admin-places"
-        },
-        "en": {
-          "none": "#admin-places",
-          "fee": "#admin-places",
-          "failed": "#admin-places",
-          "confirmed": "#admin-places",
-          "cancelled": "#admin-places",
-          "completed": "#admin-places"
-        }
-      },
-      "previewStates": {
-        "none": "pending",
-        "fee": "pending",
-        "failed": "pending",
-        "confirmed": "pending",
-        "cancelled": "pending",
-        "completed": "pending"
-      },
-      "trigger": "장소 오류 검수",
-      "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
-    },
-    {
-      "kind": "이동",
-      "target": "admin-support",
-      "state": "none",
-      "destination": "#admin-support",
-      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
-      "source": "link:#admin-support",
-      "common": true,
-      "sourceStates": [
-        "none",
-        "fee",
-        "failed",
-        "confirmed",
-        "cancelled",
-        "completed"
-      ],
-      "labels": {
-        "ko": {
-          "none": [
-            "문의와 데이터 요청 관리"
-          ],
-          "fee": [
-            "문의와 데이터 요청 관리"
-          ],
-          "failed": [
-            "문의와 데이터 요청 관리"
-          ],
-          "confirmed": [
-            "문의와 데이터 요청 관리"
-          ],
-          "cancelled": [
-            "문의와 데이터 요청 관리"
-          ],
-          "completed": [
-            "문의와 데이터 요청 관리"
-          ]
-        },
-        "en": {
-          "none": [
-            "Support requests"
-          ],
-          "fee": [
-            "Support requests"
-          ],
-          "failed": [
-            "Support requests"
-          ],
-          "confirmed": [
-            "Support requests"
-          ],
-          "cancelled": [
-            "Support requests"
-          ],
-          "completed": [
-            "Support requests"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "none": "#admin-support",
-          "fee": "#admin-support",
-          "failed": "#admin-support",
-          "confirmed": "#admin-support",
-          "cancelled": "#admin-support",
-          "completed": "#admin-support"
-        },
-        "en": {
-          "none": "#admin-support",
-          "fee": "#admin-support",
-          "failed": "#admin-support",
-          "confirmed": "#admin-support",
-          "cancelled": "#admin-support",
-          "completed": "#admin-support"
-        }
-      },
-      "previewStates": {
-        "none": "none",
-        "fee": "none",
-        "failed": "none",
-        "confirmed": "none",
-        "cancelled": "none",
-        "completed": "none"
-      },
-      "trigger": "문의와 데이터 요청 관리",
+      "trigger": "대시보드",
       "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
     },
     {
@@ -21412,42 +21856,42 @@
       "labels": {
         "ko": {
           "none": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "fee": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "failed": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "confirmed": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "cancelled": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ],
           "completed": [
-            "메이트 자격 심사"
+            "메이트 심사"
           ]
         },
         "en": {
           "none": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "fee": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "failed": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "confirmed": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "cancelled": [
-            "Mate verification"
+            "Mate reviews"
           ],
           "completed": [
-            "Mate verification"
+            "Mate reviews"
           ]
         }
       },
@@ -21478,7 +21922,7 @@
         "cancelled": "draft",
         "completed": "draft"
       },
-      "trigger": "메이트 자격 심사",
+      "trigger": "메이트 심사",
       "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
     },
     {
@@ -21500,42 +21944,42 @@
       "labels": {
         "ko": {
           "none": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "fee": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "failed": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "confirmed": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "cancelled": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ],
           "completed": [
-            "예약·환불 운영"
+            "매칭·예약 관리"
           ]
         },
         "en": {
           "none": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "fee": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "failed": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "confirmed": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "cancelled": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ],
           "completed": [
-            "Bookings and refunds"
+            "Matching & bookings"
           ]
         }
       },
@@ -21566,157 +22010,19 @@
         "cancelled": "cancelled",
         "completed": "completed"
       },
-      "trigger": "예약·환불 운영",
+      "trigger": "매칭·예약 관리",
       "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
     },
     {
-      "kind": "입력 변경",
-      "target": null,
-      "state": null,
-      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
-      "source": "field:refundStatus",
-      "common": false,
-      "sourceStates": [
-        "fee",
-        "failed",
-        "confirmed",
-        "cancelled",
-        "completed"
-      ],
-      "labels": {
-        "ko": {
-          "fee": [
-            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
-          ],
-          "failed": [
-            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
-          ],
-          "confirmed": [
-            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
-          ],
-          "cancelled": [
-            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
-          ],
-          "completed": [
-            "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님"
-          ]
-        },
-        "en": {
-          "fee": [
-            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
-          ],
-          "failed": [
-            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
-          ],
-          "confirmed": [
-            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
-          ],
-          "cancelled": [
-            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
-          ],
-          "completed": [
-            "Not applicableUnder reviewMore information neededRefund approvedRefund processingRefund completedNot eligible for refund"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "fee": "",
-          "failed": "",
-          "confirmed": "",
-          "cancelled": "",
-          "completed": ""
-        },
-        "en": {
-          "fee": "",
-          "failed": "",
-          "confirmed": "",
-          "cancelled": "",
-          "completed": ""
-        }
-      },
-      "trigger": "해당 없음검토 중보완 요청반환 승인반환 처리 중반환 완료반환 대상 아님",
-      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
-    },
-    {
-      "kind": "입력 변경",
-      "target": null,
-      "state": null,
-      "effect": "폼 값을 변경하며 화면 이동 없음; 제출 버튼에서 검증·저장",
-      "source": "field:resolution",
-      "common": false,
-      "sourceStates": [
-        "fee",
-        "failed",
-        "confirmed",
-        "cancelled",
-        "completed"
-      ],
-      "labels": {
-        "ko": {
-          "fee": [
-            "기존 예약 유지CS 확인 후 예약 종료"
-          ],
-          "failed": [
-            "기존 예약 유지CS 확인 후 예약 종료"
-          ],
-          "confirmed": [
-            "기존 예약 유지CS 확인 후 예약 종료"
-          ],
-          "cancelled": [
-            "기존 예약 유지CS 확인 후 예약 종료"
-          ],
-          "completed": [
-            "기존 예약 유지CS 확인 후 예약 종료"
-          ]
-        },
-        "en": {
-          "fee": [
-            "Keep existing bookingEnd booking after support review"
-          ],
-          "failed": [
-            "Keep existing bookingEnd booking after support review"
-          ],
-          "confirmed": [
-            "Keep existing bookingEnd booking after support review"
-          ],
-          "cancelled": [
-            "Keep existing bookingEnd booking after support review"
-          ],
-          "completed": [
-            "Keep existing bookingEnd booking after support review"
-          ]
-        }
-      },
-      "disabledStates": [],
-      "destinations": {
-        "ko": {
-          "fee": "",
-          "failed": "",
-          "confirmed": "",
-          "cancelled": "",
-          "completed": ""
-        },
-        "en": {
-          "fee": "",
-          "failed": "",
-          "confirmed": "",
-          "cancelled": "",
-          "completed": ""
-        }
-      },
-      "trigger": "기존 예약 유지CS 확인 후 예약 종료",
-      "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
-    },
-    {
-      "target": "admin-bookings",
+      "kind": "이동",
+      "target": "admin-support",
       "state": "none",
-      "kind": "제출",
-      "effect": "반환·분쟁 운영 기록. PG 성공 확인 및 금액 검증 후 완료 기록. 실제 PG 취소는 하지 않음.",
-      "source": "form:operations-booking-form",
-      "common": false,
+      "destination": "#admin-support",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-support",
+      "common": true,
       "sourceStates": [
+        "none",
         "fee",
         "failed",
         "confirmed",
@@ -21725,43 +22031,217 @@
       ],
       "labels": {
         "ko": {
+          "none": [
+            "문의·신고·차단"
+          ],
           "fee": [
-            "처리 기록 저장"
+            "문의·신고·차단"
           ],
           "failed": [
-            "처리 기록 저장"
+            "문의·신고·차단"
           ],
           "confirmed": [
-            "처리 기록 저장"
+            "문의·신고·차단"
           ],
           "cancelled": [
-            "처리 기록 저장"
+            "문의·신고·차단"
           ],
           "completed": [
-            "처리 기록 저장"
+            "문의·신고·차단"
           ]
         },
         "en": {
+          "none": [
+            "Support & safety"
+          ],
           "fee": [
-            "Save processing record"
+            "Support & safety"
           ],
           "failed": [
-            "Save processing record"
+            "Support & safety"
           ],
           "confirmed": [
-            "Save processing record"
+            "Support & safety"
           ],
           "cancelled": [
-            "Save processing record"
+            "Support & safety"
           ],
           "completed": [
-            "Save processing record"
+            "Support & safety"
           ]
         }
       },
       "disabledStates": [],
       "destinations": {
         "ko": {
+          "none": "#admin-support",
+          "fee": "#admin-support",
+          "failed": "#admin-support",
+          "confirmed": "#admin-support",
+          "cancelled": "#admin-support",
+          "completed": "#admin-support"
+        },
+        "en": {
+          "none": "#admin-support",
+          "fee": "#admin-support",
+          "failed": "#admin-support",
+          "confirmed": "#admin-support",
+          "cancelled": "#admin-support",
+          "completed": "#admin-support"
+        }
+      },
+      "previewStates": {
+        "none": "none",
+        "fee": "none",
+        "failed": "none",
+        "confirmed": "none",
+        "cancelled": "none",
+        "completed": "none"
+      },
+      "trigger": "문의·신고·차단",
+      "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "target": null,
+      "state": null,
+      "kind": "검색",
+      "effect": "검색어와 상태를 URL에 반영하고 현재 운영 목록을 필터링. 데이터 변경 없음.",
+      "source": "form:admin-filter-form",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "검색"
+          ],
+          "fee": [
+            "검색"
+          ],
+          "failed": [
+            "검색"
+          ],
+          "confirmed": [
+            "검색"
+          ],
+          "cancelled": [
+            "검색"
+          ],
+          "completed": [
+            "검색"
+          ]
+        },
+        "en": {
+          "none": [
+            "검색"
+          ],
+          "fee": [
+            "검색"
+          ],
+          "failed": [
+            "검색"
+          ],
+          "confirmed": [
+            "검색"
+          ],
+          "cancelled": [
+            "검색"
+          ],
+          "completed": [
+            "검색"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "",
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        },
+        "en": {
+          "none": "",
+          "fee": "",
+          "failed": "",
+          "confirmed": "",
+          "cancelled": "",
+          "completed": ""
+        }
+      },
+      "trigger": "검색",
+      "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-bookings",
+      "state": "completed",
+      "destination": "#admin-bookings",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-bookings",
+      "common": false,
+      "sourceStates": [
+        "none",
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "none": [
+            "초기화"
+          ],
+          "fee": [
+            "초기화"
+          ],
+          "failed": [
+            "초기화"
+          ],
+          "confirmed": [
+            "초기화"
+          ],
+          "cancelled": [
+            "초기화"
+          ],
+          "completed": [
+            "초기화"
+          ]
+        },
+        "en": {
+          "none": [
+            "Reset"
+          ],
+          "fee": [
+            "Reset"
+          ],
+          "failed": [
+            "Reset"
+          ],
+          "confirmed": [
+            "Reset"
+          ],
+          "cancelled": [
+            "Reset"
+          ],
+          "completed": [
+            "Reset"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "none": "#admin-bookings",
           "fee": "#admin-bookings",
           "failed": "#admin-bookings",
           "confirmed": "#admin-bookings",
@@ -21769,6 +22249,7 @@
           "completed": "#admin-bookings"
         },
         "en": {
+          "none": "#admin-bookings",
           "fee": "#admin-bookings",
           "failed": "#admin-bookings",
           "confirmed": "#admin-bookings",
@@ -21777,13 +22258,92 @@
         }
       },
       "previewStates": {
-        "fee": "none",
-        "failed": "none",
-        "confirmed": "none",
-        "cancelled": "none",
-        "completed": "none"
+        "none": "none",
+        "fee": "fee",
+        "failed": "failed",
+        "confirmed": "confirmed",
+        "cancelled": "cancelled",
+        "completed": "completed"
       },
-      "trigger": "처리 기록 저장",
+      "trigger": "초기화",
+      "condition": "노출 상태: 예약 없음, 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
+    },
+    {
+      "kind": "이동",
+      "target": "admin-bookings",
+      "state": "completed",
+      "destination": "#admin-bookings?record=RT-PREVIEW",
+      "effect": "현재 데이터를 유지하고 표시된 주소로 이동; 상태를 새로 생성하거나 완료 처리하지 않음",
+      "source": "link:#admin-bookings?record=RT-PREVIEW",
+      "common": false,
+      "sourceStates": [
+        "fee",
+        "failed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "labels": {
+        "ko": {
+          "fee": [
+            "상세 보기"
+          ],
+          "failed": [
+            "상세 보기"
+          ],
+          "confirmed": [
+            "상세 보기"
+          ],
+          "cancelled": [
+            "상세 보기"
+          ],
+          "completed": [
+            "상세 보기"
+          ]
+        },
+        "en": {
+          "fee": [
+            "View details"
+          ],
+          "failed": [
+            "View details"
+          ],
+          "confirmed": [
+            "View details"
+          ],
+          "cancelled": [
+            "View details"
+          ],
+          "completed": [
+            "View details"
+          ]
+        }
+      },
+      "disabledStates": [],
+      "destinations": {
+        "ko": {
+          "fee": "#admin-bookings?record=RT-PREVIEW",
+          "failed": "#admin-bookings?record=RT-PREVIEW",
+          "confirmed": "#admin-bookings?record=RT-PREVIEW",
+          "cancelled": "#admin-bookings?record=RT-PREVIEW",
+          "completed": "#admin-bookings?record=RT-PREVIEW"
+        },
+        "en": {
+          "fee": "#admin-bookings?record=RT-PREVIEW",
+          "failed": "#admin-bookings?record=RT-PREVIEW",
+          "confirmed": "#admin-bookings?record=RT-PREVIEW",
+          "cancelled": "#admin-bookings?record=RT-PREVIEW",
+          "completed": "#admin-bookings?record=RT-PREVIEW"
+        }
+      },
+      "previewStates": {
+        "fee": "fee",
+        "failed": "failed",
+        "confirmed": "confirmed",
+        "cancelled": "cancelled",
+        "completed": "completed"
+      },
+      "trigger": "상세 보기",
       "condition": "노출 상태: 수수료 결제 대기, 수수료 결제 실패, 예약 확정, 취소 완료, 여행 완료"
     }
   ],

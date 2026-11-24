@@ -147,13 +147,6 @@ window.REEL_SCREENS = [
     "both": true
   },
   {
-    "id": "B-27",
-    "route": "admin-places",
-    "name": "Review places",
-    "role": "admin",
-    "both": true
-  },
-  {
     "id": "B-28",
     "route": "admin-support",
     "name": "Support requests",

@@ -21,7 +21,7 @@ mapping.update({'요청함':'Requests','가능 일정':'Availability','정산':'
 mapping.update({'장소 찾기':'Find places','장소 확인':'Check places','장소 추가':'Add a place','일정 공유':'Share day','가이드 소개':'Meet your guide','여행 요청':'Request a guide','요청 상태':'Request status','여행 제안':'Trip proposal','예약 확인':'Review booking','예약 상세':'Booking details','가이드와 대화':'Message guide','취소 요청':'Cancel booking','후기 작성':'Write a review','견적 작성':'Create a quote'})
 mapping.update(json.loads((Path(__file__).resolve().parent/'action-first-translations.json').read_text()))
 mapping.update(json.loads((Path(__file__).resolve().parent/'signup-translations.json').read_text()))
-mapping.update({'저장되었어요.':'Saved.',' · 저장됨':' · Saved'})
+mapping.update({'저장되었어요.':'Saved.','저장 해제':'Unsave','저장을 해제했어요.':'Removed from saved places.',' · 저장됨':' · Saved'})
 mapping.update({'장소 제안하기':'Suggest a place','제안은 이 브라우저에만 저장돼요.':'Suggestions are saved only in this browser.','제안 저장':'Save suggestion','제안을 저장했어요.':'Suggestion saved.','장소 이름과 주소를 입력해 주세요.':'Enter the place name and address.','일정에 추가':'Add to itinerary'})
 # Product terminology: preserve internal routes and role IDs.
 terminology=[('가이드에게 전달할 내용', '어떤 도움이 필요하세요?'), ('가이드가 미리 알면 좋은 점', '필요한 도움을 알려주세요'), ('가이드 견적 요청하기', '여행 메이트 찾기'), ('여행 확인하고 견적 요청', '여행 메이트 찾기'), ('내 여행에 맞는 가이드 제안', '내 여행에 맞는 메이트 제안'), ('견적 요청하기', '여행 메이트 찾기'), ('가이드 찾기', '여행 메이트 찾기'), ('견적 발행', '함께할 여행 제안하기'), ('받은 견적', '도착한 제안'), ('이 여행으로 견적 받기', '여행 메이트 찾기'), ('이날 견적 받기', '여행 메이트 찾기'), ('새 견적 요청', '여행 메이트 찾기'), ('견적 받기', '제안 받기'), ('가이드', '메이트'), ('견적', '제안')]
@@ -55,6 +55,7 @@ mapping.update({'검색 결과가 없어요. 찾으시는 장소를 문의로 �
 mapping.update({'날짜 수정':'Edit date','날짜':'Date'})
 mapping.update({'원하는 장소를 각각 저장해 주세요. 같은 이름의 지점은 주소를 확인해 주세요.':'Save each place you like. Check the address for venues with multiple branches.','저장한 장소 보기':'View saved places','장소 저장':'Save place','저장됨':'Saved'})
 mapping.update(json.loads((Path(__file__).resolve().parent/'mvp-policy-translations.json').read_text()))
+mapping.update(json.loads((Path(__file__).resolve().parent/'admin-translations.json').read_text()))
 pattern=re.compile('|'.join(re.escape(s) for s in sorted(mapping,key=len,reverse=True)))
 s=pattern.sub(lambda m:mapping[m.group()],(root/'assets/app.js').read_text().replace('영어로 보기','Switch to English'))
 s=s.replace('reeltrip-demo-ko-map-v2','reeltrip-demo-en-map-v2').replace("toLocaleString('ko-KR')","toLocaleString('en-US')")

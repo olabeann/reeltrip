@@ -1521,41 +1521,6 @@
       "note": ""
     }
   ],
-  "admin-places": [
-    {
-      "id": "pending",
-      "label": "장소 확인 필요",
-      "condition": "장소 검수 상태 pending",
-      "transition": "검토·수정 또는 반려",
-      "fixture": {
-        "placeStatus": "pending"
-      },
-      "expect": "장소 검수",
-      "note": ""
-    },
-    {
-      "id": "verified",
-      "label": "장소 확인 완료",
-      "condition": "장소 검수 상태 verified",
-      "transition": "검토·수정 또는 반려",
-      "fixture": {
-        "placeStatus": "verified"
-      },
-      "expect": "장소 검수",
-      "note": ""
-    },
-    {
-      "id": "rejected",
-      "label": "장소 반려",
-      "condition": "장소 검수 상태 rejected",
-      "transition": "검토·수정 또는 반려",
-      "fixture": {
-        "placeStatus": "rejected"
-      },
-      "expect": "장소 검수",
-      "note": ""
-    }
-  ],
   "admin-support": [
     {
       "id": "none",
@@ -1569,9 +1534,9 @@
     },
     {
       "id": "open",
-      "label": "접수된 문의",
+      "label": "접수된 문의 · 목록",
       "condition": "문의 1건 · open",
-      "transition": "문의 접수 또는 처리 완료 확인",
+      "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
       "fixture": {
         "ticket": "open"
       },
@@ -1579,11 +1544,33 @@
     },
     {
       "id": "resolved",
-      "label": "처리 완료된 문의",
+      "label": "처리 완료된 문의 · 목록",
       "condition": "문의 1건 · resolved",
-      "transition": "문의 접수 또는 처리 완료 확인",
+      "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
       "fixture": {
         "ticket": "resolved"
+      },
+      "note": ""
+    },
+    {
+      "id": "detail-open",
+      "label": "접수된 문의 · 상세",
+      "condition": "문의 1건 · open · 목록에서 상세 검토 진입",
+      "transition": "문의 접수 또는 처리 완료 확인",
+      "fixture": {
+        "ticket": "open",
+        "hash": "admin-support?record=TK-PREVIEW"
+      },
+      "note": ""
+    },
+    {
+      "id": "detail-resolved",
+      "label": "처리 완료된 문의 · 상세",
+      "condition": "문의 1건 · resolved · 목록에서 상세 검토 진입",
+      "transition": "문의 접수 또는 처리 완료 확인",
+      "fixture": {
+        "ticket": "resolved",
+        "hash": "admin-support?record=TK-PREVIEW"
       },
       "note": ""
     }
@@ -1605,9 +1592,9 @@
     },
     {
       "id": "pending",
-      "label": "신청 심사",
+      "label": "신청 심사 · 목록",
       "condition": "신청 심사",
-      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
       "fixture": {
         "mateApplication": {
           "status": "pending",
@@ -1619,9 +1606,9 @@
     },
     {
       "id": "approved",
-      "label": "등록 완료",
+      "label": "등록 완료 · 목록",
       "condition": "등록 완료",
-      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
       "fixture": {
         "mateApplication": {
           "status": "approved",
@@ -1633,9 +1620,9 @@
     },
     {
       "id": "needs_info",
-      "label": "보완 요청",
+      "label": "보완 요청 · 목록",
       "condition": "보완 요청",
-      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
       "fixture": {
         "mateApplication": {
           "status": "needs_info",
@@ -1647,9 +1634,9 @@
     },
     {
       "id": "rejected",
-      "label": "승인 거절",
+      "label": "승인 거절 · 목록",
       "condition": "승인 거절",
-      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
       "fixture": {
         "mateApplication": {
           "status": "rejected",
@@ -1657,6 +1644,66 @@
           "fields": {},
           "reason": ""
         }
+      }
+    },
+    {
+      "id": "detail-pending",
+      "label": "신청 심사 · 상세",
+      "condition": "신청 심사 · 목록에서 상세 검토 진입",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "pending",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        },
+        "hash": "admin-guides?record=application"
+      }
+    },
+    {
+      "id": "detail-approved",
+      "label": "등록 완료 · 상세",
+      "condition": "등록 완료 · 목록에서 상세 검토 진입",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "approved",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        },
+        "hash": "admin-guides?record=application"
+      }
+    },
+    {
+      "id": "detail-needs_info",
+      "label": "보완 요청 · 상세",
+      "condition": "보완 요청 · 목록에서 상세 검토 진입",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "needs_info",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        },
+        "hash": "admin-guides?record=application"
+      }
+    },
+    {
+      "id": "detail-rejected",
+      "label": "승인 거절 · 상세",
+      "condition": "승인 거절 · 목록에서 상세 검토 진입",
+      "transition": "승인 또는 사유와 함께 보완 요청·거절",
+      "fixture": {
+        "mateApplication": {
+          "status": "rejected",
+          "step": 4,
+          "fields": {},
+          "reason": ""
+        },
+        "hash": "admin-guides?record=application"
       }
     }
   ],

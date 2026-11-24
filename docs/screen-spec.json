@@ -1492,13 +1492,13 @@
     "role": "admin",
     "both": true,
     "zones": [
-      "분석·오류·일정 KPI / 예약 KPI",
-      "처리 대기 목록",
+      "メ이트 등록·재심사 대기 / 예약 / 미처리 문의 / 사용자 신고",
+      "수수료 반환 검토와 문의 처리",
       "운영 화면 바로가기"
     ],
-    "action": "admin-places / admin-support / admin-guides·admin-bookings",
-    "input": "집계 이벤트, 운영 큐",
-    "rule": "데모 수치는 예시로 표시. 실서비스 집계에서 테스트·중복 이벤트 제외, 개인정보 최소 노출.",
+    "action": "admin-support / admin-guides / admin-bookings",
+    "input": "메이트 신청·재심사 상태, 예약·수수료 반환 기록, 문의·신고",
+    "rule": "현재 MVP 정책의 메이트 심사·예약 및 수수료 반환·CS와 안전 신고만 집계. 장소 일괄 검수·별도 정산은 운영 범위에서 제외. 시연 데이터와 실제 운영 실적 구분.",
     "states": "예시 집계 / 처리 대기",
     "accept": "완료되지 않은 실험 데이터가 실제 매출로 표시되지 않음.",
     "id": "B-26",
@@ -1527,69 +1527,17 @@
     ]
   },
   {
-    "route": "admin-places",
-    "name": "장소 오류 검수",
-    "role": "admin",
-    "both": true,
-    "zones": [
-      "확인 필요 장소 / 원본 출처",
-      "후보 지점과 주소 비교",
-      "수정 승인 / 반려"
-    ],
-    "action": "검수 상태 변경",
-    "input": "place_id, correction_reason",
-    "rule": "원본 추출값과 수정값 모두 보관. 기존 확정 투어에는 자동 적용하지 않고 변경 검토 큐로 전달.",
-    "states": "미검수 / 승인 / 반려",
-    "accept": "고객 장소와 검수 상태 일치. 반려 사유 기록. 출처 콘텐츠를 무단 복제하지 않음.",
-    "id": "B-27",
-    "statePreviews": [
-      {
-        "id": "pending",
-        "label": "장소 확인 필요",
-        "condition": "장소 검수 상태 pending",
-        "transition": "검토·수정 또는 반려",
-        "fixture": {
-          "placeStatus": "pending"
-        },
-        "expect": "장소 검수",
-        "note": ""
-      },
-      {
-        "id": "verified",
-        "label": "장소 확인 완료",
-        "condition": "장소 검수 상태 verified",
-        "transition": "검토·수정 또는 반려",
-        "fixture": {
-          "placeStatus": "verified"
-        },
-        "expect": "장소 검수",
-        "note": ""
-      },
-      {
-        "id": "rejected",
-        "label": "장소 반려",
-        "condition": "장소 검수 상태 rejected",
-        "transition": "검토·수정 또는 반려",
-        "fixture": {
-          "placeStatus": "rejected"
-        },
-        "expect": "장소 검수",
-        "note": ""
-      }
-    ]
-  },
-  {
     "route": "admin-support",
     "name": "문의와 데이터 요청 관리",
     "role": "admin",
     "both": true,
     "zones": [
-      "문의 유형·상태·내용",
-      "처리 메모",
-      "처리 완료 / 대기"
+      "문의 검색·상태 필터와 목록",
+      "선택 문의 상세·첨부 자료·접수 위치",
+      "처리 상태·내부 메모 / 별도 신고·차단 내역"
     ],
-    "action": "로컬 문의 상태 업데이트",
-    "input": "ticket_id, status, response_note",
+    "action": "목록 상세 검토 → 내용·자료 확인 → 처리 기록 저장",
+    "input": "검색어, 상태, record=ticket_id, status, response_note",
     "rule": "문의·첨부·접수 위치·내부 처리 메모·상태 관리. 답변은 별도 이메일. 처리 이력 보존.",
     "states": "open / review / needs_info / resolved",
     "accept": "미접수 문의를 실제 문의로 표시하지 않음. 완료 상태가 저장됨.",
@@ -1607,9 +1555,9 @@
       },
       {
         "id": "open",
-        "label": "접수된 문의",
+        "label": "접수된 문의 · 목록",
         "condition": "문의 1건 · open",
-        "transition": "문의 접수 또는 처리 완료 확인",
+        "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
         "fixture": {
           "ticket": "open"
         },
@@ -1617,11 +1565,33 @@
       },
       {
         "id": "resolved",
-        "label": "처리 완료된 문의",
+        "label": "처리 완료된 문의 · 목록",
         "condition": "문의 1건 · resolved",
-        "transition": "문의 접수 또는 처리 완료 확인",
+        "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
         "fixture": {
           "ticket": "resolved"
+        },
+        "note": ""
+      },
+      {
+        "id": "detail-open",
+        "label": "접수된 문의 · 상세",
+        "condition": "문의 1건 · open · 목록에서 상세 검토 진입",
+        "transition": "문의 접수 또는 처리 완료 확인",
+        "fixture": {
+          "ticket": "open",
+          "hash": "admin-support?record=TK-PREVIEW"
+        },
+        "note": ""
+      },
+      {
+        "id": "detail-resolved",
+        "label": "처리 완료된 문의 · 상세",
+        "condition": "문의 1건 · resolved · 목록에서 상세 검토 진입",
+        "transition": "문의 접수 또는 처리 완료 확인",
+        "fixture": {
+          "ticket": "resolved",
+          "hash": "admin-support?record=TK-PREVIEW"
         },
         "note": ""
       }
@@ -1633,12 +1603,12 @@
     "role": "admin",
     "both": false,
     "zones": [
-      "제출된 신청서와 비공개 심사 정보",
-      "심사 확인 체크·승인",
-      "사유 필수 보완 요청·거절"
+      "신청 검색·상태 필터와 목록",
+      "선택 신청 상세·비공개 정보",
+      "승인·보완·거절 및 활동 제한"
     ],
-    "action": "pending 신청 → 승인/보완 요청/거절",
-    "input": "verification_flags, review_note",
+    "action": "목록 상세 검토 → 신청서 확인 → 승인/보완 요청/거절",
+    "input": "검색어, 상태, record=application, verification_flags, review_note",
     "rule": "관리자만 심사. 본인·필요 자격·만 19세·이메일 수동 확인. 초기 승인과 수정본 승인을 구분. 수정 거절 시 기존 프로필 유지. 사유를 기록한 활동 제한 가능, 기존 예약은 건별 판단.",
     "states": "신청 없음 / 심사 중 / 보완 요청 / 승인 거절 / 등록 완료",
     "accept": "필수 체크 없이 승인 불가. 프로토타입 자격 자료는 가상 예시이며 진짜 검증이 아님.",
@@ -1660,9 +1630,9 @@
       },
       {
         "id": "pending",
-        "label": "신청 심사",
+        "label": "신청 심사 · 목록",
         "condition": "신청 심사",
-        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
         "fixture": {
           "mateApplication": {
             "status": "pending",
@@ -1674,9 +1644,9 @@
       },
       {
         "id": "approved",
-        "label": "등록 완료",
+        "label": "등록 완료 · 목록",
         "condition": "등록 완료",
-        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
         "fixture": {
           "mateApplication": {
             "status": "approved",
@@ -1688,9 +1658,9 @@
       },
       {
         "id": "needs_info",
-        "label": "보완 요청",
+        "label": "보완 요청 · 목록",
         "condition": "보완 요청",
-        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
         "fixture": {
           "mateApplication": {
             "status": "needs_info",
@@ -1702,9 +1672,9 @@
       },
       {
         "id": "rejected",
-        "label": "승인 거절",
+        "label": "승인 거절 · 목록",
         "condition": "승인 거절",
-        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "transition": "목록 항목의 상세 검토 → 상세 화면에서 처리",
         "fixture": {
           "mateApplication": {
             "status": "rejected",
@@ -1712,6 +1682,66 @@
             "fields": {},
             "reason": ""
           }
+        }
+      },
+      {
+        "id": "detail-pending",
+        "label": "신청 심사 · 상세",
+        "condition": "신청 심사 · 목록에서 상세 검토 진입",
+        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "fixture": {
+          "mateApplication": {
+            "status": "pending",
+            "step": 4,
+            "fields": {},
+            "reason": ""
+          },
+          "hash": "admin-guides?record=application"
+        }
+      },
+      {
+        "id": "detail-approved",
+        "label": "등록 완료 · 상세",
+        "condition": "등록 완료 · 목록에서 상세 검토 진입",
+        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "fixture": {
+          "mateApplication": {
+            "status": "approved",
+            "step": 4,
+            "fields": {},
+            "reason": ""
+          },
+          "hash": "admin-guides?record=application"
+        }
+      },
+      {
+        "id": "detail-needs_info",
+        "label": "보완 요청 · 상세",
+        "condition": "보완 요청 · 목록에서 상세 검토 진입",
+        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "fixture": {
+          "mateApplication": {
+            "status": "needs_info",
+            "step": 4,
+            "fields": {},
+            "reason": ""
+          },
+          "hash": "admin-guides?record=application"
+        }
+      },
+      {
+        "id": "detail-rejected",
+        "label": "승인 거절 · 상세",
+        "condition": "승인 거절 · 목록에서 상세 검토 진입",
+        "transition": "승인 또는 사유와 함께 보완 요청·거절",
+        "fixture": {
+          "mateApplication": {
+            "status": "rejected",
+            "step": 4,
+            "fields": {},
+            "reason": ""
+          },
+          "hash": "admin-guides?record=application"
         }
       }
     ]

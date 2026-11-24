@@ -44,7 +44,6 @@ def build():
                 if action in ('guides-tab','place-picker-tab','notification-filter'):key+=':'+a.get('data-id','')
                 if action=='guides-tab':rule['state']='discover' if a.get('data-id')=='discover' else ('waiting' if sid=='discover-existing' else 'none' if sid=='discover' else sid)
                 if action=='availability':rule['state']='unavailable' if sid=='available' else 'available'
-                if action=='correct' and route=='admin-places':rule.update(kind='구현 제한',target=None,state=None,destination='#manual?resolve=장소ID',effect='현재 구현: manual?resolve=장소ID로 이동하지만 운영 모드에서 고객 화면 접근이 차단됨. 운영 검수 편집 연결 보완 필요.')
                 if action=='signup-edit-email' and sid.startswith('signin-'):rule['state']='signin-address'
             elif 'data-access-mode' in a:
                 mode=a['data-access-mode'];key='mode:'+mode;rule=dict(kind='이동',target='guide-desk' if mode=='guide' else 'home',state=None,effect=f'mode={mode} 저장 → 해당 모드 홈. 요청·예약 데이터 유지; 승인된 메이트만 전환 가능')
