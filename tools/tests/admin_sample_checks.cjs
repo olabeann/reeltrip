@@ -8,8 +8,9 @@ for(const lang of ['ko','en']){
   const ctx={state,window:{ReelAccess:{isAdmin:true}},Date,mateKey:'mate',localStorage:{getItem:()=>existing?'saved':null},mateApplication:()=>application,saveMate:a=>ctx.application=a,allBookings:()=>state.bookingHistory,dateAfter:(d,n)=>{const v=new Date(d);v.setUTCDate(v.getUTCDate()+n);return v.toISOString().slice(0,10)},save:()=>ctx.saves=(ctx.saves||0)+1};
   vm.createContext(ctx);vm.runInContext(code,ctx);return ctx;
  }
- const empty=setup();empty.seedAdminSamples();assert.equal(empty.state.bookingHistory.length,3);assert.equal(empty.state.tickets.length,3);assert.equal(empty.state.userReports.length,3);assert.equal(empty.state.userBlocks.length,3);assert.equal(empty.application.status,'pending');
- const first=JSON.stringify(empty.state);empty.seedAdminSamples();assert.equal(JSON.stringify(empty.state),first);assert.equal(empty.saves,1);
+ const empty=setup();empty.seedAdminSamples();assert.equal(empty.state.bookingHistory.length,3);assert.equal(empty.state.tickets.length,4);assert(empty.state.tickets.some(t=>t.id==='TK-DEMO-LONG'));assert.equal(empty.state.userReports.length,3);assert.equal(empty.state.userBlocks.length,3);assert.equal(empty.application.status,'pending');
+ const sample=empty.state.adminMateSamples.find(a=>a.guideId==='demo1');assert.equal(sample.status,'approved');
+ const initialSaves=empty.saves;const first=JSON.stringify(empty.state);empty.seedAdminSamples();assert.equal(JSON.stringify(empty.state),first);assert.equal(empty.saves,initialSaves);
  const existing=setup(true),before=JSON.stringify(existing.state);existing.seedAdminSamples();const {adminSampleSeedVersion,...after}=existing.state;const original=JSON.parse(before);for(const key of Object.keys(original))assert.equal(JSON.stringify(after[key].filter(x=>JSON.stringify(original[key]).includes(x.id||x.actor))),JSON.stringify(original[key]));assert.equal(existing.application,undefined);
  const customer=setup();customer.window.ReelAccess.isAdmin=false;customer.seedAdminSamples();assert.equal(customer.saves,undefined);
 }

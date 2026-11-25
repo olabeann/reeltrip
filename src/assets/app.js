@@ -11,12 +11,12 @@ const money=n=>`₩${Number(n||0).toLocaleString('ko-KR')}`;
 const future=()=>{const d=new Date(Date.now()+7*86400000);return d.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});};
 const sampleStopIds=['forest','cafe','shop'];
 const initial=()=>({places:JSON.parse(JSON.stringify(window.REEL_PLACES)),selected:['forest','cafe','shop'],board:comparison?['forest','cafe','shop','n-seoul-tower']:[...sampleStopIds],library:[...sampleStopIds,'n-seoul-tower'],towerSeedVersion:1,must:[],title:'성수에서 보내는 여유로운 오후',date:future(),time:'13:00',party:2,saved:false,filter:'전체',source:'성수의 카페와 산책',extraction:'idle',guide:'mina',request:null,quote:null,booking:null,messages:[],review:null,tickets:[],available:true,guideApproved:false,adminReview:'pending',rating:0});
-let state=initial(),storageWarning=false;
-try{const saved=comparison?null:JSON.parse(localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.places)&&Array.isArray(saved.board))state={...state,...saved,library:saved.library,towerSeedVersion:saved.towerSeedVersion||0};}catch{storageWarning=true;}
+let state=initial(),storageWarning=false,lastSavedState=null;
+try{lastSavedState=comparison?null:localStorage.getItem(key);const saved=JSON.parse(lastSavedState||'null');if(saved&&Array.isArray(saved.places)&&Array.isArray(saved.board))state={...state,...saved,library:saved.library,towerSeedVersion:saved.towerSeedVersion||0};}catch{storageWarning=true;}
 // Complete legacy cancellation requests without changing storage keys or fee refunds.
 for(const b of [state.booking,...(state.bookingHistory||[])]){
  if(b?.status!=='cancellation_requested')continue;
- b.status='cancelled';if(b.feeStatus==='paid')b.refundStatus='review';
+ b.status='cancelled';if(b.feeStatus==='paid'&&(!b.refundStatus||['none','없음'].includes(b.refundStatus)))b.refundStatus='review';
  if(state.request&&(b===state.booking||b.requestId===state.request.id))state.request.status='cancelled';
 }
 // Give pending activity samples the same request/payment flow as the selected booking.
@@ -59,58 +59,258 @@ function libraryIds(){if(!Array.isArray(state.library))state.library=[...new Set
 // MVP request contexts retain the legacy active request/quote/booking fields.
 function matchingContexts(){const rows=(state.matchingContexts||[]).filter(x=>x.request&&x.request.id!==state.request?.id);if(state.request)rows.push({request:state.request,proposals:proposals(),quote:state.quote,booking:state.booking});return rows;}
 function stashMatching(){state.matchingContexts=matchingContexts();}
-function activateMatching(id){const row=matchingContexts().find(x=>x.request.id===id);if(!row)return false;stashMatching();state.request=row.request;state.proposals=row.proposals||[];state.quote=row.quote||null;state.booking=row.booking||null;state.messages=[];save();return true;}
-function allBookings(){const rows=[state.booking,...matchingContexts().map(x=>x.booking),...(state.bookingHistory||[])].filter(Boolean);return [...new Map(rows.map(b=>[b.id,b])).values()];}
+function activateMatching(id,persist=true){const row=matchingContexts().find(x=>x.request.id===id);if(!row)return false;stashMatching();state.request=row.request;state.proposals=row.proposals||[];state.quote=row.quote||null;state.booking=row.booking||null;state.messages=[];if(persist)save();return true;}
+function isOperationsSample(b){return /^RT-DEMO-[123]$/.test(b?.id);}
+function allBookings(){
+ const unique=new Map();
+ for(const b of [state.booking,...matchingContexts().map(x=>x.booking),...(state.bookingHistory||[])])if(b&&(window.ReelAccess.isAdmin||!isOperationsSample(b))&&!unique.has(b.id))unique.set(b.id,b);
+ return [...unique.values()];
+}
 // Public references are separate from legacy IDs used by routes and relations.
 function bookingReference(b){
  const registry=state.bookingReferences||(state.bookingReferences={});
  if(Object.prototype.hasOwnProperty.call(registry,b.id))return b.bookingNumber=registry[b.id];
- const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789',used=new Set(Object.values(registry));
+ const reference=allocateReference(new Set(Object.values(registry)));
+ registry[b.id]=reference;return b.bookingNumber=reference;
+}
+function allocateReference(used){
+ const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789';
  for(let attempt=0;attempt<100;attempt++){
   const values=new Uint32Array(6);if(globalThis.crypto?.getRandomValues)globalThis.crypto.getRandomValues(values);else for(let i=0;i<6;i++)values[i]=Math.floor(Math.random()*4294967296);
   const reference=Array.from(values,value=>alphabet[value%alphabet.length]).join('');
-  if(!used.has(reference)){registry[b.id]=reference;return b.bookingNumber=reference;}
+  if(!used.has(reference))return reference;
  }
- throw new Error('Unable to allocate a unique booking reference');
+ throw new Error('Unable to allocate a unique reference');
 }
-function bookingReferenceLabel(b){return 'RT-'+bookingReference(b);}
+function ensureTicketReferences(){
+ const tickets=state.tickets||[],used=new Set(tickets.map(t=>t.ticketNumber).filter(Boolean));
+ let changed=false;
+ for(const ticket of tickets){
+  if(ticket.ticketNumber)continue;
+  ticket.ticketNumber=allocateReference(used);
+  used.add(ticket.ticketNumber);changed=true;
+ }
+ return changed;
+}
+function ticketReferenceLabel(ticket){return 'VOC-'+ticket.ticketNumber;}
+function bookingReferenceLabel(b){return 'RS-'+bookingReference(b);}
 function ensureBookingReferences(){let changed=false;const rows=[...allBookings(),state.booking,...(state.matchingContexts||[]).map(x=>x.booking),...(state.bookingHistory||[])].filter(Boolean);for(const b of rows){const previous=b.bookingNumber,registered=state.bookingReferences?.[b.id];bookingReference(b);if(previous!==b.bookingNumber||registered!==b.bookingNumber)changed=true;}return changed;}
 function overlaps(a,b){return !!(a?.date&&b?.date&&a.date<=(b.endDate||b.date)&&b.date<=(a.endDate||a.date));}
 function bookingHolds(b){return b.status==='confirmed'||(b.status==='awaiting_mate_fee'&&feeDeadline(b)>Date.now());}
 function mateConflict(r,mate='mina',except=null){return allBookings().some(b=>b.id!==except&&(b.guideId||'mina')===mate&&bookingHolds(b)&&overlaps(r,b));}
-function proposalSelectable(q){return !!q&&!(q.guideId==='mina'&&mateApplication().activityRestricted)&&!q.unavailableAt&&!q.withdrawnAt&&q.expires>Date.now()&&!mateConflict(q,q.guideId||'mina');}
+function proposalSelectable(q){return !!q&&!(q.guideId==='mina'&&activitySuspended(mateApplication()))&&!q.unavailableAt&&!q.withdrawnAt&&q.expires>Date.now()&&!mateConflict(q,q.guideId||'mina');}
 function bookingStarted(b){return Date.now()>=Date.parse(b.date+'T'+(b.time||'00:00')+':00+09:00');}
 function canCancelBooking(b){return !!b&&['awaiting_mate_fee','confirmed'].includes(b.status)&&!bookingStarted(b);}
-function cancelBooking(actor,reason){const b=state.booking;if(!canCancelBooking(b)||window.ReelAccess.isAdmin||window.ReelAccess.mode()!==actor||String(reason||'').trim().length<2)return false;const pending=b.status==='awaiting_mate_fee';if(pending&&actor==='guide'){releaseMateSelection('declined',reason);return true;}b.cancelReason=String(reason).trim();b.cancelledAt=Date.now();b.cancelActor=actor;b.status='cancelled';if(pending)b.feeStatus='void';else if(actor==='customer'){b.refundStatus='review';b.refundRequestedAt=Date.now();b.refundRequestedAmount=b.feeAmount;b.refundReason='traveler_cancel';}else b.refundStatus='not_eligible';if(state.request)state.request.status=pending?'withdrawn':'cancelled';syncConversations();save();return true;}
+function cancelBooking(actor,reason){
+ const b=state.booking,note=String(reason||'').trim();
+ if(!canCancelBooking(b)||window.ReelAccess.isAdmin||window.ReelAccess.mode()!==actor||(actor==='guide'&&(b.guideId||'mina')!=='mina')||note.length<2)return false;
+ const pending=b.status==='awaiting_mate_fee';
+ if(pending&&actor==='guide'){releaseMateSelection('declined',reason);return true;}
+ b.cancelReason=note;b.cancelledAt=Date.now();b.cancelActor=actor;b.status='cancelled';
+ if(state.request)state.request.status=pending?'withdrawn':'cancelled';
+ if(!pending)recordBookingNotice('cancelled',b,[actor==='customer'?'guide':'customer']);
+ if(pending){b.feeStatus='void';b.refundStatus='none';}
+ else if(!hasPaidFee(b))b.refundStatus='none';
+ else if(actor==='customer'&&b.refundStatus!=='completed'){
+  b.refundRequestedAt=b.cancelledAt;b.refundRequestedAmount=b.feeAmount;b.refundReason='traveler_cancel';
+  applyFeeRefundResult(b,note);
+ }else if(actor==='guide'&&b.refundStatus!=='completed')b.refundStatus='not_eligible';
+ syncConversations();return saveOperationsRecord();
+}
 function canWithdrawProposal(q){const context=matchingContexts().find(x=>x.proposals?.some(p=>p.id===q?.id));return !!q&&q.guideId==='mina'&&!q.withdrawnAt&&!q.unavailableAt&&q.expires>Date.now()&&mateProposalStatus(q)==='waiting'&&!!context&&!context.booking&&['requested','quoted'].includes(context.request.status);}
 function proposalWithdrawAction(q){return canWithdrawProposal(q)?`<div class="rt-detail-actions">${action('이 제안 철회하기','withdraw-proposal','secondary',`data-id="${esc(q.id)}"`)}</div>`:'';}
 function withdrawProposal(id){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide')return false;const q=proposals().find(x=>x.id===id&&x.guideId==='mina');if(!canWithdrawProposal(q)||state.booking)return false;q.withdrawnAt=Date.now();q.expires=Date.now();if(state.request)state.request.status=proposals().some(proposalSelectable)?'quoted':'requested';save();return true;}
 function matchingPicker(){return matchingContexts().map(x=>`<article class="card pad rt-booking-card"><h2>${esc(x.request.tripTitle||x.request.region||'여행 요청')}</h2><p>${requestPeriod(x.request)} · ${esc(x.booking?(x.booking.status==='awaiting_mate_fee'?'메이트 선택 완료':statusLabel(x.booking.status)):x.request.status==='requested'?'제안 기다리는 중':x.request.status==='quoted'?'제안 도착':'요청 마감')}</p>${action('요청·예약 열기','open-matching','secondary',`data-id="${esc(x.request.id)}"`)}</article>`).join('');}
 function ownsMateBooking(b){return (b.guideId||'mina')==='mina'&&(mateApplication().status==='approved'||JSON.parse(localStorage.getItem('reeltrip-prototype-access-v1')||'{}').profile==='guide');}
-function pendingRefund(b){return ['review','needs_info','approved','processing'].includes(b.refundStatus);}
-function operationsRefundEligible(b){return b.cancelActor==='customer'||b.cancelCategory==='exception'||pendingRefund(b);}
-function operationsBookingForm(b){const cancellable=['confirmed','awaiting_mate_fee'].includes(b.status),refundable=b.status==='cancelled'&&b.feeStatus==='paid'&&b.feeAmount>0&&b.refundStatus!=='completed',eligible=operationsRefundEligible(b);return `<form class="card pad" id="operations-booking-form-${esc(b.id)}"><input type="hidden" name="bookingId" value="${esc(b.id)}"><h2>${esc(bookingReferenceLabel(b))}</h2><p>${requestPeriod(b)} · ${esc(b.guide)}</p><p>결제한 매칭 수수료 · <strong>${money(b.feeStatus==='paid'?b.feeAmount:0)}</strong><br>수수료 반환 상태 · ${esc(refundLabel(b.refundStatus))}</p>${cancellable?`<input type="hidden" name="operation" value="cancel"><label>취소 구분<select name="reasonCode" required><option value="">선택해 주세요</option><option value="customer">여행자 취소 · 수수료 전액 반환 대상</option><option value="guide">메이트 귀책 · 수수료 반환 없음</option><option value="exception">사고·질병·악천후 · 운영 확인 후 전액 반환</option></select></label><label>취소 사유<textarea name="note" required maxlength="1000"></textarea></label><p>${b.feeStatus==='paid'?'예약 취소 후 반환 대상이면 PG에서 수수료 전액 취소를 진행해 주세요.':'결제 전 예약입니다. 예약만 취소되며 환불은 발생하지 않아요.'}</p><button class="btn danger" type="submit">예약 취소</button>`:refundable?`<input type="hidden" name="operation" value="refund"><p>전액 반환 금액 · <strong>${money(b.feeAmount)}</strong><br>여행비는 현장에서 직접 지급하므로 반환 대상에 포함되지 않아요.</p>${eligible?'':`<label class="check"><input type="checkbox" name="exceptionConfirmed" required>사고·질병·악천후 등 예외 사유를 확인하여 전액 반환을 승인했습니다.</label>`}<label>처리 사유<textarea name="note" required maxlength="1000"></textarea></label><label>PG 취소 확인 번호<input name="reference" required maxlength="120"></label><label class="check"><input type="checkbox" name="pgConfirmed" required>PG에서 매칭 수수료 전액 취소가 완료된 것을 확인했습니다.</label><button class="btn" type="submit">전액 환불 완료 기록</button>`:`<p>${b.refundStatus==='completed'?'전액 환불 완료가 기록되었습니다.':b.status==='completed'?'여행 완료 예약입니다.':'추가 환불 처리 대상이 아닙니다.'}</p>`}<p class="hint">운영 기록 시연입니다. 실제 PG 취소나 이메일 발송은 실행되지 않아요.</p></form>`;}
+function pendingRefund(b){return ['review','needs_info','approved','processing','failed'].includes(b.refundStatus);}
 
-function refundLabel(v){return ({none:'해당 없음',review:'검토 중',needs_info:'보완 요청',approved:'반환 승인',processing:'반환 처리 중',completed:'반환 완료',not_eligible:'반환 대상 아님'})[v]||'해당 없음';}
+function adminFacts(rows){
+ return `<dl class="rt-admin-info-grid">${rows.map(([label,value,wide])=>`<div class="rt-admin-info-row${wide?' rt-admin-info-row--wide':''}"><dt>${esc(label)}</dt><dd>${esc(value==null||value===''?'—':value)}</dd></div>`).join('')}</dl>`;
+}
+function bookingActionPanel(heading,form,opened=false,status=''){
+ return `<details class="card rt-admin-panel rt-admin-disclosure"${opened?' open':''}><summary><strong>${heading}</strong>${status?`<span class="rt-admin-action-state">${status}</span>`:''}${icon('chevronDown',18)}</summary>${form}</details>`;
+}
+function awaitingGuaranteedRefund(b){return guaranteedFeeRefund(b)&&['review','needs_info'].includes(b.refundStatus);}
+function bookingDetailSummary(b){
+ const feeStatus=({paid:'결제 완료',pending:'결제 대기',failed:'결제 실패',void:'결제 취소'})[b.feeStatus]||'—';
+ const period=b.date&&b.endDate&&b.endDate!==b.date?`${b.date} ~ ${b.endDate}`:b.date;
+ let refundState=refundLabel(b.refundStatus);
+ if(b.status==='cancelled'){
+  if(b.refundStatus==='not_eligible'||(!hasPaidFee(b)&&(!b.refundStatus||b.refundStatus==='none')))refundState=`환불 없음 · ${money(0)}`;
+  else if(awaitingGuaranteedRefund(b))refundState='전액 환불 예정';
+  else if(b.refundStatus==='review')refundState='심사 중 · 환불 여부 미확정';
+  else if(b.refundStatus==='failed')refundState='환불 실패 · 미환불';
+ }
+ const rows=[];
+ if(b.tripTitle)rows.push(['여행명',b.tripTitle,true]);
+ rows.push(['여행자',b.customer],['담당 메이트',b.guide],['여행 일정',period],['시작 시각',b.time],['여행 인원',b.party],['여행비 (현장 현금 지급)',b.amount==null?'—':money(b.amount)],['메이트 매칭 수수료',b.feeAmount==null?'—':money(b.feeAmount)],['납부한 매칭 수수료',b.feeStatus==='paid'&&b.feeAmount==null?'—':money(b.feeStatus==='paid'?b.feeAmount:0)],['수수료 결제 상태',feeStatus],['수수료 반환 상태',refundState]);
+ if(b.cancelReason)rows.push(['취소 사유',b.cancelReason,true]);
+ if(b.refundStatus==='completed'&&b.refundAmount!=null)rows.push(['환불 금액',money(b.refundAmount)]);
+ if(b.refundReference)rows.push(['PG 취소 확인 번호',b.refundReference,true]);
+ return `<section class="card pad rt-admin-panel"><header class="rt-admin-info-heading"><h2>${esc(bookingReferenceLabel(b))}</h2>${mateStatusChip(adminBookingStatus(b.status))}</header>${adminFacts(rows)}</section>`;
+}
+function caseHistory(entries,describe){
+ if(!entries?.length)return '';
+ return `<section class="card pad rt-admin-panel"><h2>처리 이력</h2><ol class="rt-admin-history">${[...entries].reverse().map(entry=>`<li><div><strong>${esc(describe(entry))}</strong><time>${esc(chatTime(entry.at))}</time></div><p>${esc(entry.note||entry.reason||'')}</p>${entry.reply?`<h3>문의자 답변</h3><p>${esc(entry.reply)}</p><small>${entry.replySent?'이메일 안내 완료':'답변 초안'} · ${esc(entry.replyEmail||'')}</small>`:''}${entry.replySent&&!entry.reply?`<small>이메일 안내 완료 · ${esc(entry.replyEmail||'')}</small>`:''}${entry.evidenceDate?`<small>자료 접수 완료일 · ${esc(entry.evidenceDate)}</small>`:''}${entry.reference?`<small>PG 취소 확인 번호 · ${esc(entry.reference)}</small>`:''}</li>`).join('')}</ol></section>`;
+}
+function hasPaidFee(b){return b.feeStatus==='paid'&&Number.isSafeInteger(b.feeAmount)&&b.feeAmount>0;}
+function refundWithCancellation(b,reason){return b.status==='confirmed'&&hasPaidFee(b)&&['customer','no_show'].includes(reason);}
+function cancellationRefundTerms(b,reason){
+ if(!hasPaidFee(b)||reason==='guide')return {outcome:`환불 없음 · ${money(0)}`,button:'환불 없이 예약 취소'};
+ if(!reason)return {outcome:'취소 구분을 선택해 주세요.',button:'예약 취소'};
+ if(refundWithCancellation(b,reason))return {outcome:`전액 환불 예정 · ${money(b.feeAmount)}`,button:'예약 취소 및 환불'};
+ return {outcome:`심사 후 결정 · 승인 시 ${money(b.feeAmount)} 전액 환불`,button:'예약 취소 및 환불 심사 접수'};
+}
+function cancellationRefundField(terms){
+ return `<p class="rt-admin-amount"><span>매칭 수수료 환불 여부</span><strong data-refund-outcome aria-live="polite">${esc(terms.outcome)}</strong></p>`;
+}
+function updateCancellationRefund(control){
+ const form=control.form;
+ const b=allBookings().find(row=>row.id===form.elements.bookingId.value);
+ if(!b)return;
+ const terms=cancellationRefundTerms(b,control.value);
+ form.querySelector('[data-refund-outcome]').textContent=terms.outcome;
+ form.querySelector('button[type="submit"]').textContent=terms.button;
+}
+function guaranteedFeeRefund(b){
+ return b.status==='cancelled'&&(['customer','no_show'].includes(b.cancelCategory)||(!b.cancelCategory&&(b.cancelActor==='customer'||b.refundReason==='traveler_cancel')));
+}
+function canRequestFeeRefund(b){
+ if(!['cancelled','completed'].includes(b.status)||!hasPaidFee(b))return false;
+ return ['approved','failed','processing'].includes(b.refundStatus)||(guaranteedFeeRefund(b)&&!['completed','not_eligible'].includes(b.refundStatus));
+}
+function refundReviewOptions(b){
+ if(!hasPaidFee(b)||!['cancelled','completed'].includes(b.status)||guaranteedFeeRefund(b))return [];
+ if(!['review','needs_info'].includes(b.refundStatus))return [];
+ return ['not_eligible','approved'];
+}
+function refundActionLabel(decision){
+ return ({approved:'전액 환불',not_eligible:'환불 불가'})[decision];
+}
+function bookingCaseControls(b){
+ const choices=refundReviewOptions(b),disputed=b.disputeStatus==='open';
+ const idField=`<input type="hidden" name="bookingId" value="${esc(b.id)}">`;
+ const note='<label>처리 사유<textarea name="note" required maxlength="1000" rows="3"></textarea></label>';
+ const review=choices.length?bookingActionPanel('수수료 반환 심사',`<form class="rt-admin-action-form" id="operations-booking-form-review-${esc(b.id)}">${idField}<input type="hidden" name="operation" value="refund_review"><input type="hidden" name="previous" value="${esc(b.refundStatus)}">${note}<div class="buttons">${choices.map(value=>`<button type="submit" name="decision" value="${value}" class="${value==='not_eligible'?'btn secondary':'btn'}">${refundActionLabel(value)}</button>`).join('')}</div></form>`,true,refundLabel(b.refundStatus)):'';
+ const inquiry=disputed&&b.disputeTicketId?state.tickets.find(t=>t.id===b.disputeTicketId):null;
+ const source=inquiry?`<a class="textbtn" href="#admin-support?record=${encodeURIComponent(inquiry.id)}">관련 문의 보기 · ${esc(ticketReferenceLabel(inquiry))}</a>`:'';
+ const dispute=disputed?bookingActionPanel('운영 확인 중',`<form class="rt-admin-action-form" id="operations-booking-form-dispute-${esc(b.id)}">${idField}<input type="hidden" name="operation" value="close_dispute"><input type="hidden" name="expectedDisputeAt" value="${esc(b.disputeOpenedAt||0)}">${source}${note}<button class="btn secondary" type="submit">운영 확인 완료</button></form>`,true):'';
+ return {review,dispute};
+}
+function bookingOperationLabel(operation,decision){
+ return ({cancel:'예약 취소',refund:'매칭 수수료 전액 환불',refund_failed:'수수료 환불 실패',open_dispute:'운영 확인 대상으로 등록',close_dispute:'운영 확인 완료',refund_review:refundLabel(decision)})[operation];
+}
+function operationsBookingForm(b){
+ const cancellable=['confirmed','awaiting_mate_fee'].includes(b.status);
+
+ const formStart=`<form class="rt-admin-action-form" id="operations-booking-form-${esc(b.id)}"><input type="hidden" name="bookingId" value="${esc(b.id)}"><input type="hidden" name="expectedStatus" value="${esc(b.status)}"><input type="hidden" name="expectedFee" value="${esc(b.feeStatus||'')}">`;
+ let actionPanel='';
+ if(cancellable){
+  const terms=cancellationRefundTerms(b,'');
+  actionPanel=bookingActionPanel('예약 취소',`${formStart}<input type="hidden" name="operation" value="cancel"><label>취소 구분<select name="reasonCode" required><option value="">선택해 주세요</option><option value="customer">여행자 취소</option><option value="guide">메이트 귀책</option><option value="exception">사고·질병·악천후</option>${b.status==='confirmed'?'<option value="no_show">여행자 노쇼·지각 후 미도착 확인</option><option value="interrupted">여행 도중 중단</option>':''}</select></label>${cancellationRefundField(terms)}<label>취소 사유<textarea name="note" required maxlength="1000" rows="3"></textarea></label><button class="btn danger" type="submit">${terms.button}</button></form>`);
+ }else if(canRequestFeeRefund(b)){
+  const refundAction=b.refundStatus==='failed'?'환불 재시도':'전액 환불';
+  actionPanel=bookingActionPanel(refundAction,`${formStart}<input type="hidden" name="operation" value="refund"><p class="rt-admin-amount">전액 반환 금액 <strong>${money(b.feeAmount)}</strong></p><label>처리 사유<textarea name="note" required maxlength="1000" rows="3"></textarea></label><button class="btn" type="submit">${refundAction}</button></form>`,true);
+ }
+ const controls=bookingCaseControls(b);
+ return `${bookingDetailSummary(b)}${controls.review}${actionPanel}${controls.dispute}${caseHistory(b.operationsLog,entry=>bookingOperationLabel(entry.operation,entry.refundStatus))}`;
+}
+
+function refundLabel(v){return ({none:'해당 없음',review:'검토 중',needs_info:'보완 요청',approved:'반환 승인',processing:'반환 처리 중',failed:'환불 실패',completed:'반환 완료',not_eligible:'반환 대상 아님'})[v]||'해당 없음';}
+function restoreSharedState(raw,force=false){
+ if(!raw||!force&&raw===lastSavedState||comparison||window.ReelStatePreview)return false;
+ try{
+  const saved=JSON.parse(raw);
+  if(!Array.isArray(saved?.places)||!Array.isArray(saved.board))return false;
+  state={...initial(),...saved};lastSavedState=raw;window.ReelPlaceAPI?.restore(state);return true;
+ }catch{return false;}
+}
+function saveOperationsRecord(){
+ if(save()!==false)return true;
+ try{restoreSharedState(localStorage.getItem(key),true);}catch{}return false;
+}
+// The handoff flow uses an in-memory PG result. Production resolves this on the server against the original payment.
+function localFeeRefundResult(b){
+ if(window.ReelStatePreview?.fixture?.firstRefundFails&&b.refundStatus!=='failed')return null;
+ return {amount:b.feeAmount,reference:'RF-'+bookingReference(b)};
+}
+function applyFeeRefundResult(b,note){
+ const result=localFeeRefundResult(b),at=Date.now();
+ const success=result?.amount===b.feeAmount&&!!result.reference;
+ b.refundStatus=success?'completed':'failed';
+ const entry={at,operation:success?'refund':'refund_failed',note,refundStatus:b.refundStatus,bookingStatus:b.status};
+ if(success){
+  b.refundAmount=result.amount;b.refundReference=result.reference;b.refundedAt=at;
+  entry.amount=result.amount;entry.reference=result.reference;
+  recordBookingNotice('refunded',b,['guide']);
+ }
+ (b.operationsLog||=[]).push(entry);
+}
 function saveOperationsBooking(d){
  if(!window.ReelAccess.isAdmin)return false;
  const b=allBookings().find(x=>x.id===d.bookingId),note=String(d.note||'').trim();
- if(!b||!note||note.length>1000)return false;
+ if(!b||!note||note.length>1000||d.expectedStatus&&d.expectedStatus!==b.status||d.expectedFee&&d.expectedFee!==b.feeStatus)return false;
+ const combined=d.operation==='cancel'&&refundWithCancellation(b,d.reasonCode);
+ if(d.expectedRefundAmount!==undefined&&(!hasPaidFee(b)||Number(d.expectedRefundAmount)!==b.feeAmount))return false;
+ if(d.expectedRefundStatus!==undefined&&(b.refundStatus||'none')!==d.expectedRefundStatus)return false;
  if(d.operation==='cancel'){
-  if(!['confirmed','awaiting_mate_fee'].includes(b.status)||b.refundStatus==='completed'||!['customer','guide','exception'].includes(d.reasonCode))return false;
-  b.status='cancelled';b.cancelActor=d.reasonCode==='exception'?'operations':d.reasonCode;b.cancelCategory=d.reasonCode;b.cancelledAt=Date.now();b.cancelReason=note;
+  if(!['confirmed','awaiting_mate_fee'].includes(b.status)||b.refundStatus==='completed'||!['customer','guide','exception','no_show','interrupted'].includes(d.reasonCode)||(['no_show','interrupted'].includes(d.reasonCode)&&b.status!=='confirmed'))return false;
+  if(b.status==='awaiting_mate_fee'&&d.reasonCode==='guide'){
+   const context=matchingContexts().find(x=>x.booking?.id===b.id);
+   if(context){
+    const active=state.request?.id;activateMatching(context.request.id,false);
+    (b.operationsLog||=[]).push({at:Date.now(),operation:'cancel',note,refundStatus:'none',bookingStatus:'cancelled'});
+    releaseMateSelection('declined',note);
+    if(active&&active!==context.request.id)activateMatching(active,false);
+    return saveOperationsRecord();
+   }
+  }
+  if(b.status==='confirmed')recordBookingNotice('cancelled',b,['customer','guide']);
+  b.status='cancelled';b.cancelActor=['customer','guide'].includes(d.reasonCode)?d.reasonCode:'operations';b.cancelCategory=d.reasonCode;b.cancelledAt=Date.now();b.cancelReason=note;
   const paid=b.feeStatus==='paid',eligible=d.reasonCode!=='guide';
-  b.refundStatus=paid?(eligible?'review':'not_eligible'):'none';b.refundRequestedAmount=paid&&eligible?b.feeAmount:0;
-  if(paid&&eligible)b.refundRequestedAt=Date.now();if(!paid)b.feeStatus='void';
+  b.refundStatus=paid&&b.feeAmount>0?(eligible?'review':'not_eligible'):'none';b.refundRequestedAmount=paid&&eligible?b.feeAmount:0;
+  if(paid&&b.feeAmount>0&&eligible)b.refundRequestedAt=Date.now();if(!paid)b.feeStatus='void';
   for(const x of matchingContexts())if(x.request.id===b.requestId)x.request.status='cancelled';
  }else if(d.operation==='refund'){
-  if(b.status!=='cancelled'||b.feeStatus!=='paid'||b.refundStatus==='completed'||!Number.isSafeInteger(b.feeAmount)||b.feeAmount<=0||!d.pgConfirmed||(!operationsRefundEligible(b)&&!d.exceptionConfirmed)||!String(d.reference||'').trim()||String(d.reference).trim().length>120)return false;
-  if(d.refundAmount!==undefined&&Number(d.refundAmount)!==b.feeAmount)return false;
-  b.refundStatus='completed';b.refundAmount=b.feeAmount;b.refundReference=String(d.reference).trim();b.refundedAt=Date.now();if(d.exceptionConfirmed)b.refundExceptionReason=note;
+  if(!canRequestFeeRefund(b))return false;
+  applyFeeRefundResult(b,note);
+  return saveOperationsRecord();
+ }else if(d.operation==='refund_review'){
+  if((b.refundStatus||'none')!==d.previous||!refundReviewOptions(b).includes(d.decision))return false;
+  b.refundStatus=d.decision;b.refundDecisionReason=note;b.refundReviewedAt=Date.now();
+  if(!b.refundRequestedAt)b.refundRequestedAt=b.refundReviewedAt;
+ }else if(d.operation==='close_dispute'){
+  if(b.disputeStatus!=='open'||(d.expectedDisputeAt!==undefined&&String(b.disputeOpenedAt||0)!==String(d.expectedDisputeAt)))return false;
+  b.disputeStatus='closed';
  }else return false;
- b.operationsLog=b.operationsLog||[];b.operationsLog.push({at:Date.now(),operation:d.operation,note,refundStatus:b.refundStatus,amount:b.refundAmount||0,reference:b.refundReference||'',bookingStatus:b.status});syncConversations();save();return true;
+ b.operationsLog=b.operationsLog||[];b.operationsLog.push({at:Date.now(),operation:d.operation,note,refundStatus:b.refundStatus,amount:b.refundAmount||0,reference:b.refundReference||'',bookingStatus:b.status});
+ if(combined||(d.operation==='refund_review'&&d.decision==='approved'))applyFeeRefundResult(b,note);
+ syncConversations();return saveOperationsRecord();
 }
-function confirmOperationsBooking(d){if(!window.ReelAccess.isAdmin)return;const b=allBookings().find(x=>x.id===d.bookingId);if(!b||!['cancel','refund'].includes(d.operation))return;const label=d.operation==='cancel'?'예약 취소':'전액 환불 완료 기록';modal(`<form id="operations-booking-confirm-form"><h2>${label}</h2><p>${esc(bookingReferenceLabel(b))}</p><p>${d.operation==='refund'?'PG에서 완료한 수수료 전액 환불을 기록합니다.':b.feeStatus!=='paid'?'결제 전 예약을 취소합니다. 환불은 발생하지 않아요.':d.reasonCode==='guide'?'예약을 취소합니다. 메이트 귀책으로 수수료는 반환하지 않아요.':'예약을 취소하고 수수료 전액 반환 대상으로 접수합니다. 실제 환불은 PG에서 별도로 처리해 주세요.'}</p>${b.feeStatus==='paid'&&(d.operation==='refund'||d.reasonCode!=='guide')?`<p>전액 반환 금액 · ${money(b.feeAmount)}</p>`:''}${Object.entries(d).map(([key,value])=>`<input type="hidden" name="${esc(key)}" value="${esc(value)}">`).join('')}<div class="buttons">${action('취소','close','secondary')}<button class="btn" type="submit">${label}</button></div><p class="error" id="operations-booking-error" role="alert"></p></form>`);}
+function confirmOperationsBooking(d){
+ if(!window.ReelAccess.isAdmin)return;
+ const b=allBookings().find(x=>x.id===d.bookingId);
+ if(!b)return;
+ const combined=d.operation==='cancel'&&refundWithCancellation(b,d.reasonCode);
+ const reviewing=d.operation==='refund_review';
+ if(reviewing&&!refundReviewOptions(b).includes(d.decision))return;
+ const refund=combined||d.operation==='refund'||(reviewing&&d.decision==='approved');
+ const terms=d.operation==='cancel'?cancellationRefundTerms(b,d.reasonCode):null;
+ const actionLabel=terms?.button||(reviewing?refundActionLabel(d.decision):d.operation==='refund'?'전액 환불':bookingOperationLabel(d.operation,d.decision));
+ if(!actionLabel)return;
+ const heading=combined?'예약을 취소하고 수수료를 환불할까요?':terms?'예약을 취소할까요?':refund?'매칭 수수료를 환불할까요?':actionLabel;
+ let message=esc(d.note);
+ if(refund)message='메이트가 결제한 매칭 수수료 전액을 원래 결제수단으로 환불합니다.';
+ else if(reviewing)message='환불액은 0원입니다. 결정 사유는 메이트에게 이메일로 안내해 주세요.';
+ else if(d.operation==='cancel'){
+  if(!hasPaidFee(b))message='예약을 취소합니다. 환불할 수수료가 없습니다.';
+  else if(d.reasonCode==='guide')message='예약을 취소합니다. 메이트 귀책으로 수수료는 반환하지 않아요.';
+  else message='예약을 취소하고 반환 심사로 접수합니다. 심사에서 전액 환불을 선택하면 원래 결제수단으로 환불합니다.';
+ }
+ const values={...d,expectedRefundStatus:b.refundStatus||'none'};
+ if(refund)values.expectedRefundAmount=b.feeAmount;
+ modal(`<form id="operations-booking-confirm-form"><h2>${heading}</h2><p>${esc(bookingReferenceLabel(b))}</p><p>${message}</p>${terms?cancellationRefundField(terms):refund?`<p class="rt-admin-amount">전액 반환 금액 <strong>${money(b.feeAmount)}</strong></p>`:''}${Object.entries(values).map(([key,value])=>`<input type="hidden" name="${esc(key)}" value="${esc(value)}">`).join('')}<div class="buttons">${action('취소','close','secondary')}<button class="btn" type="submit">${actionLabel}</button></div><p class="error" id="operations-booking-error" role="alert"></p></form>`);
+}
 
 
 function proposals(){if(!Array.isArray(state.proposals))state.proposals=state.quote?[{...state.quote,guideId:state.quote.guideId||'mina'}]:[];return state.proposals;}
@@ -167,7 +367,7 @@ function tripDetailsDialog(){const n=tripRangeDays(tripDraft?.start,tripDraft?.e
 
 function tripDetailRoute(){return 'trips?view=detail&id='+encodeURIComponent(state.activeTripId||'trip-legacy');}
 function isTripDetail(){return location.hash.split('?')[0]==='#planner'||current()==='trips'&&new URLSearchParams(location.hash.split('?')[1]||'').get('view')==='detail';}
-const save=()=>{if(isGuest())return;ensureBookingReferences();libraryIds();stashDay();stashTrip();stashMatching();if(comparison)return;try{localStorage.setItem(key,JSON.stringify(state,window.ReelPlaceAPI?.replacer));}catch{storageWarning=true;toast('저장소를 사용할 수 없어 이번 이용 내용은 저장되지 않습니다.');}};
+const save=()=>{if(isGuest())return;ensureBookingReferences();ensureTicketReferences();libraryIds();stashDay();stashTrip();stashMatching();if(comparison)return;try{const raw=JSON.stringify(state,window.ReelPlaceAPI?.replacer);localStorage.setItem(key,raw);lastSavedState=raw;return true;}catch{storageWarning=true;toast('변경 내용을 저장하지 못했어요. 다시 시도해 주세요.');return false;}};
 const screens=window.REEL_SCREENS.filter(s=>s.both||guided).map(s=>({...s}));
 const byRoute=r=>screens.find(s=>s.route===r);
 // B-27 remains reserved; its retired place-review route opens operations home.
@@ -178,7 +378,7 @@ const guide=()=>state.guide==='jun'?{name:'준',initial:'준',field:'동네 맛�
 const statusLabel=s=>({awaiting_mate_fee:'메이트 확정 대기',matching:'메이트 확정 대기',requested:'응답 대기',quoted:'제안 도착',booked:'예약 확정',withdrawn:'철회',declined:'거절',confirmed:'예약 확정',completed:'여행 완료',cancelled:'취소 완료',pending:'심사 대기',approved:'승인',needs_info:'보완 요청',open:'접수',resolved:'처리 완료'})[s]||s;
 let timer,toastTimer,feeExpiryTimer,previewExtractionStarted=false;
 function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3500);}
-function go(r){if(current()===r)render();else location.hash=r;}
+function go(r){if(location.hash.slice(1)===r)render();else location.hash=r;}
 function btn(label,route,kind=''){return `<a class="btn ${kind}" href="#${route}">${label}</a>`;}
 function action(label,name,kind='',extra=''){return `<button class="btn ${kind}" data-action="${name}" ${extra}>${label}</button>`;}
 function chip(t,active=false,attr=''){return `<button class="chip rt-filter-chip ${active?'active':''}" ${attr}>${t}</button>`;}
@@ -242,6 +442,7 @@ function brandLogo(){
  return `<img class="brand-logo" src="../assets/brand/${filename}" alt="${english?'Reeltrip':'릴트립'}" width="${english?1164:993}" height="446">`;
 }
 function layout(content){
+ const reviewTools=new URLSearchParams(location.search).get('tools')==='1';
  const r=current(),screen=byRoute(r),role=screen?.role||'customer',access=window.ReelAccess;
  if(access.isAdmin)return `<main id="main" class="page" tabindex="-1">${content}</main>`;
  const tabs=access.isAdmin?[]:!isGuest()&&access.mode()==='guide'?[['guide-desk','▤','여행 찾기'],['guide-activity','▤','내 활동'],['messages','◇','채팅'],['account','○','마이']]:[['home','⌂','발견'],['trips','▤','내 여행'],['guides','♧','메이트'],['messages','◇','채팅'],['account','○','마이']];
@@ -255,19 +456,97 @@ function layout(content){
  const shortTitle=activityDetail?(activityParams.has('proposal')?'여행 제안':'예약 상세'):signupRoute?signupText(r==='signup'?'title':'emailTitle'):shortTitleOriginal;
  const isRoot=tabs.some(t=>t[0]===r)&&!isTripDetail()&&!activityDetail;
  const header=access.isAdmin?`${access.controls()}<header class="topbar"><a class="brand brand-lockup" href="#admin">${brandLogo()}</a><span class="brand-surface-label">${document.documentElement.lang==='en'?'Operations':'운영'}</span></header>`:isTripDetail()&&!isGuest()&&!content.includes('trip-unavailable')?tripDetailHeader():isRoot&&r!=='messages'||r==='chat'&&chatContext()?'':`<header class="topbar detail-topbar"><a class="app-back" href="#${parent}" aria-label="${signupRoute?signupText('back'):'이전 화면으로'}">${icon('chevronLeft')}</a><strong class="app-title">${shortTitle}</strong>${r==='messages'||r==='chat'&&!chatContext()?chatPolicyButton():r==='board'&&!isGuest()?`<button type="button" class="library-add" data-action="board-add" aria-label="장소 저장하기">${icon('plus')}</button>`:'<span class="header-balance" aria-hidden="true"></span>'}</header>`;
- return `${isGuest()?'':`<details class="reviewtools"><summary>모바일 앱 검토 도구</summary><div class="reviewlinks">${access.tools()}<a href="../../docs/index.html">기획 허브</a><a href="../../docs/product.html">기획·명세</a><button class="textbtn" data-action="scenarios">상태 관리</button><label>화면 바로가기<select id="screen-jump">${screens.filter(s=>access.allowed(s.role,s.route)).map(s=>`<option value="${s.route}" ${r===s.route?'selected':''}>${s.id} ${s.name}</option>`).join('')}</select></label><p>검토용 도구입니다. 실제 앱에는 표시되지 않습니다.</p></div></details>`}${header}<main id="main" class="page ${!access.isAdmin&&isRoot?'tab-page':''} ${isTripDetail()&&!isGuest()?'trip-detail-page':''}" tabindex="-1">${!access.isAdmin&&['home','guide-desk'].includes(r)?`<div class="home-entry-row"><div class="home-brand">${signupBrandLogo()}</div>${notificationBell()}</div>`:''}<div class="screennote">${screen?`${screen.id} · ${screen.name}`:'화면을 찾을 수 없습니다'}${role!=='customer'?' · 검토용 역할 화면 (실제 인증 없음)':''}</div>${storageWarning?'<div class="infobar warn">브라우저 저장소를 사용할 수 없습니다. 변경 내용은 이번 이용 중에만 유지됩니다.</div>':''}${content}</main>${access.isAdmin||signupRoute||r==='chat'&&chatContext()?'':`<nav class="mobiletabs" aria-label="앱 하단 메뉴">${tabs.map(([route,icon,label])=>`<a href="#${route}" class="${tabRoute===route?'active':''}" ${tabRoute===route?'aria-current="page"':''}><b aria-hidden="true">${navIcon(route)}</b>${label}${route==='messages'&&unreadChats()?`<span class="chat-tab-unread" aria-label="${unreadChats()} 읽지 않은 메시지">${unreadChats()}</span>`:''}</a>`).join('')}</nav>`}`;
+ return `${isGuest()||!reviewTools?'':`<details class="reviewtools"><summary>모바일 앱 검토 도구</summary><div class="reviewlinks">${access.tools()}<a href="../../docs/index.html">기획 허브</a><a href="../../docs/product.html">기획·명세</a><button class="textbtn" data-action="scenarios">상태 관리</button><label>화면 바로가기<select id="screen-jump">${screens.filter(s=>access.allowed(s.role,s.route)).map(s=>`<option value="${s.route}" ${r===s.route?'selected':''}>${s.id} ${s.name}</option>`).join('')}</select></label></div></details>`}${header}<main id="main" class="page ${!access.isAdmin&&isRoot?'tab-page':''} ${isTripDetail()&&!isGuest()?'trip-detail-page':''}" tabindex="-1">${!access.isAdmin&&['home','guide-desk'].includes(r)?`<div class="home-entry-row"><div class="home-brand">${signupBrandLogo()}</div>${notificationBell()}</div>`:''}${reviewTools&&screen?`<div class="screennote">${esc(screen.id)} · ${esc(screen.name)}</div>`:''}${storageWarning?'<div class="infobar warn">변경 내용을 저장하지 못했어요. 다시 시도해 주세요.</div>':''}${content}</main>${access.isAdmin||signupRoute||r==='chat'&&chatContext()?'':`<nav class="mobiletabs" aria-label="앱 하단 메뉴">${tabs.map(([route,icon,label])=>`<a href="#${route}" class="${tabRoute===route?'active':''}" ${tabRoute===route?'aria-current="page"':''}><b aria-hidden="true">${navIcon(route)}</b>${label}${route==='messages'&&unreadChats()?`<span class="chat-tab-unread" aria-label="${unreadChats()} 읽지 않은 메시지">${unreadChats()}</span>`:''}</a>`).join('')}</nav>`}`;
+}
+function notificationCopy(kind,entity){
+ const dates=entity.endDate&&entity.endDate!==entity.date?`${entity.date} ~ ${entity.endDate}`:entity.date;
+ const fee=Number(entity.refundAmount??entity.feeAmount??0).toLocaleString('en-US');
+ const deadline=Number.isFinite(new Date(entity.feeDeadline).getTime())&&entity.feeDeadline?new Date(entity.feeDeadline).toLocaleString('sv-SE',{timeZone:'Asia/Seoul'}).slice(0,16):'';
+ return ({
+  proposal:['메이트의 제안이 도착했어요',`${dates} 여행에 새 제안이 있어요.`],
+  selected:['여행자가 제안을 선택했어요',`${deadline} (한국 시간)까지 수수료 ${fee}원을 결제해 예약을 확정해 주세요.`],
+  confirmed:['예약이 확정됐어요',`${dates} 여행이 확정됐어요. 대화를 시작해보세요.`],
+  released:['예약이 성사되지 않았어요',`${dates} 여행의 예약이 확정되지 않았어요. 요청 상태를 확인해 주세요.`],
+  cancelled:['예약이 취소됐어요',`${dates} 예약이 취소됐어요. 상세에서 취소 사유를 확인해 주세요.`],
+  refunded:['수수료 반환이 완료됐어요',`${dates} 예약의 수수료 ${fee}원 반환이 완료됐어요.`],
+  approved:['메이트 등록이 승인됐어요','이제 함께 여행을 만들어 보세요!'],
+  needs_info:['메이트 신청 내용을 보완해 주세요','신청 결과에서 보완할 내용을 확인하고 다시 제출해 주세요.'],
+  rejected:['메이트 등록이 승인되지 않았어요','신청 결과에서 심사 사유를 확인해 주세요.'],
+  restricted:['메이트 활동이 제한됐어요','제한 사유와 문의 방법을 확인해 주세요.'],
+  payment_due:['수수료 결제 마감이 다가와요',`${deadline} (한국 시간)까지 수수료 ${fee}원을 결제해 주세요.`],
+  trip_due:['내일의 여행을 준비해 주세요!',`${dates} 여행을 앞두고 채팅으로 만남 장소와 준비사항을 확인해 보세요.`]
+ })[kind];
+}
+function recordBookingNotice(kind,entity,recipients,time=Date.now()){
+ if(isOperationsSample(entity))return false;
+ const items=state.serviceNotifications||=[];
+ const id=[kind,entity.id,kind==='proposal'?entity.version:1].join(':');
+ if(items.some(item=>item.id===id))return false;
+ const [title,body]=notificationCopy(kind,entity);
+ items.push({id,kind,title,body,time,recipients,mateId:entity.guideId||'mina',requestId:entity.requestId,bookingId:kind==='proposal'?null:entity.id});
+ return true;
+}
+function recordApplicationNotice(a,kind){
+ const [title,body]=notificationCopy(kind,a),items=a.notices||=[];
+ items.push({id:`application:${items.length+1}:${kind}`,kind,title,body,time:Date.now(),route:'mate-register',recipients:['applicant']});
+}
+function noticeDestination(n){
+ if(n.route)return {route:n.route};
+ const mate=ownsMateBooking({guideId:n.mateId})||window.ReelAccess.mode()==='guide'&&n.mateId==='mina';
+ const traveler=n.recipients.includes('customer'),guide=mate&&n.recipients.includes('guide');
+ if(!traveler&&!guide)return null;
+ const role=guide&&(!traveler||window.ReelAccess.mode()==='guide')?'guide':'customer';
+ const query='?record='+encodeURIComponent(n.bookingId);
+ if(['released','proposal'].includes(n.kind)&&role==='customer')return {role,route:'requested?request='+encodeURIComponent(n.requestId)};
+ return {role,route:(role==='guide'?'guide-fee':'booking')+query};
 }
 function notificationItems(){
- const mode=window.ReelAccess.mode(),guideMode=mode==='guide',items=[];
- const b=state.booking,q=state.request;
- if(b)items.push({id:`${mode}:booking:${b.id}:${b.status}`,category:'guide',symbol:'trips',route:guideMode?'guide-fee':'booking',title:({confirmed:'예약이 확정됐어요',cancelled:'예약이 취소됐어요',completed:'여행이 완료됐어요'})[b.status]||statusLabel(b.status),body:`여행일 ${b.date} · ${b.guide}`,time:b.confirmedAt||b.requestedAt||0});
- else if(q)items.push({id:`${mode}:request:${q.id}:${q.status}:${state.quote?.version||0}`,category:'guide',symbol:q.status==='quoted'?'board':'trips',route:guideMode?'guide-desk':q.status==='quoted'?'quote':'requested',title:guideMode?(q.status==='requested'?'새 여행 요청이 도착했어요':'여행 요청 상태가 변경됐어요'):(q.status==='quoted'?'메이트의 제안이 도착했어요':'여행 요청 상태를 확인하세요'),body:`여행일 ${q.date} · ${statusLabel(q.status)}`,time:q.createdAt||0});
- return [...items,...(state.previewNotifications||[])].sort((a,b)=>b.time-a.time).map(n=>({...n,read:(state.readNotifications||[]).includes(n.id)}));
+ const stored=[...(state.serviceNotifications||[]),...(mateApplication().notices||[]),...(state.previewNotifications||[])];
+ return stored.flatMap(n=>{
+  const destination=noticeDestination(n);
+  return destination?[{...n,...destination,read:(state.readNotifications||[]).includes(n.id)}]:[];
+ }).sort((a,b)=>b.time-a.time);
 }
-function markNotificationsRead(ids){state.readNotifications=[...new Set([...(state.readNotifications||[]),...ids])].slice(-200);save();}
+function migrateBookingNotices(){
+ if(state.noticeHistoryVersion||!lastSavedState||isGuest()||window.ReelStatePreview)return;
+ const reads=new Set(state.readNotifications||[]);
+ for(const b of allBookings()){
+  if(!b.id||!b.requestId||isOperationsSample(b))continue;
+  const prior=kind=>['customer','guide'].some(role=>reads.has(`${role}:booking:${b.id}:${kind}`));
+  const restore=(kind,recipients,at,wasRead)=>{
+   const time=new Date(at).getTime();
+   if(!at||!Number.isFinite(time)||!recordBookingNotice(kind,b,recipients,time))return;
+   if(wasRead)reads.add(state.serviceNotifications.at(-1).id);
+  };
+  if(b.feeDeadline)restore('selected',['guide'],b.requestedAt,prior('awaiting_mate_fee'));
+  restore('confirmed',['customer','guide'],b.confirmedAt,prior('confirmed'));
+  if(b.status==='cancelled'&&b.feeStatus==='paid'&&b.cancelActor){
+   const byOps=b.operationsLog?.some(entry=>entry.operation==='cancel');
+   restore('cancelled',byOps?['customer','guide']:[b.cancelActor==='customer'?'guide':'customer'],b.cancelledAt,prior('cancelled'));
+  }
+  if(b.refundStatus==='completed')restore('refunded',['guide'],b.refundedAt,false);
+ }
+ state.readNotifications=[...reads];state.noticeHistoryVersion=1;save();
+}
+function scheduleTravelNotices(){
+ let next=Infinity,changed=false;
+ const now=Date.now();
+ for(const b of allBookings()){
+  const pending=b.status==='awaiting_mate_fee';
+  if(!pending&&b.status!=='confirmed')continue;
+  const end=pending?feeDeadline(b):Date.parse(b.date+'T'+(b.time||'00:00')+':00+09:00');
+  const due=end-(pending?3600000:86400000),created=pending?b.requestedAt:b.confirmedAt;
+  if(!created||due<=created||now>=end)continue;
+  if(now<due){next=Math.min(next,due);continue;}
+  if(now-due<=1800000)changed=recordBookingNotice(pending?'payment_due':'trip_due',b,pending?['guide']:['customer','guide'])||changed;
+ }
+ if(changed)save();
+ return next;
+}
+function markNotificationsRead(ids){state.readNotifications=[...new Set([...(state.readNotifications||[]),...ids])];save();}
 function notificationBell(){const count=notificationItems().filter(n=>!n.read).length;return `<a class="notification-bell" href="#notifications" aria-label="알림${count?' · 읽지 않은 알림':''}">${icon('bell')}${count?'<span class="notification-dot" aria-hidden="true"></span>':''}</a>`;}
 let notificationFilter='all';
-function notifications(){const items=notificationItems(),visible=items;return `<section class="notifications-page">${visible.length?`<div class="notification-list">${visible.map(n=>`<a class="notification-item ${n.read?'is-read':'is-unread'}" href="#${n.route}" data-action="notification-open" data-id="${esc(n.id)}"><div><strong>${!n.read?'<span class="notification-unread-mark" aria-hidden="true"></span><span class="sr-only">읽지 않은 알림 · </span>':''}${esc(n.title)}</strong><p>${esc(n.body)}</p>${n.time?`<time datetime="${new Date(n.time).toISOString()}">${new Date(n.time).toLocaleDateString(document.documentElement.lang==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul',month:'short',day:'numeric'})}</time>`:''}</div><span class="notification-chevron" aria-hidden="true">${icon('chevronRight')}</span></a>`).join('')}</div>`:`<div class="notification-empty rt-empty-card rt-empty-plain"><span class="rt-empty-card-icon">${icon('bell')}</span><h2>아직 알림이 없어요</h2><p>새로운 소식이 오면 여기서 알려드릴게요.</p></div>`}</section>`;}
+function notifications(){const items=notificationItems(),visible=items;return `<section class="notifications-page">${visible.length?`<div class="notification-list">${visible.map(n=>`<a class="notification-item ${n.read?'is-read':'is-unread'}" href="#${esc(n.route)}" data-action="notification-open" data-id="${esc(n.id)}"><div><strong>${!n.read?'<span class="notification-unread-mark" aria-hidden="true"></span><span class="sr-only">읽지 않은 알림 · </span>':''}${esc(n.title)}</strong><p>${esc(n.body)}</p>${n.time?`<time datetime="${new Date(n.time).toISOString()}">${new Date(n.time).toLocaleDateString(document.documentElement.lang==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul',month:'short',day:'numeric'})}</time>`:''}</div><span class="notification-chevron" aria-hidden="true">${icon('chevronRight')}</span></a>`).join('')}</div>`:`<div class="notification-empty rt-empty-card rt-empty-plain"><span class="rt-empty-card-icon">${icon('bell')}</span><h2>아직 알림이 없어요</h2><p>새로운 소식이 오면 여기서 알려드릴게요.</p></div>`}</section>`;}
 
 function saveRestaurant(id){
   const item=window.ReelRestaurants.find(restaurant=>restaurant.id===id);
@@ -494,17 +773,17 @@ function mateField(a,name,label,extra='',area=false,required=true){return `<labe
 let mateEmailChallenge=null,signupPendingEmail='';
 function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||''))&&String(value).length<=254;}
 function mateEmailVerified(a){return validEmail(a.fields.email)&&a.fields.emailVerified===a.fields.email.toLowerCase();}
-function mateEmailUI(a){return `<label>안내받을 이메일<input name="email" type="email" required maxlength="254" value="${esc(a.fields.email||'')}"></label>${mateEmailVerified(a)?'<p class="hint">이메일 확인 완료 · 시연</p>':'<button class="btn secondary" type="button" data-action="mate-email-send">이메일 인증번호 받기</button><label>이메일 인증번호<input name="emailCode" inputmode="numeric" maxlength="6"></label><button class="btn secondary" type="button" data-action="mate-email-verify">이메일 인증 확인</button>'}<p class="hint">시연용 인증번호 482916 · 실제 이메일 발송 없음 · 유효시간 3분</p>`;}
+function mateEmailUI(a){return `<label>안내받을 이메일<input name="email" type="email" required maxlength="254" value="${esc(a.fields.email||'')}"></label>${mateEmailVerified(a)?'<p class="hint">이메일 인증 완료</p>':'<button class="btn secondary" type="button" data-action="mate-email-send">이메일 인증번호 받기</button><label>이메일 인증번호<input name="emailCode" inputmode="numeric" maxlength="6"></label><button class="btn secondary" type="button" data-action="mate-email-verify">이메일 인증 확인</button>'}${!mateEmailVerified(a)&&mateEmailChallenge?.email===a.fields.email?'<p class="hint">인증번호는 3분 동안 유효해요.</p>':''}`;}
 function mateEmailAction(kind){const form=$('#mate-form');if(!form)return false;const a=captureMate(form,mateApplication());a.fields.email=String(a.fields.email||'').trim().toLowerCase();if(!validEmail(a.fields.email)){toast('올바른 이메일을 입력해 주세요.');return false;}if(kind==='send'){if(mateEmailChallenge&&Date.now()-mateEmailChallenge.sentAt<30000){toast('재전송은 30초 후 가능해요.');return false;}mateEmailChallenge={email:a.fields.email,sentAt:Date.now(),attempts:0};delete a.fields.emailVerified;saveMate(a);render();return true;}const c=mateEmailChallenge;if(!c||c.email!==a.fields.email||Date.now()-c.sentAt>180000||c.attempts>=5){toast('이메일 인증번호를 다시 요청해 주세요.');return false;}c.attempts++;if(a.fields.emailCode!=='482916'){toast('인증번호를 확인해 주세요.');return false;}a.fields.emailVerified=a.fields.email;delete a.fields.emailCode;mateEmailChallenge=null;saveMate(a);render();return true;}
 
 let matePhoneDemo={phone:'',sentAt:0,verified:false,attempts:0};
 const matePhoneDigits=value=>String(value||'').replace(/[^0-9]/g,'');
 function matePhoneVerified(a){return matePhoneDemo.verified&&matePhoneDemo.phone===matePhoneDigits(a.fields.contact);}
-function matePhoneUI(a){const verified=matePhoneVerified(a),sent=matePhoneDemo.sentAt&&matePhoneDemo.phone===matePhoneDigits(a.fields.contact);return `<p class="hint">문자 인증 시연 화면이에요. 실제 문자는 발송되지 않아요.</p>${verified?'':`<button type="button" class="btn secondary" data-action="mate-phone-send">${sent?'인증번호 재전송':'인증번호 받기'}</button>`}${sent&&!verified?`<p class="hint">시연용 인증번호: 123456 · 유효시간 3분 · 재전송은 30초 후 가능해요.</p><label>인증번호 6자리<input id="mate-phone-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6자리 숫자" aria-describedby="mate-phone-status"></label><button type="button" class="btn secondary" data-action="mate-phone-verify">인증번호 확인</button>`:''}<p id="mate-phone-status" role="status" aria-live="polite">${verified?'인증번호 확인이 완료되었어요.':''}</p>`;}
+function matePhoneUI(a){const verified=matePhoneVerified(a),sent=matePhoneDemo.sentAt&&matePhoneDemo.phone===matePhoneDigits(a.fields.contact);return `${verified?'':`<button type="button" class="btn secondary" data-action="mate-phone-send">${sent?'인증번호 재전송':'인증번호 받기'}</button>`}${sent&&!verified?`<p class="hint">인증번호는 3분 동안 유효해요. 30초 후에 다시 받을 수 있어요.</p><label>인증번호 6자리<input id="mate-phone-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6자리 숫자" aria-describedby="mate-phone-status"></label><button type="button" class="btn secondary" data-action="mate-phone-verify">인증번호 확인</button>`:''}<p id="mate-phone-status" role="status" aria-live="polite">${verified?'인증번호 확인이 완료되었어요.':''}</p>`;}
 function matePhoneAction(kind){const form=$('#mate-form');if(!form||isGuest())return;const a=captureMate(form,mateApplication());if(['pending','approved'].includes(a.status))return;if(!validMatePhone(a.fields.contact)){toast('010으로 시작하는 핸드폰 번호를 확인해 주세요.');return;}const phone=matePhoneDigits(a.fields.contact),now=Date.now();if(kind==='send'){if(matePhoneDemo.sentAt&&now-matePhoneDemo.sentAt<30000){toast('재전송은 30초 후 가능해요.');return;}matePhoneDemo={phone,sentAt:now,verified:false,attempts:0};saveMate(a);render();$('#mate-phone-code')?.focus();return;}const message=$('#mate-phone-status'),code=$('#mate-phone-code')?.value||'';if(!message)return;if(phone!==matePhoneDemo.phone||!matePhoneDemo.sentAt){message.textContent='인증번호를 먼저 요청해 주세요.';return;}if(now-matePhoneDemo.sentAt>=180000){message.textContent='인증번호가 만료됐어요. 다시 요청해 주세요.';return;}if(matePhoneDemo.attempts>=5){message.textContent='입력 횟수를 초과했어요. 인증번호를 다시 요청해 주세요.';return;}if(!/^[0-9]{6}$/.test(code)){message.textContent='인증번호 6자리를 입력해 주세요.';return;}matePhoneDemo.attempts++;if(code!=='123456'){message.textContent='인증번호가 일치하지 않아요.';return;}matePhoneDemo.verified=true;saveMate(a);render();}
 function mateRegistration(){
  const a=mateApplication(),step=Math.min(4,Math.max(1,a.step||1));
- if(['pending','approved'].includes(a.status))return `<section class="mate-onboarding rt-card-stack"><section class="card pad rt-status-card rt-card-actions-centered"><span class="rt-status-symbol" aria-hidden="true">${icon(a.status==='approved'?'check':'clock',32)}</span>${a.status==='pending'?`<span class="badge">${mateStatus(a.status)}</span>`:''}<h1>${a.status==='approved'?'메이트 등록이 완료됐어요':'신청서를 검토하고 있어요'}</h1><p>${a.status==='approved'?'이제 메이트 모드에서 여행을 확인하고 제안할 수 있어요.':'관리자가 승인하면 메이트로 활동할 수 있어요!'}</p>${a.status==='approved'?'<button class="btn" data-access-mode="guide">메이트로 활동하기</button>':''}</section><details class="card rt-disclosure-card"><summary><span>제출한 신청서 보기</span>${icon('chevronDown',20)}</summary><div class="rt-disclosure-body">${mateSummary(a)}</div></details>${a.status==='pending'?'<p class="rt-status-note">심사 중에도 여행자 기능은 이용할 수 있어요.</p>':''}</section>`;
+ if(['pending','approved'].includes(a.status))return `<section class="mate-onboarding rt-card-stack">${a.status==='approved'&&a.restrictionReason?`<section class="card pad"><h2>${activitySuspended(a)?'활동 정지 중':'활동 가능'}</h2><p>${esc(a.restrictionReason)}</p>${a.restrictionEndDate?`<p>정지 종료일 · ${esc(a.restrictionEndDate)}</p>`:''}${btn('문의하기','support','secondary')}</section>`:''}${a.revision?`<section class="card pad"><h2>프로필 수정 심사</h2><p>${esc(mateStatus(a.revision.status))}</p><p>${esc(a.revision.reason||'')}</p></section>`:''}<section class="card pad rt-status-card rt-card-actions-centered"><span class="rt-status-symbol" aria-hidden="true">${icon(a.status==='approved'?'check':'clock',32)}</span>${a.status==='pending'?`<span class="badge">${mateStatus(a.status)}</span>`:''}<h1>${a.status==='approved'?'메이트 등록이 완료됐어요':'신청서를 검토하고 있어요'}</h1><p>${a.status==='approved'?'이제 메이트 모드에서 여행을 확인하고 제안할 수 있어요.':'관리자가 승인하면 메이트로 활동할 수 있어요!'}</p>${a.status==='approved'?'<button class="btn" data-access-mode="guide">메이트로 활동하기</button>':''}</section><details class="card rt-disclosure-card"><summary><span>제출한 신청서 보기</span>${icon('chevronDown',20)}</summary><div class="rt-disclosure-body">${mateSummary(a)}</div></details>${a.status==='pending'?'<p class="rt-status-note">심사 중에도 여행자 기능은 이용할 수 있어요.</p>':''}</section>`;
  let body='';
  if(step===1)body=`<h1>어디에서 함께할까요?</h1><div class="mate-field"><span>활동 지역</span><button class="mate-region-trigger" type="button" data-action="mate-region-open">${esc(mateRegionText(a.fields.regions)||'활동 지역 선택')}<span aria-hidden="true">${icon('plus')}</span></button></div><fieldset class="mate-language"><legend>사용 언어</legend><p>사용 가능한 언어를 모두 선택해 주세요.</p><div class="rt-multi-choice-group">${Object.entries(mateLanguages).map(([id,label])=>`<label class="rt-multi-choice"><input type="checkbox" name="languages" value="${id}" ${mateLanguageValues(a.fields.languages).includes(id)?'checked':''}><span>${label}</span></label>`).join('')}</div></fieldset>`;
  if(step===2)body=`${matePhotoEditor(a)}${mateNameField(a)}${mateField(a,'bio','자기소개','class="rt-textarea-large" rows="8" minlength="10" maxlength="1000" placeholder="동네와의 인연, 함께 걷는 스타일, 도와줄 수 있는 일을 자유롭게 소개해 주세요."',true)}`;
@@ -515,17 +794,97 @@ function mateRegistration(){
 function captureMate(f,a){const languageInputs=Array.from(f.elements).filter(el=>el.name==='languages'&&el.type==='checkbox');if(languageInputs.length)a.fields.languages=languageInputs.filter(el=>el.checked).map(el=>el.value);for(const el of f.elements){if(el.name==='languages'&&el.type==='checkbox')continue;if(!el.name||el.type==='file')continue;if(el.type==='radio'){if(el.checked)a.fields[el.name]=el.value;}else a.fields[el.name]=el.type==='checkbox'?el.checked:el.value;}if(a.fields.nameChecked!==normalizeNickname(a.fields.name))delete a.fields.nameChecked;return a;}
 function validMatePhone(value){return /^010[ -]?[0-9]{4}[ -]?[0-9]{4}$/.test(String(value||'').trim());}
 function validMate(a){const f=a.fields;return ['languages','name','bio','contact'].every(k=>String(f[k]||'').trim())&&validMateRegions(f.regions)&&validMateLanguages(f.languages)&&f.name.trim().length>=2&&!mateNameProblem(f.name)&&f.bio.trim().length>=10&&f.bio.length<=1000&&!!f.photo&&validMatePhone(f.contact)&&f.policy&&f.consent&&f.adult&&mateEmailVerified(a);}
-function submitMate(f){const a=mateApplication();if(['pending','approved'].includes(a.status))return;captureMate(f,a);if([3,4].includes(a.step)&&!matePhoneVerified(a)){a.step=3;saveMate(a);render();toast('휴대폰 인증을 완료해 주세요.');return;}if([3,4].includes(a.step)&&!mateEmailVerified(a)){a.step=3;saveMate(a);render();toast('이메일 인증을 완료해 주세요.');return;}if(a.step===3&&!validMatePhone(a.fields.contact)){toast('010으로 시작하는 핸드폰 번호를 확인해 주세요.');return;}if(a.step===1&&(!validMateRegions(a.fields.regions)||!validMateLanguages(a.fields.languages))){toast('활동 지역과 언어를 선택해 주세요.');return;}if(a.step===2&&(!a.fields.photo||!a.fields.name?.trim()||a.fields.name.trim().length<2||!a.fields.bio||a.fields.bio.trim().length<10||a.fields.bio.length>1000)){toast('프로필 사진, 활동 이름, 자기소개를 모두 입력해 주세요.');return;}if(a.step===2||a.step===4){const problem=mateNameProblem(a.fields.name);if(problem){toast(problem);return;}if(a.fields.nameChecked!==normalizeNickname(a.fields.name)){toast('닉네임 중복 확인을 먼저 해주세요.');return;}}if(a.step===4){if(!validMate(a)){toast('필수 정보를 확인해 주세요.');return;}a.status='pending';a.submittedAt=new Date().toISOString();a.reason='';}else a.step=(a.step||0)+1;if(saveMate(a)){render();resetMateScroll();}}
-function activityRestrictionForm(a){return `<form id="activity-restriction-form" class="card pad"><div class="sectionhead"><h2>메이트 활동 제한</h2><span class="badge ${a.activityRestricted?'warm':''}">${a.activityRestricted?'현재 활동 제한 중':'현재 활동 가능'}</span></div><p>신고 내용과 사실관계를 확인한 뒤, 활동을 제한해야 할 때 설정해 주세요. 긴급한 안전 문제가 있다면 조사 중에도 임시로 제한할 수 있어요.</p><label class="check"><input name="restricted" type="checkbox" aria-describedby="restriction-help" ${a.activityRestricted?'checked':''}>새로운 여행 제안과 예약 확정을 제한합니다</label><p id="restriction-help" class="hint">체크하면 새로운 여행에 제안하거나 예약을 확정할 수 없어요. 제한을 해제하려면 체크를 해제해 주세요. 변경 사항은 아래 저장 버튼을 누르면 적용됩니다.</p><label for="restriction-reason">제한 또는 해제 사유 <span class="hint">(필수)</span></label><textarea id="restriction-reason" name="reason" required maxlength="1000" rows="4" aria-describedby="restriction-reason-help" placeholder="예: 안전 관련 신고가 접수되어 사실관계 확인 중 임시 제한합니다.&#10;해제 시: 확인 결과와 활동을 다시 허용하는 이유를 적어 주세요.">${esc(a.restrictionReason||'')}</textarea><p id="restriction-reason-help" class="hint">확인한 사실과 판단 근거를 적어 주세요. 제한을 해제할 때도 기존 사유를 해제 이유로 수정해 주세요.</p><div class="notice"><strong>기존 예약은 자동으로 취소되지 않아요.</strong><p>예약별로 안전과 진행 가능 여부를 확인한 뒤 여행자와 메이트 양쪽에 안내해 주세요. 제한·해제 사유는 별도 이메일로 안내해 주세요. 이 화면에서는 이메일이 발송되지 않아요.</p></div><div class="buttons"><button class="btn" type="submit">활동 제한 설정 저장</button></div></form>`;}
-
+function submitMate(f){const a=mateApplication();if(['pending','approved'].includes(a.status))return;captureMate(f,a);if([3,4].includes(a.step)&&!matePhoneVerified(a)){a.step=3;saveMate(a);render();toast('휴대폰 인증을 완료해 주세요.');return;}if([3,4].includes(a.step)&&!mateEmailVerified(a)){a.step=3;saveMate(a);render();toast('이메일 인증을 완료해 주세요.');return;}if(a.step===3&&!validMatePhone(a.fields.contact)){toast('010으로 시작하는 핸드폰 번호를 확인해 주세요.');return;}if(a.step===1&&(!validMateRegions(a.fields.regions)||!validMateLanguages(a.fields.languages))){toast('활동 지역과 언어를 선택해 주세요.');return;}if(a.step===2&&(!a.fields.photo||!a.fields.name?.trim()||a.fields.name.trim().length<2||!a.fields.bio||a.fields.bio.trim().length<10||a.fields.bio.length>1000)){toast('프로필 사진, 활동 이름, 자기소개를 모두 입력해 주세요.');return;}if(a.step===2||a.step===4){const problem=mateNameProblem(a.fields.name);if(problem){toast(problem);return;}if(a.fields.nameChecked!==normalizeNickname(a.fields.name)){toast('닉네임 중복 확인을 먼저 해주세요.');return;}}if(a.step===4){if(!validMate(a)){toast('필수 정보를 확인해 주세요.');return;}a.status='pending';a.firstSubmittedAt||=a.submittedAt||new Date().toISOString();a.submittedAt=new Date().toISOString();(a.submissionHistory||=[]).push({at:a.submittedAt,kind:'new'});a.reason='';}else a.step=(a.step||0)+1;if(saveMate(a)){render();resetMateScroll();}}
+function suspensionDeadline(endDate){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(endDate))return NaN;
+ const midnight=Date.parse(endDate+'T00:00:00Z');
+ if(!Number.isFinite(midnight)||new Date(midnight).toISOString().slice(0,10)!==endDate)return NaN;
+ // Seoul midnight after the inclusive end date is 15:00 UTC on that date.
+ return midnight+15*3600000;
+}
+function activitySuspended(a,now=Date.now()){
+ if(!a?.activityRestricted)return false;
+ const deadline=suspensionDeadline(a.restrictionEndDate);
+ return !Number.isFinite(deadline)||now<deadline;
+}
+let suspensionRefreshTimer;
+function scheduleSuspensionRefresh(){
+ clearTimeout(suspensionRefreshTimer);
+ const now=Date.now();
+ const profiles=[mateApplication()];
+ if(window.ReelAccess.isAdmin)profiles.push(...(state.adminMateSamples||[]));
+ const deadlines=profiles.filter(a=>a.activityRestricted).map(a=>suspensionDeadline(a.restrictionEndDate)).filter(end=>end>now);
+ if(deadlines.length)suspensionRefreshTimer=setTimeout(render,Math.min(Math.min(...deadlines)-now,2147483647));
+}
+function suspensionButton(a){
+ const release=activitySuspended(a);
+ const text=release?'정지 해제':'메이트 활동 정지';
+ return `<button class="btn ${release?'secondary':'rt-danger-outline'}" type="button" data-action="mate-suspension">${icon(release?'check':'lock',16)}${text}</button>`;
+}
+function suspensionHeader(heading,back,button){
+ return `<header class="rt-admin-detail-toolbar"><h1>${heading}</h1><div class="buttons">${back}${button}</div></header>`;
+}
+function openSuspensionDialog(fromReport){
+ if(!window.ReelAccess.isAdmin)return;
+ const record=adminQuery().get('record');
+ const r=fromReport&&adminSafetyRecords().reports.find(item=>reportRecord(item)===record);
+ const profile=fromReport?(r&&reportedMate(r)?.application):adminReviewApplication(record);
+ if(profile?.status!=='approved'||(fromReport&&(reportResolution(r)||activitySuspended(profile))))return;
+ const release=activitySuspended(profile),label=release?'정지 해제':'메이트 활동 정지';
+ const today=new Date(Date.now()+9*3600000).toISOString().slice(0,10);
+ modal(`<form id="${fromReport?'confirm-report-restriction':'activity-restriction-form'}">
+  <header class="sectionhead"><h2>${label}</h2><button class="iconbtn" type="button" data-action="close" aria-label="닫기">${icon('close',18)}</button></header>
+  <p><strong>${esc(fromReport?r.targetName||r.target:profile.fields?.name)}</strong> · ${release?'새 제안과 예약 확정을 다시 허용합니다.':'새 여행 제안과 예약 확정이 중단됩니다. 기존 확정 예약은 유지됩니다.'}</p>
+  <input type="hidden" name="transition" value="${release?'release':'restrict'}"><input type="hidden" name="record" value="${esc(record)}">
+  <label>${release?'해제 사유':'정지 사유'}<textarea name="note" required maxlength="1000" rows="3" placeholder="${release?'해제 사유를 입력해 주세요.':'정지 사유를 입력해 주세요.'}"></textarea></label>
+  ${release?'':`<label>정지 종료일 <span class="hint">(필수)</span><input type="date" name="endDate" required min="${today}"></label><p class="hint">선택한 날까지 정지되며 다음 날 0시(한국시간)에 자동 해제됩니다.</p>`}
+  <div class="buttons"><button type="button" class="btn secondary" data-action="close">취소</button><button type="submit" class="btn ${release?'':'danger'}">${release?'해제하기':fromReport?'정지하고 신고 종결':'정지하기'}</button></div></form>`);
+}
+function changeActivityRestriction(record,transition,reason,source={}){
+ if(!window.ReelAccess.isAdmin||!['release','restrict'].includes(transition))return false;
+ const a=source.profile?.application||adminReviewApplication(record),restricted=transition==='restrict';
+ reason=String(reason||'').trim();
+ if(a?.status!=='approved'||restricted===activitySuspended(a)||!reason||reason.length>1000)return false;
+ const deadline=suspensionDeadline(source.endDate);
+ if(restricted&&(!Number.isFinite(deadline)||deadline<=Date.now()))return false;
+ const history=Array.isArray(a.restrictionHistory)?a.restrictionHistory.slice():[];
+ if(!history.length&&a.restrictionReason)history.push({restricted:!!a.activityRestricted,reason:a.restrictionReason,at:a.restrictionUpdatedAt||null});
+ const at=Date.now();
+ history.push({restricted,reason,at,...(restricted?{endDate:source.endDate}:{}),...(source.report?{report:source.report}:{})});
+ Object.assign(a,{activityRestricted:restricted,restrictionReason:reason,restrictionUpdatedAt:at,restrictionEndDate:restricted?source.endDate:null,restrictionHistory:history});
+ if(source.profile?.storeKey){
+  const {storeKey,stored}=source.profile;
+  try{localStorage.setItem(storeKey,JSON.stringify(stored));}catch{return false;}
+  if(storeKey===key)state.adminMateSamples=stored.adminMateSamples;
+  return true;
+ }
+ return saveAdminApplication(a,record,restricted?'restricted':null);
+}
 function adminApplications(){const main=mateApplication();return [...(main.status!=='draft'?[{id:'application',application:main}]:[]),...(state.adminMateSamples||[]).map(application=>({id:application.id,application}))];}
 function adminReviewApplication(id='application'){return id==='application'?mateApplication():(state.adminMateSamples||[]).find(a=>a.id===id);}
-function saveAdminApplication(a,id){if(id==='application')return saveMate(a);save();return true;}
-function mateAdmin(){const q=adminQuery();const selected=adminApplications().find(x=>x.id===q.get('record'));if(q.has('record'))return selected?mateAdminDetail(selected.application):side('admin',`${title('','신청서를 찾을 수 없어요.','',adminBack('admin-guides'))}`);const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=adminApplications().filter(({application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return (!status||a.status===status)&&[f.name,f.email,f.region,mateRegionText(f.regions||[])].join(' ').toLowerCase().includes(query);});return side('admin',`${title('','메이트 관리','신청 목록에서 상세 내용을 확인하고 심사하세요.')}${adminFilter('admin-guides','활동 이름, 이메일 또는 지역 입력',[['pending','심사 대기'],['needs_info','보완 요청'],['rejected','승인 거절'],['approved','등록 완료']])}<section class="card rt-admin-panel"><div class="rt-admin-panel-head"><h2>신청 목록 <span>${rows.length}</span></h2></div><div class="tablewrap"><table><thead><tr><th>활동 이름</th><th>신청 구분</th><th>활동 지역</th><th>접수일</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows.map(({id,application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return `<tr><td><strong>${esc(f.name||'—')}</strong></td><td>${base.revision?'재심사':'신규'}</td><td>${esc(mateRegionText(f.regions||[])||f.region||'—')}</td><td>${adminDate(a.submittedAt)}</td><td><span class="badge rt-status-badge" data-status="${esc(a.status)}">${mateStatus(a.status)}</span></td><td><a class="textbtn" href="${adminRecordLink('admin-guides',id)}">상세 검토</a></td></tr>`;}).join('')||'<tr><td colspan="6" class="rt-admin-empty">조건에 맞는 신청서가 없습니다.</td></tr>'}</tbody></table></div></section>`);}
-function adminMateSummary(a){const f=a.fields||{},rows=[['신청 상태',mateStatus(a.status)],['접수일',adminDate(a.submittedAt)],['활동 지역',mateRegionText(f.regions||[])||f.region],['사용 언어',mateLanguageText(f.languages)],['이메일',f.email,true],['핸드폰 번호',f.contact,true],['자기소개',mateBio(f),true]];return `<section class="rt-admin-info"><header class="rt-admin-info-heading"><h2>메이트 정보</h2><span class="badge rt-status-badge" data-status="${esc(a.status)}">${mateStatus(a.status)}</span></header><div class="rt-admin-info-identity"><span class="my-avatar">${profileAvatar(f.photo||'')}</span><strong>${esc(f.name||'—')}</strong></div><dl class="rt-admin-info-grid">${rows.map(([label,value,wide])=>`<div class="rt-admin-info-row${wide?' rt-admin-info-row--wide':''}"><dt>${label}</dt><dd>${esc(value||'—')}</dd></div>`).join('')}</dl></section>`;}
-function mateAdminDetail(base=mateApplication()){const a=base.revision?{...base,...base.revision}:base;return side('admin',`<div class="rt-admin-detail">${title('메이트 등록 심사','신청서 검토','',adminBack('admin-guides'))}${base.status==='approved'?activityRestrictionForm(base):''}<section class="card pad rt-admin-panel">${a.status==='draft'?'<p>제출된 신청서가 없어요.</p>':`${adminMateSummary(a)}${a.reason?`<p class="notice">${esc(a.reason)}</p>`:''}${a.status==='pending'?`<form id="mate-review-form" class="rt-admin-review-form"><div class="buttons"><button class="btn" type="submit">승인 · 메이트 등록 완료</button><button class="btn secondary" type="button" data-action="mate-review" data-id="needs_info">보완 요청</button><button class="btn secondary" type="button" data-action="mate-review" data-id="rejected">거절</button></div></form>`:''}`}</section></div>`);}
+function saveAdminApplication(a,id,notice){
+ if(id==='application'){if(notice)recordApplicationNotice(a,notice);return saveMate(a);}
+ return saveOperationsRecord();
+}
+function compareApplications(left,right){
+ const priority={pending:0,needs_info:1,approved:2,rejected:2};
+ const a=left.application.revision||left.application,b=right.application.revision||right.application;
+ const timestamp=value=>value==null||!Number.isFinite(new Date(value).getTime())?-Infinity:new Date(value).getTime();
+ return (priority[a.status]??3)-(priority[b.status]??3)||timestamp(b.submittedAt)-timestamp(a.submittedAt)||String(left.id).localeCompare(String(right.id),'en');
+}
+function applicationPages(query,page,total){
+ if(total<2)return '';
+ const link=(number,label)=>{const params=new URLSearchParams(query);params.set('page',number);return `<a class="btn secondary small" href="#admin-guides?${esc(params.toString())}">${label}</a>`;};
+ return `<nav class="rt-card-actions" aria-label="페이지 이동">${page>1?link(page-1,'이전'):''}<span>${page} / ${total}</span>${page<total?link(page+1,'다음'):''}</nav>`;
+}
+function mateAdmin(){const q=adminQuery();const selected=adminApplications().find(x=>x.id===q.get('record'));if(q.has('record'))return selected?mateAdminDetail(selected.application):side('admin',`${title('','신청서를 찾을 수 없어요.','',adminBack('admin-guides'))}`);const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=adminApplications().filter(({application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return (!status||a.status===status)&&[f.name,f.email,f.region,mateRegionText(f.regions||[])].join(' ').toLowerCase().includes(query)&&a.status!=='draft';}).sort(compareApplications);const pages=Math.max(1,Math.ceil(rows.length/20)),page=Math.min(pages,Math.max(1,parseInt(q.get('page'),10)||1));return side('admin',`${title('','메이트 관리','메이트 등록 신청을 심사하고 승인된 메이트의 활동을 제한하거나 해제하세요.')}${adminFilter('admin-guides','활동 이름, 이메일 또는 지역 입력',[['pending','심사 대기'],['needs_info','보완 요청'],['rejected','승인 거절'],['approved','등록 완료']])}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>메이트 목록</h2></div><div class="tablewrap"><table><thead><tr><th scope="col">활동 이름</th><th scope="col">신청 구분</th><th scope="col">활동 지역</th><th scope="col">접수일</th><th scope="col">상태</th><th scope="col" class="rt-admin-manage">관리</th></tr></thead><tbody>${rows.slice((page-1)*20,page*20).map(({id,application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return `<tr><td><strong>${esc(f.name||'—')}</strong></td><td>${base.revision||base.lastApprovedRevisionAt?'재심사':'신규'}</td><td>${esc(mateRegionText(f.regions||[])||f.region||'—')}</td><td>${adminDate(a.submittedAt)}</td><td><span class="badge rt-status-badge" data-status="${esc(a.status)}">${activitySuspended(base)?'활동 정지 중':mateStatus(a.status)}</span></td>${adminDetailCell('admin-guides',id,f.name)}</tr>`;}).join('')||'<tr><td colspan="6" class="rt-admin-empty">조건에 맞는 신청서가 없습니다.</td></tr>'}</tbody></table></div>${applicationPages(q,page,pages)}</section>`);}
+function adminMateSummary(a){
+ const f=a.fields||{},rows=[['접수일',adminDate(a.submittedAt)],['활동 지역',mateRegionText(f.regions||[])||f.region],['사용 언어',mateLanguageText(f.languages)],['핸드폰 번호',f.contact],['이메일',f.email,true],['자기소개',mateBio(f),true]];
+ return `<section class="rt-admin-info"><header class="rt-admin-info-heading"><h2>메이트 정보</h2><span class="badge rt-status-badge" data-status="${esc(a.status)}">${mateStatus(a.status)}</span></header><div class="rt-admin-info-identity"><span class="my-avatar">${profileAvatar(f.photo||'')}</span><strong>${esc(f.name||'—')}</strong></div>${adminFacts(rows)}</section>`;
+}
+function mateAdminDetail(base=mateApplication()){const a=base.revision?{...base,...base.revision}:base;return side('admin',`<div class="rt-admin-detail">${suspensionHeader(base.status==='approved'&&!base.revision?'메이트 상세':'신청서 검토',adminBack('admin-guides'),base.status==='approved'?suspensionButton(base):'')}<section class="card pad rt-admin-panel">${a.status==='draft'?'<p>제출된 신청서가 없어요.</p>':`${adminMateSummary(a)}${base.status==='approved'&&base.restrictionReason?`<div class="notice"><strong>${activitySuspended(base)?'활동 정지 중':'활동 가능'}</strong><p>${esc(base.restrictionReason)}</p>${base.restrictionEndDate?`<p>정지 종료일 · ${esc(base.restrictionEndDate)}</p>`:''}</div>`:''}${a.reason?`<div class="rt-admin-narrative"><h3>심사 사유</h3><p>${esc(a.reason)}</p></div>`:''}${a.status==='pending'?`<form id="mate-review-form" class="rt-admin-review-form"><h3>신청 심사</h3><div class="buttons"><button class="btn" type="submit">승인 · 메이트 등록 완료</button><button class="btn secondary" type="button" data-action="mate-review" data-id="needs_info">보완 요청</button><button class="btn secondary" type="button" data-action="mate-review" data-id="rejected">거절</button></div></form>`:''}`}</section></div>`);}
 function confirmMateReview(status){if(!window.ReelAccess.isAdmin||!['approved','needs_info','rejected'].includes(status))return;const record=adminQuery().get('record')||'application',a=adminReviewApplication(record);if(!a||(a.revision?.status||a.status)!=='pending')return;const label=({approved:'승인',rejected:'거절',needs_info:'보완 요청'})[status];modal(`<form id="mate-review-confirm-form"><h2>신청 ${label}</h2><p>${esc((a.revision?.fields||a.fields).name)}님의 신청을 ${label}하시겠어요?</p><input type="hidden" name="record" value="${esc(record)}"><input type="hidden" name="decision" value="${status}">${status==='approved'?'':`<label>사유<textarea name="reason" required maxlength="1000" placeholder="신청자에게 안내할 구체적인 사유를 입력해 주세요."></textarea></label>`}<p class="error" id="mate-review-confirm-error" role="alert"></p><div class="buttons">${action('취소','close','secondary')}<button class="btn" type="submit">${label}</button></div></form>`);}
-function reviewMate(status,reason='',record='application'){if(!window.ReelAccess.isAdmin||!['approved','needs_info','rejected'].includes(status))return false;const a=adminReviewApplication(record);if(!a)return false;if(a.revision){if(a.revision.status!=='pending'||!['approved','needs_info','rejected'].includes(status))return false;if(status!=='approved'&&!reason.trim())return false;if(status==='approved'){if(a.revision.fields.name!==a.fields.name&&mateNameProblem(a.revision.fields.name)){toast('활동 이름 중복을 다시 확인해 주세요.');return false;}a.fields=a.revision.fields;delete a.revision;}else{a.revision.status=status;a.revision.reason=reason.trim();a.revision.reviewedAt=Date.now();}return saveAdminApplication(a,record);}if(a.status!=='pending')return false;if(status!=='approved'&&!reason.trim()){toast('보완·거절 사유를 입력해 주세요.');return false;}a.status=status;a.reason=reason.trim();a.reviewedAt=new Date().toISOString();return saveAdminApplication(a,record);}
+function reviewMate(status,reason='',record='application'){if(!window.ReelAccess.isAdmin||!['approved','needs_info','rejected'].includes(status))return false;const a=adminReviewApplication(record);if(!a)return false;if(a.revision){if(a.revision.status!=='pending'||!['approved','needs_info','rejected'].includes(status))return false;if(status!=='approved'&&!reason.trim())return false;if(status==='approved'){if(a.revision.fields.name!==a.fields.name&&mateNameProblem(a.revision.fields.name)){toast('활동 이름 중복을 다시 확인해 주세요.');return false;}a.fields=a.revision.fields;a.firstSubmittedAt||=a.submittedAt;a.submittedAt=a.revision.submittedAt;a.lastApprovedRevisionAt=new Date().toISOString();delete a.revision;}else{a.revision.status=status;a.revision.reason=reason.trim();a.revision.reviewedAt=Date.now();}return saveAdminApplication(a,record,status);}if(a.status!=='pending')return false;if(status!=='approved'&&!reason.trim()){toast('보완·거절 사유를 입력해 주세요.');return false;}a.status=status;a.reason=reason.trim();a.reviewedAt=new Date().toISOString();return saveAdminApplication(a,record,status);}
 
 // Approved mate edits stay in memory until explicit save.
 let mateEditDraft=null,mateEditSection='profile',mateEditPhotoLoading=false;
@@ -551,7 +910,7 @@ function saveMateEdit(form){
  if(problem){$('#mate-edit-error').textContent=problem;return;}
  const keys=mateEditSection==='profile'?['name','nameChecked','photo','bio']:['specialty','regions','languages'];
  const revised=JSON.parse(JSON.stringify(current.revision?.fields||current.fields));for(const key of keys)revised[key]=f[key];
- if(mateEditSection==='activity'){revised.region=mateRegionText(f.regions);delete revised.range;}current.revision={status:'pending',fields:revised,submittedAt:Date.now(),reason:''};
+ if(mateEditSection==='activity'){revised.region=mateRegionText(f.regions);delete revised.range;}current.revision={status:'pending',fields:revised,submittedAt:Date.now(),reason:''};(current.submissionHistory||=[]).push({at:current.revision.submittedAt,kind:'revision'});
  if(saveMate(current)){mateEditDraft=null;$('#dialog').close();render();toast('수정 심사를 요청했어요. 승인 전까지 기존 정보로 활동해요.');}
 }
 function readMateEditPhoto(input){
@@ -577,13 +936,13 @@ function account(){
 function withdrawalKeys(){return ['ko','en'].flatMap(lang=>['', '-comparison'].map(suffix=>`reeltrip-demo-${lang}-map-v2-option-2${suffix}`));}
 function withdrawalBlocked(){
  const records=[state,...withdrawalKeys().map(k=>JSON.parse(localStorage.getItem(k)||'null')).filter(Boolean)];
- return records.some(record=>[record.booking,...(record.bookingHistory||[]),...(record.matchingContexts||[]).map(x=>x.booking)].some(b=>b&&(!['completed','cancelled'].includes(b.status)||(ownsMateBooking(b)&&pendingRefund(b))||b.disputeStatus==='open')));
+ return records.some(record=>[record.booking,...(record.bookingHistory||[]),...(record.matchingContexts||[]).map(x=>x.booking)].some(b=>b&&!isOperationsSample(b)&&(!['completed','cancelled'].includes(b.status)||(ownsMateBooking(b)&&pendingRefund(b))||b.disputeStatus==='open')));
 }
 function withdrawalDialog(){
  if(isGuest()||window.ReelAccess.isAdmin)return;
  try{if(withdrawalBlocked()){modal(`<h2>진행 중인 예약이 있어요</h2><p>진행 중인 예약, 본인의 수수료 반환 또는 예약 분쟁 처리가 끝난 뒤 탈퇴할 수 있어요.</p><div class="buttons">${action('닫기','close','secondary')}${action('도움말·문의','withdrawal-support')}</div>`);return;}}
  catch{toast('저장 정보를 확인하지 못했어요. 다시 시도해 주세요.');return;}
- modal(`<form id="withdraw-account-form"><h2>회원 탈퇴</h2><p>탈퇴하면 여행자·메이트 활동을 모두 종료해요.</p><ul><li>프로필, 저장한 장소, 여행 일정, 요청·제안, 채팅·문의 기록을 삭제해요.</li><li>메이트 신청 정보와 활동 권한도 삭제해요.</li><li>한국어·영어 앱의 저장 정보가 함께 삭제되며 복구할 수 없어요.</li></ul><p class="hint">시제품에서는 이 브라우저의 정보만 삭제돼요.</p><label><input type="checkbox" name="agree" required> 삭제 내용을 확인했고 회원 탈퇴에 동의해요.</label><p id="withdraw-account-error" class="error" role="alert"></p><div class="buttons">${action('취소','close','secondary')}<button type="submit" class="btn danger">탈퇴하기</button></div></form>`);
+ modal(`<form id="withdraw-account-form"><h2>회원 탈퇴</h2><p>탈퇴하면 여행자·메이트 활동을 모두 종료해요.</p><ul><li>프로필, 저장한 장소, 여행 일정, 요청·제안, 채팅·문의 기록을 삭제해요.</li><li>메이트 신청 정보와 활동 권한도 삭제해요.</li><li>삭제된 정보는 복구할 수 없어요.</li></ul><label><input type="checkbox" name="agree" required> 삭제 내용을 확인했고 회원 탈퇴에 동의해요.</label><p id="withdraw-account-error" class="error" role="alert"></p><div class="buttons">${action('취소','close','secondary')}<button type="submit" class="btn danger">탈퇴하기</button></div></form>`);
 }
 function withdrawAccount(form){
  if(isGuest()||window.ReelAccess.isAdmin||!form.elements.agree.checked)return;
@@ -598,7 +957,7 @@ function withdrawAccount(form){
  }catch{error.textContent='탈퇴 처리를 완료하지 못했어요. 다시 시도해 주세요.';return;}
  clearTimeout(timer);previewMember=false;signupMarketing=false;state=initial();window.ReelAccess.reset();
  pendingRestaurant=null;pendingEstimate=false;pendingRequestRoute=null;pendingRecommendation=null;profileDraftPhoto='';checkedNickname='';
- $('#dialog').close();go('home');render();toast('이 브라우저의 회원 정보가 삭제됐어요.');
+ $('#dialog').close();go('home');render();toast('회원 탈퇴가 완료됐어요.');
 }
 
 // Shared across website languages; browser-local until account APIs are connected.
@@ -614,22 +973,79 @@ function settingsPage(){return `<section class="settings-page">${window.ReelAcce
 
 
 let supportFiles=[],supportLocation=null,supportFilesLoading=false,supportEvidenceVersion=0;
-function supportEvidenceFields(){return `<label>답변받을 이메일<input type="email" name="email" required maxlength="254" value="${esc(mateApplication().fields.email||state.accountEmail?.address||'')}"></label><label>실제 합의한 장소·시각 (노쇼 문의 시)<input name="meeting" maxlength="200"></label><div id="support-no-show" hidden><label class="check"><input type="checkbox" name="waited">무응답은 30분 대기·채팅 연락 2회 이상, 지각 연락 후에는 60분 대기했으며 아직 만나지 못했습니다.</label></div><label>확인 자료 (선택 · JPG/PNG/WebP/PDF, 최대 3개, 각 1MB)<input type="file" id="support-files" multiple accept="image/jpeg,image/png,image/webp,application/pdf"></label><p id="support-files-status" role="status"></p><button type="button" class="btn secondary" data-action="support-location">노쇼 접수 시 현재 위치 첨부</button><p id="support-location-status" role="status"></p><p class="hint">노쇼 문의에는 약속 장소·시각과 연락 기록을 남겨 주세요.</p><p class="hint">문의는 이 브라우저에만 저장돼요.</p>`;}
-async function readSupportFiles(input){const version=++supportEvidenceVersion;supportFiles=[];const files=Array.from(input.files||[]),status=$('#support-files-status');if(files.length>3||files.some(f=>!['image/jpeg','image/png','image/webp','application/pdf'].includes(f.type)||f.size>1048576)){status.textContent='파일 형식·크기·개수를 확인해 주세요.';input.value='';return;}supportFilesLoading=true;try{const loaded=await Promise.all(files.map(f=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:f.name,type:f.type,data:r.result});r.onerror=reject;r.readAsDataURL(f);})));if(version!==supportEvidenceVersion)return;supportFiles=loaded;status.textContent='확인 자료를 준비했어요.';}catch{supportFiles=[];status.textContent='파일을 불러오지 못했어요.';}finally{supportFilesLoading=false;}}
-function captureSupportLocation(){const output=$('#support-location-status');supportLocation=null;if(!window.navigator?.geolocation){output.textContent='위치를 확인하지 못했어요. 자료를 첨부해 주세요.';return;}output.textContent='위치를 확인하고 있어요.';window.navigator.geolocation.getCurrentPosition(p=>{if(output!==$('#support-location-status'))return;supportLocation={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,at:Date.now()};output.textContent='현재 위치를 첨부했어요.';},()=>{output.textContent='위치를 확인하지 못했어요. 자료를 첨부해 주세요.';},{enableHighAccuracy:true,timeout:10000,maximumAge:0});}
-function storeSupport(d){const body=String(d.body||'').trim();if(supportFilesLoading||!validEmail(d.email)||body.length<10||body.length>1000)return false;if(['no_show','late_no_show'].includes(d.type)&&(!d.waited||!String(d.meeting||'').trim()||(!supportLocation&&!supportFiles.length))){toast('합의한 장소·시각, 대기 확인과 위치 또는 자료를 확인해 주세요.');return false;}const ticket={id:'TK-'+Date.now(),type:d.type,body,email:String(d.email).trim(),meeting:String(d.meeting||'').trim(),waited:!!d.waited,attachments:supportFiles,location:supportLocation,actorRole:window.ReelAccess.mode(),createdAt:Date.now(),status:'open'};state.tickets.push(ticket);try{stashMatching();localStorage.setItem(key,JSON.stringify(state));}catch{state.tickets.pop();toast('저장하지 못했어요. 첨부 자료 크기를 줄여 다시 시도해 주세요.');return false;}supportFiles=[];supportLocation=null;return true;}
-function supportTicketCard(t){const attachments=(t.attachments||[]).filter(f=>/^data:(image\/(jpeg|png|webp)|application\/pdf);base64,/.test(f.data||''));return `<form class="card pad" id="operations-ticket-form-${esc(t.id)}"><input type="hidden" name="ticketId" value="${esc(t.id)}"><h3>${esc(t.id)} · ${esc(({no_show:'여행자 노쇼 · 30분 무응답',late_no_show:'지각 연락 후 60분 초과'})[t.type]||t.type)}</h3><p>${esc(t.body)}</p><p>${esc(t.email||'')} · ${esc(t.meeting||'')}</p>${t.location?`<p>${esc(t.location.lat)}, ${esc(t.location.lng)} · ±${esc(t.location.accuracy)}m · ${esc(chatTime(t.location.at))}</p>`:''}${attachments.map(f=>`<a class="btn secondary small" href="${esc(f.data)}" download="${esc(f.name)}">${esc(f.name)}</a>`).join('')}<label>처리 상태<select name="status">${['open','review','needs_info','resolved'].map(v=>`<option value="${v}" ${t.status===v?'selected':''}>${esc(({open:'접수',review:'검토 중',needs_info:'보완 요청',resolved:'처리 완료'})[v])}</option>`).join('')}</select></label><label>내부 처리 메모<textarea name="note" maxlength="1000" required>${esc(t.note||'')}</textarea></label><p class="hint">답변은 별도 이메일로 보내 주세요. 이 화면은 발송하지 않아요.</p><button type="submit" class="btn">처리 기록 저장</button></form>`;}
+function supportEvidenceFields(){return `
+  <fieldset id="support-no-show" hidden disabled>
+   <legend>약속 확인</legend>
+   <label>약속 장소와 시각<input name="meeting" maxlength="200" required placeholder="예: 성수역 3번 출구, 오후 1시"></label>
+   <label class="check"><input type="checkbox" name="waited" required><span id="support-wait-label"></span></label>
+   <p class="hint">현재 위치 또는 확인 자료를 하나 이상 첨부해 주세요.</p>
+   <button type="button" class="btn secondary small" data-action="support-location">현재 위치 첨부</button>
+   <p id="support-location-status" role="status"></p>
+  </fieldset>
+  <details class="support-files"><summary>파일 첨부</summary>
+   <label>JPG, PNG, WebP, PDF · 최대 3개, 각 1MB<input type="file" id="support-files" multiple accept="image/jpeg,image/png,image/webp,application/pdf"></label>
+   <p id="support-files-status" role="status"></p>
+  </details>`;}
 
-function support(){const query=new URLSearchParams(location.hash.split('?')[1]||'').get('placeQuery')||'';return `<div class="centerbox">${title('도움말','무엇을 도와드릴까요?','')}<div class="card pad"><h2 class="support-group-title">자주 묻는 질문</h2><details><summary>한글 이름을 몰라도 장소를 찾을 수 있나요?</summary><p class="muted small">공개 영상 링크에서 장소를 찾아요. 검색 결과의 주소를 확인해 주세요.</p></details><details style="margin-top:16px"><summary>${guided?'메이트가 식당 예약까지 해주나요?':'장소를 저장하면 식당도 예약되나요?'}</summary><p class="muted small">${guided?'장소 선택이나 메이트 요청만으로 식당이 예약되지는 않아요. 필요한 도움을 요청서에 적고, 메이트의 최종 제안에 포함된 범위를 확인해 주세요.':'장소 저장은 방문 계획을 정리하는 기능이에요. 식당 예약·주문 통역은 제공하지 않아요. 방문 조건과 예약 방법은 해당 매장에 별도로 확인해 주세요.'}</p></details><details style="margin-top:16px"><summary>장소를 찾지 못한 이유는 무엇인가요?</summary><p class="muted small">공개 링크로 다시 시도하거나 장소를 직접 추가해 주세요.</p></details></div><form id="support-form" class="card pad" style="margin-top:20px"><h2 class="support-group-title">직접 문의 작성</h2>${supportEvidenceFields()}<label>문의 유형<select name="type" id="support-type"><option>장소·추출 오류</option><option>데이터·개인정보 요청</option>${guided?'<option>예약·환불</option><option>메이트 지각</option><option value="no_show">여행자 노쇼 · 30분 무응답</option><option value="late_no_show">지각 연락 후 60분 초과</option><option>악천후·사고·질병</option>':''}<option>기타 의견</option></select></label><label style="margin-top:17px">문의 내용<textarea name="body" minlength="10" maxlength="1000" required placeholder="어느 장소나 단계에서 막혔나요? 한국어로 직접 쓰기 어렵다면 사용 중인 언어로 남겨주세요. (10자 이상)">${query?esc(`장소 검색 문의: ${query}\n찾으시는 장소의 지역이나 주소를 추가로 알려주세요.`):''}</textarea></label><div class="rt-detail-actions"><button type="submit" class="btn">문의 저장</button></div></form></div>`;}
+async function readSupportFiles(input){const version=++supportEvidenceVersion;supportFiles=[];supportFilesLoading=false;const files=Array.from(input.files||[]),status=$('#support-files-status');if(files.length>3||files.some(f=>!['image/jpeg','image/png','image/webp','application/pdf'].includes(f.type)||f.size>1048576)){status.textContent='파일 형식·크기·개수를 확인해 주세요.';input.value='';return;}supportFilesLoading=true;try{const loaded=await Promise.all(files.map(f=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:f.name,type:f.type,data:r.result});r.onerror=reject;r.readAsDataURL(f);})));if(version!==supportEvidenceVersion)return;supportFiles=loaded;status.textContent='확인 자료를 준비했어요.';}catch{if(version===supportEvidenceVersion){supportFiles=[];status.textContent='파일을 불러오지 못했어요.';}}finally{if(version===supportEvidenceVersion)supportFilesLoading=false;}}
+function captureSupportLocation(){const output=$('#support-location-status');supportLocation=null;if(!window.navigator?.geolocation){output.textContent='위치를 확인하지 못했어요. 자료를 첨부해 주세요.';return;}output.textContent='위치를 확인하고 있어요.';window.navigator.geolocation.getCurrentPosition(p=>{if(output!==$('#support-location-status')||$('#support-no-show').disabled)return;supportLocation={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,at:Date.now()};output.textContent='현재 위치를 첨부했어요.';},()=>{output.textContent='위치를 확인하지 못했어요. 자료를 첨부해 주세요.';},{enableHighAccuracy:true,timeout:10000,maximumAge:0});}
+function refundIncidentRange(){
+ const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+ return {first:dateAfter(today,-7),today};
+}
+function storeSupport(d){const refund=d.type==='fee_refund';if(refund&&!['no_show','late_no_show','disruption','other'].includes(d.refundReason))return false;if(refund){const {first,today}=refundIncidentRange();if(!/^\d{4}-\d{2}-\d{2}$/.test(d.incidentDate||'')||d.incidentDate<first||d.incidentDate>today||dateAfter(d.incidentDate,0)!==d.incidentDate){toast('발생일부터 7일 이내의 날짜를 선택해 주세요.');return false;}}const evidenceType=refund?d.refundReason:d.type;const body=String(d.body||'').trim();if(supportFilesLoading||!validEmail(d.email)||body.length<10||body.length>1000)return false;if(['no_show','late_no_show'].includes(evidenceType)&&(!d.waited||!String(d.meeting||'').trim()||(!supportLocation&&!supportFiles.length))){toast('합의한 장소·시각, 대기 확인과 위치 또는 자료를 확인해 주세요.');return false;}const ticket={id:'TK-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),type:d.type,...(refund?{refundReason:d.refundReason,incidentDate:d.incidentDate}:{}),body,email:String(d.email).trim(),meeting:String(d.meeting||'').trim(),waited:!!d.waited,attachments:supportFiles,location:['no_show','late_no_show'].includes(evidenceType)?supportLocation:null,actorRole:window.ReelAccess.mode(),createdAt:Date.now(),status:'open'};state.tickets.push(ticket);ensureTicketReferences();try{stashMatching();const raw=JSON.stringify(state);localStorage.setItem(key,raw);lastSavedState=raw;}catch{state.tickets.pop();toast('저장하지 못했어요. 첨부 자료 크기를 줄여 다시 시도해 주세요.');return false;}supportFiles=[];supportLocation=null;return true;}
+function ticketStatusLabel(status){return ({open:'접수',review:'접수',needs_info:'접수',resolved:'처리 완료'})[status]||status;}
+function inquiryDisputeField(t){
+ const linked=t.disputeBookingId?allBookings().find(row=>row.id===t.disputeBookingId):null;
+ const active=linked?.disputeStatus==='open'&&linked.disputeTicketId===t.id;
+ const reference=linked?bookingReferenceLabel(linked):'';
+ const link=linked?`<p class="hint">${active?'운영 확인 중':'운영 확인 완료'} · <a class="textbtn" href="#admin-bookings?record=${encodeURIComponent(linked.id)}">${esc(reference)} · 예약 상세</a></p>`:'';
+ if(active)return link;
+ return `${link}<label class="check"><input type="checkbox" name="markDispute" aria-controls="ticket-dispute-booking"><span>관련 예약을 운영 확인 대상으로 등록</span></label><div id="ticket-dispute-booking" hidden><label>관련 예약번호<input name="disputeReference" placeholder="RS-XXXXXX" value="${esc(reference)}" disabled required></label></div>`;
+}
+function supportTicketCard(t){
+ const attachments=(t.attachments||[]).filter(f=>/^data:(image\/(jpeg|png|webp)|application\/pdf);base64,/.test(f.data||''));
+ const reason=({no_show:'약속 장소에 오지 않았어요',late_no_show:'늦는다는 연락 후에도 만나지 못했어요',disruption:'날씨나 개인 사정으로 진행하지 못했어요',other:'그 밖의 사유'})[t.refundReason]||t.refundReason;
+ const facts=[['문의 유형',supportTypeLabel(t)],['접수일',adminDate(t.createdAt)],['문의자 이메일',t.email,true]];
+ if(reason)facts.push(['환급 사유',reason,true]);
+ if(t.incidentDate)facts.push(['발생일',t.incidentDate]);
+ if(t.meeting)facts.push(['약속 장소와 시각',t.meeting,true]);
+ if(t.waited)facts.push(['대기 확인',(t.refundReason||t.type)==='late_no_show'?'지각 연락 후 60분 대기 확인':'30분 대기 및 채팅 2회 이상 확인',true]);
+ if(t.location)facts.push(['접수 위치',`${t.location.lat}, ${t.location.lng} · ±${t.location.accuracy}m · ${chatTime(t.location.at)}`,true]);
+ const linkedBooking=t.disputeBookingId?allBookings().find(row=>row.id===t.disputeBookingId):null;
+ const bookingLink=linkedBooking?`<a class="textbtn" href="#admin-bookings?record=${encodeURIComponent(linkedBooking.id)}">${esc(bookingReferenceLabel(linkedBooking))} · 예약 상세</a>`:'';
+ const refundBooking=t.refundBookingId?allBookings().find(row=>row.id===t.refundBookingId):null;
+ const refundLink=refundBooking?`<a class="textbtn" href="#admin-bookings?record=${encodeURIComponent(refundBooking.id)}">${esc(bookingReferenceLabel(refundBooking))} · 예약 상세</a>`:'<label>환급 문의 관련 예약번호 (선택)<input name="refundReference" placeholder="RS-XXXXXX"></label>';
+ const evidence=t.type==='fee_refund'?`<label>자료 접수 완료일<input type="date" name="evidenceDate" ${t.createdAt?`min="${esc(new Date(t.createdAt).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}))}"`:''} max="${refundIncidentRange().today}" value="${esc(t.evidenceDate||'')}"></label><p class="hint">필요한 자료가 모두 도착하면 날짜를 기록하고, 그날부터 3영업일 이내에 이메일로 결과를 안내하세요.</p>${refundLink}`:'';
+ return `<section class="card pad rt-admin-panel"><header class="rt-admin-info-heading"><h2>${esc(ticketReferenceLabel(t))}</h2><span class="badge rt-status-badge" data-status="${esc(t.status)}">${esc(ticketStatusLabel(t.status))}</span></header>${adminFacts(facts)}${bookingLink}<div class="rt-admin-narrative"><h3>문의 내용</h3><p>${esc(t.body)}</p>${attachments.length?`<div class="rt-admin-attachments">${attachments.map(f=>`<a class="btn secondary small" download="${esc(f.name)}" href="${esc(f.data)}">${esc(f.name)}</a>`).join('')}</div>`:''}</div></section>
+ <section class="card pad rt-admin-panel"><h2>문의 처리</h2><form class="rt-admin-action-form" id="operations-ticket-form-${esc(t.id)}"><input type="hidden" name="ticketId" value="${esc(t.id)}"><input type="hidden" name="expectedUpdate" value="${esc(t.updatedAt||0)}">${evidence}<label class="check"><input type="checkbox" name="replySent" required><span>문의자에게 이메일 안내를 완료했습니다.</span></label><label>내부 처리 메모<textarea name="note" maxlength="1000" rows="3" required></textarea></label><button type="submit" class="btn">처리 완료</button></form></section>
+ ${caseHistory(t.history?.length?t.history:t.note?[{note:t.note,status:t.status,at:t.updatedAt}]:[],entry=>entry.disputeBookingNumber?`운영 확인 중 · ${entry.disputeBookingNumber}`:ticketStatusLabel(entry.status))}`;
+}
+
+function support(){
+ const query=new URLSearchParams(location.hash.split('?')[1]||'').get('placeQuery')||'';
+ return `<div class="centerbox rt-support-page">
+ <h1>문의하기</h1>
+ <form id="support-form">
+  <label>문의 유형<select name="type" id="support-type"><option>장소·추출 오류</option><option>데이터·개인정보 요청</option>${guided?'<option>예약 문의</option><option>메이트 지각</option><option value="fee_refund">매칭 수수료 환급 문의</option>':''}<option>기타 의견</option></select></label>
+  <label id="support-refund-reason" hidden>어떤 상황이었나요?<select name="refundReason" disabled required><option value="">선택해 주세요</option><option value="no_show">약속 장소에 오지 않았어요</option><option value="late_no_show">늦는다는 연락 후에도 만나지 못했어요</option><option value="disruption">날씨나 개인 사정으로 진행하지 못했어요</option><option value="other">그 밖의 사유</option></select></label>
+  <fieldset id="support-refund-date" hidden disabled><label>발생일<input type="date" name="incidentDate" required min="${refundIncidentRange().first}" max="${refundIncidentRange().today}"></label><p class="hint">발생일부터 7일 이내에 신청해 주세요. 확인 자료를 첨부해 주세요. 공식 기상정보로 확인되는 악천후는 첨부를 생략할 수 있어요.</p><p class="hint">필요한 자료가 모두 접수된 날부터 3영업일 이내에 이메일로 결과를 안내해요.</p></fieldset>
+  <label>문의 내용<textarea name="body" minlength="10" maxlength="1000" required placeholder="10자 이상 적어주세요">${query?esc(`장소 검색 문의: ${query}\n찾으시는 장소의 지역이나 주소를 추가로 알려주세요.`):''}</textarea></label>
+  <label>답변받을 이메일<input type="email" name="email" required maxlength="254" value="${esc(mateApplication().fields.email||state.accountEmail?.address||'')}"></label>
+  ${supportEvidenceFields()}
+  <div class="support-submit"><button type="submit" class="btn">문의 저장</button></div>
+ </form>
+ <details class="support-faq"><summary>자주 묻는 질문</summary><details><summary>한글 이름을 몰라도 장소를 찾을 수 있나요?</summary><p class="muted small">공개 영상 링크에서 장소를 찾아요. 검색 결과의 주소를 확인해 주세요.</p></details><details style="margin-top:16px"><summary>${guided?'메이트가 식당 예약까지 해주나요?':'장소를 저장하면 식당도 예약되나요?'}</summary><p class="muted small">${guided?'장소 선택이나 메이트 요청만으로 식당이 예약되지는 않아요. 필요한 도움을 요청서에 적고, 메이트의 최종 제안에 포함된 범위를 확인해 주세요.':'장소 저장은 방문 계획을 정리하는 기능이에요. 식당 예약·주문 통역은 제공하지 않아요. 방문 조건과 예약 방법은 해당 매장에 별도로 확인해 주세요.'}</p></details><details style="margin-top:16px"><summary>장소를 찾지 못한 이유는 무엇인가요?</summary><p class="muted small">공개 링크로 다시 시도하거나 장소를 직접 추가해 주세요.</p></details></details></div>`;}
+
 function policySection(){return new URLSearchParams(location.hash.split('?')[1]||'').get('section');}
-function policies(){const section=policySection();const heading=section==='privacy'?'개인정보처리방침':section==='terms'?'서비스 이용약관':'이용 안내';return `<article class="legalcopy">${section==='privacy'||section==='terms'?title(heading,heading):''}${section==='privacy'?`<h2>여행 정보 저장</h2><p>여행은 현재 브라우저에 저장됩니다. 다른 기기와 자동으로 연결되지 않으며 브라우저 데이터를 지우면 함께 삭제될 수 있어요.</p><h2>개인정보</h2><p>실제 결제정보나 민감한 개인정보는 입력하지 마세요.</p>`:section==='terms'?`<h2>장소와 지도</h2><p>사진과 지도는 방문할 곳을 살펴보기 위한 정보예요. 현재 영업시간·정확한 지점·매장 입구는 방문 전에 확인해 주세요. 지도 위 연결선은 방문 순서이며 실제 이동 경로가 아닙니다.</p><h2>사진과 콘텐츠</h2><p>원본 영상은 링크로 확인할 수 있습니다. 사진의 촬영 시점과 현재 현장 모습은 다를 수 있어요.</p>`:`<h2>장소와 지도</h2><p>사진과 지도는 방문할 곳을 살펴보기 위한 정보예요. 현재 영업시간·정확한 지점·매장 입구는 방문 전에 확인해 주세요. 지도 위 연결선은 방문 순서이며 실제 이동 경로가 아닙니다.</p><h2>여행 정보 저장</h2><p>여행은 현재 브라우저에 저장됩니다. 다른 기기와 자동으로 연결되지 않으며 브라우저 데이터를 지우면 함께 삭제될 수 있어요.</p><h2>개인정보</h2><p>실제 결제정보나 민감한 개인정보는 입력하지 마세요.</p><h2>사진과 콘텐츠</h2><p>원본 영상은 링크로 확인할 수 있습니다. 사진의 촬영 시점과 현재 현장 모습은 다를 수 있어요.</p>`}${section!=='privacy'?'<h2>예약과 취소</h2><p>예약자와 메이트는 만 19세 이상이며, 미성년 참여자는 성인 보호자와 동행합니다. 예약 확정 후 날짜·인원을 바꾸려면 취소 후 새로 요청해 주세요. 첫날 예약 시작 시각 이후에는 일반 취소 대신 별도 CS로 문의해 주세요.</p><p>여행자 취소 시 메이트 수수료는 전액 반환 대상으로 접수됩니다. 메이트 귀책 취소는 원칙적으로 반환하지 않으며 사고·질병·악천후는 운영팀이 확인합니다.</p><h2>지각과 노쇼</h2><p>여행자 지각 시 기존 종료 시각과 여행비는 유지됩니다. 메이트 지각 시 무료 연장 또는 시간 비례 감액을 선택해 채팅으로 합의하고, 분쟁은 CS로 문의해 주세요.</p><p>여행자가 응답하지 않으면 약속 시각부터 30분 대기하고 채팅으로 2회 이상 연락한 뒤 노쇼를 접수할 수 있습니다. 지각 연락을 받았으면 최대 60분 대기합니다. 접수 후 떠날 수 있으며 운영팀 확인 후 수수료를 반환합니다.</p><h2>메이트 선택 해제와 재모집</h2><p>메이트가 확정 전에 진행을 거절하거나 수수료 결제 기한이 지나면, 여행 시작 전에는 자동으로 다른 메이트의 제안을 받아요. 다른 유효한 제안은 바로 선택할 수 있어요. 여행 시작 시간이 지났다면 일정을 변경해 다시 요청해 주세요. 직접 요청을 철회하거나 확정된 예약을 취소하면 자동으로 다시 모집하지 않아요.</p>':''}</article>`;}
+function policies(){const section=policySection();const heading=section==='privacy'?'개인정보처리방침':section==='terms'?'서비스 이용약관':'이용 안내';return `<article class="legalcopy">${section==='privacy'||section==='terms'?title(heading,heading):''}${section==='privacy'?`<h2>개인정보</h2><p>메이트의 이메일과 휴대폰 번호는 공개 프로필에 표시되지 않아요.</p>`:section==='terms'?`<h2>장소와 지도</h2><p>사진과 지도는 방문할 곳을 살펴보기 위한 정보예요. 현재 영업시간·정확한 지점·매장 입구는 방문 전에 확인해 주세요. 지도 위 연결선은 방문 순서이며 실제 이동 경로가 아닙니다.</p><h2>사진과 콘텐츠</h2><p>원본 영상은 링크로 확인할 수 있습니다. 사진의 촬영 시점과 현재 현장 모습은 다를 수 있어요.</p>`:`<h2>장소와 지도</h2><p>사진과 지도는 방문할 곳을 살펴보기 위한 정보예요. 현재 영업시간·정확한 지점·매장 입구는 방문 전에 확인해 주세요. 지도 위 연결선은 방문 순서이며 실제 이동 경로가 아닙니다.</p><h2>개인정보</h2><p>메이트의 이메일과 휴대폰 번호는 공개 프로필에 표시되지 않아요.</p><h2>사진과 콘텐츠</h2><p>원본 영상은 링크로 확인할 수 있습니다. 사진의 촬영 시점과 현재 현장 모습은 다를 수 있어요.</p>`}${section!=='privacy'?'<h2>예약과 취소</h2><p>예약자와 메이트는 만 19세 이상이며, 미성년 참여자는 성인 보호자와 동행합니다. 예약 확정 후 날짜·인원을 바꾸려면 취소 후 새로 요청해 주세요. 첫날 예약 시작 시각 이후에는 일반 취소 대신 별도 CS로 문의해 주세요.</p><p>여행자가 예약을 취소하면 메이트가 납부한 매칭 수수료 전액을 원래 결제수단으로 환불합니다. 메이트 귀책 취소는 원칙적으로 반환하지 않으며 사고·질병·악천후는 운영팀이 확인합니다.</p><h2>지각과 노쇼</h2><p>여행자 지각 시 기존 종료 시각과 여행비는 유지됩니다. 메이트 지각 시 무료 연장 또는 시간 비례 감액을 선택해 채팅으로 합의하고, 분쟁은 CS로 문의해 주세요.</p><p>여행자가 응답하지 않으면 약속 시각부터 30분 대기하고 채팅으로 2회 이상 연락한 뒤 노쇼를 접수할 수 있습니다. 지각 연락을 받았으면 최대 60분 대기합니다. 접수 후 떠날 수 있으며 운영팀 확인 후 수수료를 반환합니다.</p><h2>메이트 선택 해제와 재모집</h2><p>메이트가 확정 전에 진행을 거절하거나 수수료 결제 기한이 지나면, 여행 시작 전에는 자동으로 다른 메이트의 제안을 받아요. 다른 유효한 제안은 바로 선택할 수 있어요. 여행 시작 시간이 지났다면 일정을 변경해 다시 요청해 주세요. 직접 요청을 철회하거나 확정된 예약을 취소하면 자동으로 다시 모집하지 않아요.</p>':''}</article>`;}
 function guides(){return `${title('','메이트')}<div class="trip-mode-tabs" role="group" aria-label="메이트 메뉴"><button type="button" data-action="guides-tab" data-id="requests" aria-pressed="${guidesTab==='requests'}">${icon('board')}<span>도착한 제안</span>${proposals().length?`<span class="trip-request-count">${proposals().length}</span>`:''}</button><button type="button" data-action="guides-tab" data-id="discover" aria-pressed="${guidesTab==='discover'}">${icon('guides')}<span>제안받기</span></button></div><section class="trip-tab-panel">${guidesTab==='requests'?guideRequests():guideDiscovery()}</section>`;}
 
 function guideDiscovery(){const next=null,hasTrips=Boolean(state.trips?.length);return `<div class="proposal-request-options"><section class="free-quote-intro"><header class="free-quote-heading"><h2>내 여행 함께하기</h2><p>내 여행에 맞는 제안을 받아 함께할 메이트를 선택해요.</p></header><div class="free-quote-action">${hasTrips?btn('내 여행에서 선택하기','request'):action('여행 일정 만들기','new-trip')}</div></section><section class="free-quote-intro"><header class="free-quote-heading"><h2>자유 여행 함께하기</h2><p>정해진 일정 없이 자유롭게 견적을 요청해요.<br>지역과 기간을 정하면 메이트가 코스와 전체 견적을 제안해요.</p></header><div class="free-quote-action">${next?`<p class="free-quote-status">진행 중인 요청이나 예약을 먼저 확인해 주세요.</p>${btn(next.label,next.route,'secondary')}`:btn('함께할 메이트 찾기','request?mode=free','secondary')}</div></section></div>`;}
 
 
 
-function journeySummary(q,priceLabel='일행 전체 금액'){return `<section class="journey-summary"><div class="journey-guide"><span class="portrait">${esc(q.guide[0])}</span><div><h2>${esc(q.guide)}${q.guide==='매칭 전'?'':' 메이트'}</h2><p>영어 안내 · ${esc(q.region||'여행 지역')}</p></div></div><div class="journey-facts"><div><span>여행 날짜</span><strong>${requestPeriod(q)}</strong></div><div><span>시작 시간 · 한국</span><strong>${esc(q.time)}</strong></div><div><span>함께하는 인원</span><strong>${q.party}명</strong></div><div><span>요청 방식</span><strong>${q.requestType==='free'?'자유 견적':'내 여행 일정'}</strong></div></div>${q.amount!==undefined?`<div class="journey-price"><span>${priceLabel} · KRW</span><strong>${money(q.amount)}</strong><p>식비·교통비·쇼핑·입장료는 별도예요.</p></div>`:`<div class="journey-price pending"><span>예상 비용</span><strong>일정 확인 후 안내</strong><p>지금은 결제하지 않아요. 제안받은 가격을 확인하고 결정하세요.</p></div>`}</section>`;}
+function journeySummary(q,priceLabel='일행 전체 금액'){return `<section class="journey-summary"><div class="journey-guide"><span class="portrait">${esc(q.guide[0])}</span><div><h2>${esc(q.guide)}${q.guide==='매칭 전'?'':' 메이트'}</h2><p>${esc(q.region||'여행 지역')}</p>${q.feeStatus?`<p>예약번호 · ${esc(bookingReferenceLabel(q))}</p>`:''}</div></div><div class="journey-facts"><div><span>여행 날짜</span><strong>${requestPeriod(q)}</strong></div><div><span>시작 시간 · 한국</span><strong>${esc(q.time)}</strong></div><div><span>함께하는 인원</span><strong>${q.party}명</strong></div><div><span>요청 방식</span><strong>${q.requestType==='free'?'자유 견적':'내 여행 일정'}</strong></div></div>${q.amount!==undefined?`<div class="journey-price"><span>${priceLabel} · KRW</span><strong>${money(q.amount)}</strong><p>식비·교통비·입장료를 누가 부담할지는 여행 전에 채팅으로 정해 주세요.</p></div>`:`<div class="journey-price pending"><span>예상 비용</span><strong>일정 확인 후 안내</strong><p>지금은 결제하지 않아요. 제안받은 가격을 확인하고 결정하세요.</p></div>`}</section>`;}
 function mateRequestSummary(q){return `<section class="mate-request-summary" aria-label="여행 요청 요약"><h2>${q.requestType==='free'?esc(q.region||'여행 지역')+' · 자유 견적':'여행 요청'}</h2><p>${requestPeriod(q)} · ${esc(q.time)} · ${q.party}명</p><span>시작 시간은 한국 시간 기준이에요.</span>${q.amount!==undefined?`<div class="summaryrow"><span>${bookingClosed(q)?'약속한 여행 금액':'현장에서 받을 현금'}</span><b>${money(q.amount)}</b></div>`:''}</section>`;}
 function journeyPlan(plan){return `<ol class="journey-plan">${String(plan||'').split('\n').filter(line=>line.trim()).map((line,i)=>`<li><b>${i+1}</b><span>${esc(line.replace(/^\d+[.)]\s*/,''))}</span></li>`).join('')}</ol>`;}
 function guidePage(){
@@ -692,21 +1108,41 @@ function quoteValid(){const q=state.quote,r=state.request;return !!(q&&r&&Date.p
 function proposalMessage(q){return q.message?`<section class="card pad quote-section"><h2>메이트가 남긴 메시지</h2><p>${esc(q.message).replace(/\n/g,'<br>')}</p></section>`:'';}
 function quote(){const q=state.quote;if(!q)return empty('아직 제안이 준비되지 않았어요.','메이트가 요청한 일정을 확인하면 제안을 볼 수 있어요.','requested','요청 확인');const valid=quoteValid();return `${title('','메이트의 여행 제안','')}${journeySummary(q,bookingClosed(state.booking)?'약속한 여행 금액':!valid&&!state.booking?'제안 금액':'현장에서 지급할 현금')}${proposalMessage(q)}<section class="card pad quote-section"><h2>제안받은 여행 일정</h2>${journeyPlan(q.plan)}</section><div class="bottomaction journey-action"><p>${state.booking?'확인한 제안':valid?'제안 금액 · '+money(q.amount):q.expires<=Date.now()?'만료된 제안이에요':'종료된 제안이에요'}</p>${state.booking?btn(bookingClosed(state.booking)?'여행 내역 보기':'예약 일정 보기','booking'):valid?btn('메이트 선택·예약 요청','checkout'):btn(signupText('compareOffers'),'requested','secondary')}</div>`;}
 
-function requestBooking(name,email){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='customer'||state.booking||!quoteValid())return false;const q=state.quote;delete state.request.rematchReason;state.booking={...JSON.parse(JSON.stringify(q)),requestId:state.request.id,proposalId:q.id,id:'RT-DEMO-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),quoteVersion:q.version,status:'awaiting_mate_fee',customer:name,email,requestedAt:Date.now(),feeDeadline:Math.min(Date.now()+24*3600000,Date.parse(q.date+'T'+q.time+':00+09:00')),paymentMethod:'cash',feeRate:.1,feeAmount:Math.round(q.amount*.1),feeStatus:'pending',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1'};syncConversations();state.request.status='matching';state.request.guide=q.guide;state.request.guideId=q.guideId;save();return true;}
-function confirmMateFee(outcome){expireMateFee();const b=state.booking;if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||b.status!=='awaiting_mate_fee'||b.feeStatus==='paid'||mateApplication().activityRestricted||mateConflict(b,b.guideId,b.id))return false;if(outcome!=='success'){b.feeStatus='failed';save();return false;}b.feeStatus='paid';b.feePaidAt=Date.now();b.status='confirmed';b.confirmedAt=Date.now();for(const x of matchingContexts())for(const q of x.proposals||[])if(q.id!==b.proposalId&&q.guideId===b.guideId&&overlaps(q,b)){q.unavailableAt=Date.now();q.expires=Math.min(q.expires,Date.now());}state.request.status='booked';save();return true;}
+function requestBooking(name,email){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='customer'||state.booking||!quoteValid())return false;const q=state.quote;delete state.request.rematchReason;state.booking={...JSON.parse(JSON.stringify(q)),requestId:state.request.id,proposalId:q.id,id:'RT-DEMO-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),quoteVersion:q.version,status:'awaiting_mate_fee',customer:name,email,requestedAt:Date.now(),feeDeadline:Math.min(Date.now()+24*3600000,Date.parse(q.date+'T'+(q.time||'00:00')+':00+09:00')),paymentMethod:'cash',feeRate:.1,feeAmount:Math.round(q.amount*.1),feeStatus:'pending',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1'};syncConversations();state.request.status='matching';state.request.guide=q.guide;state.request.guideId=q.guideId;recordBookingNotice('selected',state.booking,['guide']);save();return true;}
+function confirmMateFee(outcome){expireMateFee();const b=state.booking;if((b?.guideId||'mina')!=='mina'||window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||b.status!=='awaiting_mate_fee'||b.feeStatus==='paid'||activitySuspended(mateApplication())||mateConflict(b,b.guideId,b.id))return false;if(outcome!=='success'){b.feeStatus='failed';save();return false;}b.feeStatus='paid';b.feePaidAt=Date.now();b.status='confirmed';b.confirmedAt=Date.now();for(const x of matchingContexts())for(const q of x.proposals||[])if(q.id!==b.proposalId&&q.guideId===b.guideId&&overlaps(q,b)){q.unavailableAt=Date.now();q.expires=Math.min(q.expires,Date.now());}state.request.status='booked';recordBookingNotice('confirmed',b,['customer','guide']);save();return true;}
 function cashNotice(amount){return `<section class="card pad cash-notice"><span class="badge">현장 현금 결제</span><h2>여행 당일 현금을 준비해 주세요</h2><strong>${money(amount)}</strong><p>여행 비용은 현장에서 메이트에게 직접 지급해요. 릴트립은 매칭을 연결하며 여행 비용을 받지 않아요.</p></section>`;}
 // Demo grace period; production expiry and payment verification must run on the server.
 function feeDeadline(b){return b.feeDeadline||Math.min((b.requestedAt||Date.now())+24*3600000,Date.parse(b.date+'T'+(b.time||'00:00')+':00+09:00'));}
 function deadlineNotice(b){return `<div class="notice"><strong>결제 기한 · ${esc(new Date(feeDeadline(b)).toLocaleString(document.documentElement.lang==='en'?'en-GB':'ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}))}</strong><br>한국 시간 기준<br>기한이 지나면 선택이 해제돼요.</div>`;}
-function expireAllMateFees(){const original=state.request?.id;for(const x of matchingContexts()){if(x.booking?.status==='awaiting_mate_fee'&&feeDeadline(x.booking)<=Date.now()){activateMatching(x.request.id);expireMateFee();}}if(original&&state.request?.id!==original)activateMatching(original);}
+function closeStartedRequests(){
+ let changed=false;
+ for(const {request,booking} of matchingContexts()){
+  if(!booking&&['requested','quoted'].includes(request.status)&&bookingStarted(request)){request.status='withdrawn';changed=true;}
+ }
+ if(changed)save();
+}
+function expireAllMateFees(){
+ let updated=false;
+ for(const b of allBookings())if(b.status==='awaiting_mate_fee'&&!b.feeDeadline){const deadline=feeDeadline(b);if(Number.isFinite(deadline)){b.feeDeadline=deadline;updated=true;}}
+ if(updated)save();
+ const original=state.request?.id;for(const x of matchingContexts()){if(x.booking?.status==='awaiting_mate_fee'&&feeDeadline(x.booking)<=Date.now()){activateMatching(x.request.id);expireMateFee();}}if(original&&state.request?.id!==original)activateMatching(original);}
 function expireMateFee(){const b=state.booking;if(!b||b.status!=='awaiting_mate_fee')return false;if(!b.feeDeadline)b.feeDeadline=feeDeadline(b);if(Date.now()<b.feeDeadline)return false;releaseMateSelection('expired','확정 기한 만료');return true;}
-function releaseMateSelection(reason,detail){const b=state.booking;if(!b||b.status!=='awaiting_mate_fee')return false;b.status='cancelled';b.feeStatus='void';b.cancelReason=detail;if(state.request){state.request.status='withdrawn';state.request.rematchReason=reason;}syncConversations();if(!resumeMatching())save();return true;}
+function releaseMateSelection(reason,detail){const b=state.booking;if(!b||b.status!=='awaiting_mate_fee')return false;b.status='cancelled';b.feeStatus='void';b.cancelReason=detail;recordBookingNotice('released',b,reason==='expired'?['customer','guide']:['customer']);if(state.request){state.request.status='withdrawn';state.request.rematchReason=reason;}syncConversations();if(!resumeMatching())save();return true;}
 function resumeMatching(){const b=state.booking,r=state.request;if(!b||b.status!=='cancelled'||b.feeStatus!=='void'||!r||r.id!==b.requestId||!(Date.parse(r.date+'T'+(r.time||'00:00')+':00+09:00')>Date.now()))return false;syncConversations();state.bookingHistory=state.bookingHistory||[];state.bookingHistory.push(JSON.parse(JSON.stringify(b)));state.proposals=proposals().map(q=>q.id===b.proposalId||q.guideId===b.guideId?{...q,expires:Math.min(q.expires,Date.now())}:q);state.booking=null;state.quote=null;r.status=proposals().some(q=>q.expires>Date.now())?'quoted':'requested';delete r.guide;delete r.guideId;save();return true;}
 function reopenMatching(){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='customer')return false;return resumeMatching();}
 function rematchNotice(){const r=state.request;if(!r?.rematchReason)return '';const message=r.rematchReason==='expired'?'메이트의 확정 기한이 지났어요.':'메이트가 진행을 취소했어요.';return `<div class="notice" role="status">${message}<br>${['requested','quoted'].includes(r.status)?'다른 메이트의 제안을 선택할 수 있어요.':'여행 시작 시간이 지났어요. 일정을 변경해 다시 요청해 주세요.'}</div>`;}
 function feeBreakdown(b){return `<div class="summaryrow"><span>여행자와 약속한 금액</span><b>${money(b.amount)}</b></div><div class="summaryrow"><span>매칭 수수료 10%</span><b>${money(b.feeAmount)}</b></div>`;}
-function refundNotice(b){return b&&['review','needs_info','approved','processing','completed','not_eligible'].includes(b.refundStatus)?`<p class="notice">수수료 반환: ${refundLabel(b.refundStatus)}</p>`:'';}
-function guideFee(){const b=displayedBooking();if(!b)return empty('선택된 예약이 없어요.','여행자의 선택 후 수수료를 결제할 수 있어요.','guide-activity','내 활동');if(b!==state.booking)return `${title('','예약 상세',statusLabel(b.status))}${journeySummary(b)}${refundNotice(b)}${journeyPlan(b.plan)}`;const pending=b.status==='awaiting_mate_fee',failed=pending&&b.feeStatus==='failed',room=syncConversations().find(room=>conversationBooking(room)?.id===b.id),chatOpen=room&&conversationOpen(room);return `${failed?'':title('',pending?'매칭 수수료':'예약 상세',pending?'선택받았어요!':statusLabel(b.status))}${failed?`<section class="card pad rt-feedback-card rt-feedback-card--error rt-feedback-card--compact" role="alert"><span class="rt-feedback-symbol" aria-hidden="true">${icon('warning',20)}</span><div class="rt-feedback-copy"><h2>결제하지 못했어요</h2><p>예약이 아직 확정되지 않았어요.<br>결제 기한 안에 다시 시도해 주세요.</p></div></section>`:''}<section class="card pad quote-section">${pending?`<div class="${failed?'summaryrow':'mate-fee-amount'}"><span>릴트립에 결제할 수수료</span><strong>${money(b.feeAmount)}</strong></div>`:''}${pending?'':`<h2>예약 금액</h2>${feeBreakdown(b)}`}${pending?(failed?`<p class="rt-payment-deadline">결제 기한 · ${esc(new Date(feeDeadline(b)).toLocaleString(document.documentElement.lang==='en'?'en-GB':'ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}))}<br><small>한국 시간 기준</small></p>`:deadlineNotice(b)):''}${pending?`<form id="mate-fee-form"><label class="check"><input type="checkbox" name="terms" required>매칭 수수료 10%와 현장 현금 지급 방식을 확인했습니다.</label><label class="developer-only">결제 결과<select name="outcome"><option value="success">결제 성공</option><option value="failure">결제 실패</option></select></label><p id="mate-fee-error" class="error" role="alert"></p></form><details class="mate-fee-details"><summary>예약 금액</summary>${feeBreakdown(b)}</details>`:''}${refundNotice(b)}</section>${mateRequestSummary(b)}<section class="card pad quote-section"><h2>예약 일정</h2>${journeyPlan(b.plan)}${chatOpen?`<p>여행자에게 반갑게 인사해 보세요.<br>만날 장소·시간과 현금 지급 시점을 함께 정해요.</p><div class="rt-detail-actions">${btn(`${icon('messages',20)}<span>여행자와 대화하기</span>`,conversationRoute(room))}</div>`:pending?'<p class="hint">수수료 결제로 예약이 확정되면 여행자와 대화할 수 있어요.</p>':''}</section>${mateTripActions(b)}${pending?`<div class="rt-floating-actions-space"><div class="bottomaction rt-floating-actions"><div class="rt-card-actions rt-card-actions-equal">${btn('진행 불가','guide-activity?decline=1','secondary')}<button type="submit" form="mate-fee-form" class="btn">${failed?'다시 결제하기':'결제하고 예약 확정'}</button></div></div></div>`:''}`;}
+function refundNotice(b){
+ if(!b)return '';
+ const amount=b.refundAmount??b.feeAmount;
+ const states={
+  review:guaranteedFeeRefund(b)?'전액 환불 예정':'심사 중 · 환불 여부 미확정',
+  needs_info:awaitingGuaranteedRefund(b)?'전액 환불 예정':'자료 보완 요청 · 환불 보류',approved:'전액 환불 예정',processing:'환불 처리 중',
+  completed:amount==null?'전액 환불 완료':`전액 환불 완료 · ${money(amount)}`,not_eligible:`환불 불가 · ${money(0)}`,failed:'환불 실패 · 미환불'
+ };
+ return states[b.refundStatus]?`<p class="notice">메이트 매칭 수수료 · ${states[b.refundStatus]}</p>`:'';
+}
+function guideFee(){const b=displayedBooking();if(!b||(b.guideId||'mina')!=='mina')return empty('선택된 예약이 없어요.','여행자의 선택 후 수수료를 결제할 수 있어요.','guide-activity','내 활동');if(b!==state.booking)return `${title('','예약 상세',statusLabel(b.status))}${journeySummary(b)}${refundNotice(b)}${journeyPlan(b.plan)}`;const pending=b.status==='awaiting_mate_fee',failed=pending&&b.feeStatus==='failed',room=syncConversations().find(room=>conversationBooking(room)?.id===b.id),chatOpen=room&&conversationOpen(room);return `${failed?'':title('',pending?'매칭 수수료':'예약 상세',pending?'선택받았어요!':statusLabel(b.status))}${failed?`<section class="card pad rt-feedback-card rt-feedback-card--error rt-feedback-card--compact" role="alert"><span class="rt-feedback-symbol" aria-hidden="true">${icon('warning',20)}</span><div class="rt-feedback-copy"><h2>결제하지 못했어요</h2><p>예약이 아직 확정되지 않았어요.<br>결제 기한 안에 다시 시도해 주세요.</p></div></section>`:''}<section class="card pad quote-section">${pending?`<div class="${failed?'summaryrow':'mate-fee-amount'}"><span>릴트립에 결제할 수수료</span><strong>${money(b.feeAmount)}</strong></div>`:''}${pending?'':`<h2>예약 금액</h2>${feeBreakdown(b)}`}${pending?(failed?`<p class="rt-payment-deadline">결제 기한 · ${esc(new Date(feeDeadline(b)).toLocaleString(document.documentElement.lang==='en'?'en-GB':'ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}))}<br><small>한국 시간 기준</small></p>`:deadlineNotice(b)):''}${pending?`<form id="mate-fee-form"><label class="check"><input type="checkbox" name="terms" required>매칭 수수료 10%와 현장 현금 지급 방식을 확인했습니다.</label><label class="developer-only">결제 결과<select name="outcome"><option value="success">결제 성공</option><option value="failure">결제 실패</option></select></label><p id="mate-fee-error" class="error" role="alert"></p></form><details class="mate-fee-details"><summary>예약 금액</summary>${feeBreakdown(b)}</details>`:''}${b.cancelReason?`<p>취소 사유 · ${esc(b.cancelReason)}</p>`:''}${refundNotice(b)}</section>${mateRequestSummary(b)}<section class="card pad quote-section"><h2>예약 일정</h2><p>예약번호 · ${esc(bookingReferenceLabel(b))}</p>${journeyPlan(b.plan)}${chatOpen?`<p>여행자에게 반갑게 인사해 보세요.<br>만날 장소·시간과 현금 지급 시점을 함께 정해요.</p><div class="rt-detail-actions">${btn(`${icon('messages',20)}<span>여행자와 대화하기</span>`,conversationRoute(room))}</div>`:pending?'<p class="hint">수수료 결제로 예약이 확정되면 여행자와 대화할 수 있어요.</p>':''}</section>${mateTripActions(b)}${pending?`<div class="rt-floating-actions-space"><div class="bottomaction rt-floating-actions"><div class="rt-card-actions rt-card-actions-equal">${btn('진행 불가','guide-activity?decline=1','secondary')}<button type="submit" form="mate-fee-form" class="btn">${failed?'다시 결제하기':'결제하고 예약 확정'}</button></div></div></div>`:''}`;}
 function mateTripActions(b){
  if(b.status!=='confirmed')return '';
  const canComplete=Date.now()>=Date.parse((b.endDate||b.date)+'T'+(b.time||'00:00')+':00+09:00')+4*3600000;
@@ -715,7 +1151,7 @@ function mateTripActions(b){
  return `<div class="rt-detail-actions">${canComplete?action('여행 완료 확인','mate-complete'):''}${canCancel?'<a class="textbtn" href="#guide-activity?cancel=1">예약 취소</a>':''}</div>`;
 }
 function mateStatusChip(status){const entry=({available:['available','제안 가능'],waiting:['waiting','여행자 선택 대기'],awaiting_mate_fee:['selected','수수료 결제 대기'],fee_failed:['expired','수수료 결제 실패'],confirmed:['confirmed','예약 확정'],completed:['completed','여행 완료'],expired:['expired','유효기간 만료'],not_selected:['expired','미선택'],cancelled:['cancelled','취소 완료']})[status];return `<span class="badge${entry?' rt-status-'+entry[0]:''}">${esc(entry?entry[1]:statusLabel(status))}</span>`;}
-function mateFeeActions(b){if(b.status!=='awaiting_mate_fee')return '';const active=b===state.booking,context=matchingContexts().find(x=>x.booking?.id===b.id),enabled=active||!!context;const suffix=active?'':'&request='+encodeURIComponent(context?.request.id||'');return `<div class="rt-card-actions rt-card-actions-equal">${enabled?btn('진행 불가','guide-activity?decline=1'+suffix,'secondary'):'<button class="btn secondary" disabled>진행 불가</button>'}${enabled?btn(b.feeStatus==='failed'?'다시 결제하기':'예약 확정',active?'guide-fee':'guide-fee?request='+encodeURIComponent(context.request.id)):'<button class="btn" disabled>예약 확정</button>'}</div>${enabled?'':'<p class="hint">예시 예약은 상세 확인만 가능해요.</p>'}`;}
+function mateFeeActions(b){if(b.status!=='awaiting_mate_fee')return '';const active=b===state.booking,context=matchingContexts().find(x=>x.booking?.id===b.id),enabled=active||!!context;const suffix=active?'':'&request='+encodeURIComponent(context?.request.id||'');return `<div class="rt-card-actions rt-card-actions-equal">${enabled?btn('진행 불가','guide-activity?decline=1'+suffix,'secondary'):'<button class="btn secondary" disabled>진행 불가</button>'}${enabled?btn(b.feeStatus==='failed'?'다시 결제하기':'예약 확정',active?'guide-fee':'guide-fee?request='+encodeURIComponent(context.request.id)):'<button class="btn" disabled>예약 확정</button>'}</div>`;}
 
 function mateBookingCard(b){const pending=b.status==='awaiting_mate_fee';return `<section class="card pad quote-section rt-booking-card">${mateStatusChip(b.status==='awaiting_mate_fee'&&b.feeStatus==='failed'?'fee_failed':b.status)}<h2>${esc(b.tripTitle||b.region||'메이트와 함께하는 여행')}</h2><p>${requestPeriod(b)} · ${esc(b.customer)}</p>${pending?`<div class="summaryrow"><span>매칭 수수료 (10%)</span><strong>${money(b.feeAmount)}</strong></div>${deadlineNotice(b)}`:''}${pending?mateFeeActions(b):''}${!pending?`<div class="rt-booking-actions">${btn(bookingClosed(b)?'여행 내역 보기':'예약 보기',matchingContexts().some(x=>x.booking?.id===b.id)?'guide-fee?request='+encodeURIComponent(b.requestId):'guide-activity?record='+encodeURIComponent(b.id))}</div>`:''}</section>`;}
 function mateProposalStatus(q){return q.withdrawnAt?'cancelled':q.expires<=Date.now()?'expired':q.unavailableAt||mateConflict(q,q.guideId)&&!allBookings().some(b=>b.proposalId===q.id&&bookingHolds(b))?'not_selected':q.activityStatus||(state.booking?.requestId===q.requestId&&state.booking.guideId!==q.guideId?'not_selected':'waiting');}
@@ -742,7 +1178,7 @@ function checkout(){if(state.booking)return empty('이미 예약 진행 중인 �
 
 function bookingClosed(b){return ['completed','cancelled'].includes(b?.status);}
 function displayedBooking(){const id=new URLSearchParams(location.hash.split('?')[1]||'').get('record');return id?allBookings().find(b=>b.id===id):state.booking;}
-function booking(){const b=displayedBooking();if(!b&&state.request?.rematchReason)return requested();if(!b)return empty('아직 예약이 없어요.','메이트의 일정과 가격을 확인한 뒤 예약을 요청하세요.','requested','요청 확인');const pending=b.status==='awaiting_mate_fee',confirmed=b.status==='confirmed';return `${title('나의 메이트 여행',pending?'메이트의 확정을 기다리고 있어요':statusLabel(b.status),'')}${pending?'<div class="notice">메이트의 수수료 결제 후 예약이 확정돼요.</div>':''}${journeySummary(b,bookingClosed(b)?'약속한 여행 금액':'현장에서 지급할 현금')}${confirmed?`<section class="meeting-card"><span class="badge">만나는 곳</span><h2>메이트와 만날 장소를 정해 주세요</h2><p>${requestPeriod(b)} · 첫날 ${b.time} / 한국 시간</p><p class="hint">채팅으로 만날 장소와 시간을 정해 주세요.</p></section>`:''}<section class="card pad quote-section"><h2>${pending?'요청한 일정':'예약 일정'}</h2>${journeyPlan(b.plan)}</section>${b===state.booking&&canCancelBooking(b)?`<div class="rt-booking-actions">${btn(signupText('backTrips'),'trips')}${btn(pending?'예약 요청 철회':'예약 취소','cancel','secondary')}</div>`:''}${confirmed?(syncConversations().some(room=>conversationBooking(room)?.id===b.id&&conversationOpen(room))?`<div class="bottomaction journey-action">${btn('메이트에게 일정·만남 문의',conversationRoute(syncConversations().find(room=>conversationBooking(room)?.id===b.id)))}</div>`:''):''}${b.status==='cancelled'&&b.feeStatus==='void'?`<section class="card pad"><p>${esc(b.cancelReason||'')}</p>${b===state.booking&&b.requestId===state.request?.id&&state.request?.rematchReason?`${rematchNotice()}<div class="rt-detail-actions">${btn('일정 변경하고 다시 요청','request','secondary')}</div>`:''}</section>`:''}${b.refundStatus&&b.refundStatus!=='none'?refundNotice(b):''}`;}
+function booking(){const b=displayedBooking();if(!b&&state.request?.rematchReason)return requested();if(!b)return empty('아직 예약이 없어요.','메이트의 일정과 가격을 확인한 뒤 예약을 요청하세요.','requested','요청 확인');const pending=b.status==='awaiting_mate_fee',confirmed=b.status==='confirmed';return `${title('나의 메이트 여행',pending?'메이트의 확정을 기다리고 있어요':statusLabel(b.status),'')}${pending?'<div class="notice">메이트의 수수료 결제 후 예약이 확정돼요.</div>':''}${journeySummary(b,bookingClosed(b)?'약속한 여행 금액':'현장에서 지급할 현금')}${confirmed?`<section class="meeting-card"><span class="badge">만나는 곳</span><h2>메이트와 만날 장소를 정해 주세요</h2><p>${requestPeriod(b)} · 첫날 ${b.time} / 한국 시간</p><p class="hint">채팅으로 만날 장소와 시간을 정해 주세요.</p></section>`:''}<section class="card pad quote-section"><h2>${pending?'요청한 일정':'예약 일정'}</h2>${journeyPlan(b.plan)}</section>${b===state.booking&&canCancelBooking(b)?`<div class="rt-booking-actions">${btn(signupText('backTrips'),'trips')}${btn(pending?'예약 요청 철회':'예약 취소','cancel','secondary')}</div>`:''}${confirmed?(syncConversations().some(room=>conversationBooking(room)?.id===b.id&&conversationOpen(room))?`<div class="bottomaction journey-action">${btn('메이트에게 일정·만남 문의',conversationRoute(syncConversations().find(room=>conversationBooking(room)?.id===b.id)))}</div>`:''):''}${b.status==='cancelled'?`<section class="card pad"><p>${esc(b.cancelReason||'')}</p>${b===state.booking&&b.requestId===state.request?.id&&state.request?.rematchReason?`${rematchNotice()}<div class="rt-detail-actions">${btn('일정 변경하고 다시 요청','request','secondary')}</div>`:''}</section>`:''}${b.refundStatus&&b.refundStatus!=='none'?refundNotice(b):''}`;}
 
 // Conversation IDs are stable across proposal revisions and booking confirmation.
 function conversationKey(requestId,guideId){return JSON.stringify([requestId,guideId]);}
@@ -864,21 +1300,65 @@ function chat(){
 
 function refundEstimate(){return 0;}
 
-function cancel(){const b=state.booking;if(!canCancelBooking(b))return empty('취소할 수 있는 예약이 없어요.','시작 이후 중단·취소는 별도 CS로 문의해 주세요.','booking','예약 보기');return `${title('','예약 취소')}<form id="cancel-form" class="card pad">${b.status==='awaiting_mate_fee'?'':'<p>현금 지급 전후 여부를 메이트와 확인해 주세요. 릴트립은 여행 비용을 수납하거나 자동 환불하지 않아요.</p>'}<textarea name="reason" aria-label="사유" placeholder="사유를 입력해주세요." required minlength="2" maxlength="500"></textarea><label class="check"><input name="terms" type="checkbox" required>즉시 예약이 취소되는 것을 확인했습니다.</label><div class="rt-detail-actions"><button type="submit" class="btn danger">${b.status==='awaiting_mate_fee'?'요청 철회':'예약 취소하기'}</button></div></form>`;}
+function cancel(){const b=state.booking;if(!canCancelBooking(b))return empty('취소할 수 있는 예약이 없어요.','시작 이후 중단·취소는 별도 CS로 문의해 주세요.','booking','예약 보기');return `${title('','예약 취소')}<form id="cancel-form" class="card pad">${b.status==='awaiting_mate_fee'?'':'<p>현금 지급 전후 여부를 메이트와 확인해 주세요. 릴트립은 여행 비용을 수납하거나 자동 환불하지 않아요.</p>'}${hasPaidFee(b)?`<p>메이트 매칭 수수료 · 전액 환불 예정 · ${money(b.feeAmount)}</p>`:''}<textarea name="reason" aria-label="사유" placeholder="사유를 입력해주세요." required minlength="2" maxlength="500"></textarea><label class="check"><input name="terms" type="checkbox" required>즉시 예약이 취소되는 것을 확인했습니다.</label><div class="rt-detail-actions"><button type="submit" class="btn danger">${b.status==='awaiting_mate_fee'?'요청 철회':'예약 취소하기'}</button></div></form>`;}
 
-function side(role,content){if(role==='guide')return content;const active=current()==='admin'?'admin-guides':current(),pending=adminPendingCounts(),items=[['admin-guides','guides','메이트 관리'],['admin-bookings','calendar','매칭·예약 관리'],['admin-support','messages','문의 관리']];return `<div class="adminlayout"><aside class="rt-admin-sidebar"><a class="rt-admin-account" href="#admin"><span class="rt-admin-avatar">R</span><span><strong>Administrator</strong><small>${(window.ReelStatePreview?.fixture?.adminSamples||state.adminSampleSeedVersion)?'예시 데이터':'운영 · admin'}</small></span></a><div class="rt-admin-group">서비스 관리</div><details open class="rt-admin-menu"><summary>${icon('trips',18)}<strong>릴트립</strong>${icon('chevronDown',16)}</summary><nav class="sidenav" aria-label="릴트립 운영 메뉴">${items.map(([route,glyph,label])=>`<a class="${active===route?'active':''}" ${active===route?'aria-current="page"':''} href="#${route}">${icon(glyph,17)}<span>${label}</span>${pending[route]?`<b class="badge" title="처리 대기">${pending[route]}</b>`:''}${active===route?icon('chevronRight',14):''}</a>`).join('')}</nav></details><div class="rt-admin-sidebar-foot">REELTRIP OPERATIONS<small>운영 웹 프로토타입</small></div></aside><section class="rt-admin-content"><div class="rt-admin-breadcrumb">서비스 관리 <span>/</span> 릴트립 <span>/</span> ${items.find(x=>x[0]===active)?.[2]||''}</div>${content}</section></div>`;}
+function side(role,content){if(role==='guide')return content;const active=current()==='admin'?'admin-guides':current()==='admin-support'&&adminQuery().get('view')==='reports'?reportsRoute:current(),pending=adminPendingCounts(),items=[['admin-guides','guides','메이트 관리'],['admin-bookings','calendar','예약 관리'],['admin-support','messages','문의 관리'],[reportsRoute,'info','신고 관리']];return `<div class="adminlayout"><aside class="rt-admin-sidebar"><a class="rt-admin-account" href="#admin"><span class="rt-admin-avatar">R</span><span><strong>운영팀</strong></span></a><div class="rt-admin-group">서비스 관리</div><details open class="rt-admin-menu"><summary>${icon('trips',18)}<strong>릴트립</strong>${icon('chevronDown',16)}</summary><nav class="sidenav" aria-label="릴트립 운영 메뉴">${items.map(([route,glyph,label])=>`<a class="${active===route?'active':''}" ${active===route?'aria-current="page"':''} href="#${route}">${icon(glyph,17)}<span>${label}</span>${pending[route]?`<b class="badge" title="처리 대기">${pending[route]}</b>`:''}${active===route?icon('chevronRight',14):''}</a>`).join('')}</nav></details></aside><section class="rt-admin-content"><div class="rt-admin-breadcrumb">서비스 관리 <span>/</span> 릴트립 <span>/</span> ${items.find(x=>x[0]===active)?.[2]||''}</div>${content}</section></div>`;}
 function seedAdminSamples(){
+ if(!window.ReelAccess.isAdmin||state.adminSampleSeedVersion>=5)return;
+ if((state.adminSampleSeedVersion||0)<3){
+  seedInitialAdminSamples();
+  if(!state.tickets.some(t=>t.id==='TK-DEMO-LONG')){
+   state.tickets.push({id:'TK-DEMO-LONG',type:'예약·취소',body:'다음 주 서울 여행에 가족 한 명이 더 합류하게 되어 예약 인원을 두 명에서 세 명으로 변경하고 싶습니다. 메이트와 약속한 시간과 만나는 장소는 그대로 유지할 예정입니다. 인원 변경이 가능한지, 이미 확정된 금액에 추가 비용이 발생하는지도 함께 확인해 주세요.',email:'family@example.com',status:'resolved'});
+  }
+ }
+ state.adminMateSamples=state.adminMateSamples||[];
+ for(const suffix of ['1','3']){
+  const r=state.userReports?.find(item=>item.id==='REPORT-DEMO-00'+suffix&&item.target==='guide:demo'+suffix);
+  if(!r||state.adminMateSamples.some(a=>a.guideId==='demo'+suffix))continue;
+  state.adminMateSamples.push({id:'reported-demo-'+suffix,guideId:'demo'+suffix,status:'approved',fields:{name:r.targetName}});
+ }
+ updateAdminSampleLabels();state.adminSampleSeedVersion=5;save();
+}
+function updateAdminSampleLabels(){
+ const names={'여행자 예시 A':'수아','메이트 예시 A':'하람','여행자 예시 B':'지호','메이트 예시 B':'서진','여행자 예시 C':'유진','메이트 예시 C':'가람','하늘 · 예시':'하늘','다온 · 예시':'다온','이든 · 예시':'이든'};
+ const oldBio='서울의 동네 맛집과 산책 코스를 소개하는 예시 메이트입니다.';
+ const updateProfile=fields=>{
+  if(!fields)return false;
+  let changed=false;
+  if(Object.hasOwn(names,fields.name)){fields.name=names[fields.name];changed=true;}
+  if(fields.bio===oldBio){fields.bio='서울의 동네 맛집과 산책 코스를 소개해요.';changed=true;}
+  return changed;
+ };
+ for(const a of state.adminMateSamples||[])if(/^(MATE-DEMO-|reported-demo-)/.test(a.id))updateProfile(a.fields);
+ const main=mateApplication();
+ if(main.fields?.email==='mate@example.com'&&updateProfile(main.fields))saveMate(main);
+ for(const r of state.userReports||[])if(/^REPORT-DEMO-00[123]$/.test(r.id)){
+  if(Object.hasOwn(names,r.actorName))r.actorName=names[r.actorName];
+  if(Object.hasOwn(names,r.targetName))r.targetName=names[r.targetName];
+ }
+ for(const block of state.userBlocks||[])if(/^(guide|customer):demo[123]$/.test(block.actor)){
+  if(Object.hasOwn(names,block.actorName))block.actorName=names[block.actorName];
+  if(Object.hasOwn(names,block.name))block.name=names[block.name];
+ }
+ for(const b of state.bookingHistory||[]){
+  if(!/^RT-DEMO-[123]$/.test(b.id))continue;
+  const i=Number(b.id.slice(-1))-1;
+  if(b.customer==='여행자 예시 '+(i+1))b.customer=['수아','지호','유진'][i];
+  if(b.tripTitle==='서울 여행 · 예시 '+(i+1))b.tripTitle=['성수동 산책','서울숲 나들이','남산 야경 산책'][i];
+ }
+}
+function seedInitialAdminSamples(){
  if(!window.ReelAccess.isAdmin||state.adminSampleSeedVersion>=2)return;
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});
  if(!allBookings().length){
   state.bookingHistory=['confirmed','awaiting_mate_fee','cancelled'].map((status,i)=>{
    const date=dateAfter(today,status==='completed'?-(i+1):i+2),amount=180000+i*20000;
-   return {id:'RT-DEMO-'+(i+1),requestId:'RQ-DEMO-'+(i+1),guide:i%2?'준':'미나',guideId:i%2?'jun':'mina',customer:'여행자 예시 '+(i+1),email:'traveler'+(i+1)+'@example.com',tripTitle:'서울 여행 · 예시 '+(i+1),date,endDate:date,dayCount:1,party:2,time:'13:00',status,amount,feeAmount:amount*.1,feeRate:.1,feeStatus:status==='awaiting_mate_fee'?'pending':'paid',feeDeadline:Date.now()+86400000,paymentMethod:'cash',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1',refundStatus:'none'};
+   return {id:'RT-DEMO-'+(i+1),requestId:'RQ-DEMO-'+(i+1),guide:i%2?'준':'미나',guideId:i%2?'jun':'mina',customer:['수아','지호','유진'][i],email:'traveler'+(i+1)+'@example.com',tripTitle:['성수동 산책','서울숲 나들이','남산 야경 산책'][i],date,endDate:date,dayCount:1,party:2,time:'13:00',status,amount,feeAmount:amount*.1,feeRate:.1,feeStatus:status==='awaiting_mate_fee'?'pending':'paid',feeDeadline:Date.now()+86400000,paymentMethod:'cash',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1',refundStatus:'none'};
   });
  }
  const application=mateApplication();
  if(application.status==='draft'&&!localStorage.getItem(mateKey)){
-  saveMate({status:'pending',step:4,submittedAt:Date.now(),fields:{name:'하늘 · 예시',email:'mate@example.com',contact:'010-0000-0000',regions:[{city:0,district:3},{city:0,district:0}],languages:['ko','en'],specialty:1,bio:'서울의 동네 맛집과 산책 코스를 소개하는 예시 메이트입니다.'}});
+  saveMate({status:'pending',step:4,submittedAt:Date.now(),fields:{name:'하늘',email:'mate@example.com',contact:'010-0000-0000',regions:[{city:0,district:3},{city:0,district:0}],languages:['ko','en'],specialty:1,bio:'서울의 동네 맛집과 산책 코스를 소개해요.'}});
  }
   const now=Date.now();
   if(!state.tickets.length)state.tickets=[
@@ -890,8 +1370,8 @@ function seedAdminSamples(){
   const cancelled=allBookings().find(b=>b.status==='cancelled'&&b.id.startsWith('RT-DEMO-'));
   if(cancelled&&(!cancelled.refundStatus||cancelled.refundStatus==='none')){cancelled.refundStatus='review';cancelled.refundRequestedAmount=cancelled.feeAmount;}
   if(!state.userReports?.length)state.userReports=[
-   {id:'REPORT-DEMO-001',actor:'customer:demo1',target:'guide:demo1',actorName:'여행자 예시 A',targetName:'메이트 예시 A',actorRole:'customer',threadId:'CHAT-DEMO-001',reason:'spam',details:'여행과 관계없는 광고 메시지를 반복해서 받았어요.',at:now-3600000,status:'local'},
-   {id:'REPORT-DEMO-002',actor:'guide:demo2',target:'customer:demo2',actorName:'메이트 예시 B',targetName:'여행자 예시 B',actorRole:'guide',threadId:'CHAT-DEMO-002',reason:'abuse',details:'채팅 중 불쾌한 표현이 있어 확인을 요청합니다.',at:now-86400000,status:'local'}
+   {id:'REPORT-DEMO-001',actor:'customer:demo1',target:'guide:demo1',actorName:'수아',targetName:'하람',actorRole:'customer',threadId:'CHAT-DEMO-001',reason:'spam',details:'여행과 관계없는 광고 메시지를 반복해서 받았어요.',at:now-3600000,status:'local'},
+   {id:'REPORT-DEMO-002',actor:'guide:demo2',target:'customer:demo2',actorName:'서진',targetName:'지호',actorRole:'guide',threadId:'CHAT-DEMO-002',reason:'abuse',details:'채팅 중 불쾌한 표현이 있어 확인을 요청합니다.',at:now-86400000,status:'local'}
   ];
   if(!state.userBlocks?.length)state.userBlocks=state.userReports.filter(r=>r.id.startsWith('REPORT-DEMO-')).map(r=>({actor:r.actor,target:r.target,actorName:r.actorName,name:r.targetName,actorRole:r.actorRole,at:r.at}));
 
@@ -899,20 +1379,26 @@ function seedAdminSamples(){
  let bookingCount=0;state.bookingHistory=(state.bookingHistory||[]).filter(b=>!isSample(b.id)||++bookingCount<=3);
  let ticketCount=0;state.tickets=state.tickets.filter(t=>!/^TK-DEMO-/.test(t.id)||++ticketCount<=3);
  const base=mateApplication();
- if(!state.adminMateSamples)state.adminMateSamples=['다온 · 예시','이든 · 예시'].map((name,i)=>({id:'MATE-DEMO-'+(i+2),status:'pending',step:4,submittedAt:Date.now()-(i+1)*86400000,fields:{...base.fields,name,email:'mate'+(i+2)+'@example.com',bio:'서울의 동네 맛집과 산책 코스를 소개하는 예시 메이트입니다.'}}));
- if(!state.userReports.some(r=>r.id==='REPORT-DEMO-003'))state.userReports.push({id:'REPORT-DEMO-003',actor:'customer:demo3',target:'guide:demo3',actorName:'여행자 예시 C',targetName:'메이트 예시 C',actorRole:'customer',threadId:'CHAT-DEMO-003',reason:'other',details:'약속한 안내 내용과 달라 확인을 요청합니다.',at:Date.now()-7200000,status:'local'});
+ if(!state.adminMateSamples)state.adminMateSamples=['다온','이든'].map((name,i)=>({id:'MATE-DEMO-'+(i+2),status:'pending',step:4,submittedAt:Date.now()-(i+1)*86400000,fields:{...base.fields,name,email:'mate'+(i+2)+'@example.com',bio:'서울의 동네 맛집과 산책 코스를 소개해요.'}}));
+ if(!state.userReports.some(r=>r.id==='REPORT-DEMO-003'))state.userReports.push({id:'REPORT-DEMO-003',actor:'customer:demo3',target:'guide:demo3',actorName:'유진',targetName:'가람',actorRole:'customer',threadId:'CHAT-DEMO-003',reason:'other',details:'약속한 안내 내용과 달라 확인을 요청합니다.',at:Date.now()-7200000,status:'local'});
  const third=state.userReports.find(r=>r.id==='REPORT-DEMO-003');if(!state.userBlocks.some(b=>b.actor===third.actor&&b.target===third.target))state.userBlocks.push({actor:third.actor,target:third.target,actorName:third.actorName,name:third.targetName,actorRole:third.actorRole,at:third.at});
  state.adminSampleSeedVersion=2;save();
 }
-function adminPendingCounts(){return {'admin-guides':adminApplications().filter(({application:a})=>(a.revision?.status||a.status)==='pending').length,'admin-bookings':allBookings().filter(b=>['review','needs_info','approved','processing'].includes(b.refundStatus)).length,'admin-support':state.tickets.filter(t=>['open','review'].includes(t.status)).length};}
+function adminPendingCounts(){return {[reportsRoute]:adminSafetyRecords().reports.filter(r=>!reportResolution(r)).length,'admin-guides':adminApplications().filter(({application:a})=>(a.revision?.status||a.status)==='pending').length,'admin-bookings':allBookings().filter(b=>['review','needs_info','approved','processing','failed'].includes(b.refundStatus)).length,'admin-support':state.tickets.filter(t=>['open','review'].includes(t.status)).length};}
 function adminQuery(){return new URLSearchParams(location.hash.split('?')[1]||'');}
 function adminDate(value){if(!value)return '—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString(document.documentElement.lang==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul'});}
-function adminRecordLink(route,record){const q=adminQuery();q.set('record',record);return '#'+route+'?'+esc(q.toString());}
+function adminDetailCell(route,record,recordName){
+ const query=adminQuery();
+ query.set('record',record);
+ const label=esc(recordName?`${recordName} · 상세 보기`:'상세 보기');
+ return `<td class="rt-admin-manage"><a class="rt-admin-detail-link" href="#${route}?${esc(query.toString())}" aria-label="${label}" title="${label}">${icon('eye',12)}</a></td>`;
+}
 function adminBack(route){const q=adminQuery();q.delete('record');return `<a class="btn secondary" href="#${route}${q.size?'?'+esc(q.toString()):''}">${icon('chevronLeft',16)} 목록으로</a>`;}
-function adminFilter(route,placeholder,options=[]){const q=adminQuery();return `<form id="admin-filter-form" class="card pad rt-admin-filter"><input type="hidden" name="route" value="${route}"><label>검색어<input type="search" name="query" value="${esc(q.get('query')||'')}" placeholder="${placeholder}"></label>${options.length?`<label>상태<select name="status"><option value="">전체</option>${options.map(([value,label])=>`<option value="${value}" ${q.get('status')===value?'selected':''}>${label}</option>`).join('')}</select></label>`:''}<button class="btn" type="submit">검색</button><a class="btn secondary" href="#${route}">초기화</a></form>`;}
+function supportTypeLabel(t){return ({fee_refund:'매칭 수수료 환급 문의',no_show:'여행자 노쇼',late_no_show:'지각 후 미도착'})[t.type]||t.type||'—';}
+function adminFilter(route,placeholder,options=[]){const q=adminQuery();return `<form id="admin-filter-form" class="card pad rt-admin-filter"><input type="hidden" name="route" value="${route}"><label>검색어<input type="search" name="query" value="${esc(q.get('query')||'')}" placeholder="${placeholder}"></label>${route==='admin-support'?`<label>문의 유형<select name="type"><option value="">전체 유형</option>${[...new Set(state.tickets.map(t=>t.type).filter(Boolean))].map(type=>`<option value="${esc(type)}" ${q.get('type')===type?'selected':''}>${esc(supportTypeLabel({type}))}</option>`).join('')}</select></label>`: ''}${options.length?`<label>상태<select name="status"><option value="">전체</option>${options.map(([value,label])=>`<option value="${value}" ${q.get('status')===value?'selected':''}>${label}</option>`).join('')}</select></label>`:''}<button class="btn" type="submit">검색</button><a class="btn secondary" href="#${route}">초기화</a></form>`;}
 function adminBookingStatus(status){return ({matching:'awaiting_mate_fee',booked:'confirmed'})[status]||status;}
-function adminBookingRows(bookings){return bookings.map(b=>`<tr><td><strong>${esc(bookingReferenceLabel(b))}</strong></td><td>${esc(b.guide)}</td><td>${requestPeriod(b)}</td><td><span class="badge rt-status-${({awaiting_mate_fee:'selected',confirmed:'confirmed',completed:'completed',cancelled:'cancelled'})[adminBookingStatus(b.status)]||'expired'}">${esc(statusLabel(b.status))}</span></td><td>${money(b.feeAmount||0)}</td><td><a class="textbtn" href="${adminRecordLink('admin-bookings',b.id)}">상세 보기</a></td></tr>`).join('')||'<tr><td colspan="6" class="rt-admin-empty">표시할 예약이 없습니다.</td></tr>';}
-function adminBookingTable(bookings){return `<div class="tablewrap"><table><thead><tr><th>예약번호</th><th>메이트</th><th>여행 일정</th><th>상태</th><th>매칭 수수료</th><th>관리</th></tr></thead><tbody>${adminBookingRows(bookings)}</tbody></table></div>`;}
+function adminBookingRows(bookings){return bookings.map(b=>`<tr><td><strong>${esc(bookingReferenceLabel(b))}</strong></td><td>${esc(b.guide)}</td><td>${requestPeriod(b)}</td><td><span class="badge rt-status-${({awaiting_mate_fee:'selected',confirmed:'confirmed',completed:'completed',cancelled:'cancelled'})[adminBookingStatus(b.status)]||'expired'}">${esc(statusLabel(b.status))}</span></td><td>${money(b.feeAmount||0)}</td><td>${esc(awaitingGuaranteedRefund(b)?'전액 환불 예정':refundLabel(b.refundStatus))}</td>${adminDetailCell('admin-bookings',b.id,bookingReferenceLabel(b))}</tr>`).join('')||'<tr><td colspan="7" class="rt-admin-empty">표시할 예약이 없습니다.</td></tr>';}
+function adminBookingTable(bookings){return `<div class="tablewrap"><table><thead><tr><th scope="col">예약번호</th><th scope="col">메이트</th><th scope="col">여행 일정</th><th scope="col">상태</th><th scope="col">매칭 수수료</th><th scope="col">수수료 반환 상태</th><th scope="col" class="rt-admin-manage">관리</th></tr></thead><tbody>${adminBookingRows(bookings)}</tbody></table></div>`;}
 
 function publicRequestMatch(r){
  const regions=mateApplication().fields?.regions||[];
@@ -922,7 +1408,7 @@ function publicRequestMatch(r){
  return {region,available:requestAvailable(r)};
 }
 function publicTravelRequests(requests=matchingContexts().map(x=>x.request)){
- return requests.filter(r=>r&&['requested','quoted'].includes(r.status)&&(!r.visibility||r.visibility==='approved_mates')&&state.booking?.requestId!==r.id&&requestAvailable(r))
+ return requests.filter(r=>r&&!bookingStarted(r)&&['requested','quoted'].includes(r.status)&&(!r.visibility||r.visibility==='approved_mates')&&state.booking?.requestId!==r.id&&requestAvailable(r))
  .sort((a,b)=>{const x=publicRequestMatch(a),y=publicRequestMatch(b);return Number(y.region&&y.available)-Number(x.region&&x.available)||Number(y.available)-Number(x.available)||Number(y.region)-Number(x.region)||(b.createdAt||0)-(a.createdAt||0)||String(a.id).localeCompare(String(b.id));});
 }
 function guideDesk(){const rows=publicTravelRequests(),b=state.booking,activeBooking=b?.guideId==='mina'&&['awaiting_mate_fee','confirmed'].includes(b.status)?b:null;return `<div class="pagehead"><div><p class="muted">활동 지역·가능 날짜에 맞는 요청부터 표시해요.</p></div></div>${activeBooking?mateBookingCard(activeBooking):''}${rows.length?rows.map(r=>{
@@ -951,9 +1437,9 @@ function requestItineraryMap(r){
  const map=stops.length?mapPanel([],stops).replaceAll('data-action="focus-place"','type="button" data-action="quote-map-focus"'):'';
  return `${tabs}${map}<div class="sectionhead"><h3>${quoteMapDay+1}일차 · ${esc(day.date||'')}</h3></div>${stops.length?`<ol class="trip-timeline">${stops.map((p,i)=>`<li class="trip-timeline-stop"><span class="trip-stop-number">${i+1}</span><div class="trip-stop-content"><span><strong>${esc(p.name)}</strong><small>${esc(p.address||p.area||'')}</small></span><span class="trip-stop-photo">${placeArt(p)}</span></div>${i<stops.length-1?travelLeg(p,stops[i+1]):''}</li>`).join('')}</ol>`:'<p class="hint">이날은 등록된 장소가 없어요.</p>'}`;
 }
-function guideQuote(){if(new URLSearchParams(location.hash.split('?')[1]||'').has('proposal'))return guideActivity();const r=state.request;if(state.booking){const b=state.booking;if(b.guideId!=='mina')return side('guide',empty('다른 메이트의 제안이 선택되었어요.','새로운 여행을 찾아 제안해 보세요.','guide-desk','여행 찾기'));const pending=b.status==='awaiting_mate_fee';if(pending)return side('guide',`${title('','여행자가 내 제안을 선택했어요!')}${mateBookingCard(b)}`);return side('guide',empty(pending?'여행자가 내 제안을 선택했어요!':'선택된 예약을 확인하세요.',pending?'매칭 수수료 10%를 결제하면 예약이 확정돼요.':'예약 진행 상태와 여행 상세를 바로 확인할 수 있어요.','guide-fee',pending?'예약 확정':'예약 보기'));}if(!r||!['requested','quoted'].includes(r.status))return side('guide',empty('제안을 작성할 요청이 없습니다.','요청함에서 진행 상태를 확인하세요.','guide-desk','요청함'));const sent=proposals().find(q=>q.guideId==='mina'&&q.expires>Date.now());if(sent)return side('guide',`${title('','보낸 제안','보낸 제안은 수정할 수 없어요. 여행자의 선택을 기다려 주세요.')}${mateRequestSummary(sent)}${proposalMessage(sent)}<section class="card pad quote-section"><h2>함께할 일정</h2>${requestItineraryMap(sent)}</section>${proposalWithdrawAction(sent)}`);return side('guide',`${title('','여행 제안 보내기','요청 조건을 확인하고 일행 전체 금액을 입력하세요.')}${mateRequestSummary(r)}<form id="quote-form" class="card pad quote-section">${r.requestType==='free'?`<label>날짜별 방문 코스<textarea name="plan" required minlength="10" maxlength="2000" placeholder="날짜별 방문 장소를 입력하세요."></textarea></label>`:`<h2>함께할 일정</h2>${requestItineraryMap(r)}`}<label>일행 전체 여행 금액 (원)<input type="number" name="amount" min="0" step="1" required placeholder="예: 240000"></label><label>여행자에게 남길 메시지를 작성해주세요!<textarea name="message" maxlength="1000" rows="4" placeholder="여행자에게 남길 메시지를 작성해주세요!"></textarea></label><p class="hint">식비·쇼핑·교통비·입장료는 별도예요. 보낸 제안은 24시간 유효하며 수정할 수 없어요.</p><label class="check"><input name="ack" type="checkbox" required>요청 일정과 전체 금액을 확인했습니다.</label><p id="quote-error" class="error" role="alert"></p><div class="rt-detail-actions"><button class="btn" type="submit">함께할 여행 제안하기</button></div></form>`);}
+function guideQuote(){if(new URLSearchParams(location.hash.split('?')[1]||'').has('proposal'))return guideActivity();const r=state.request;if(state.booking){const b=state.booking;if(b.guideId!=='mina')return side('guide',empty('다른 메이트의 제안이 선택되었어요.','새로운 여행을 찾아 제안해 보세요.','guide-desk','여행 찾기'));const pending=b.status==='awaiting_mate_fee';if(pending)return side('guide',`${title('','여행자가 내 제안을 선택했어요!')}${mateBookingCard(b)}`);return side('guide',empty(pending?'여행자가 내 제안을 선택했어요!':'선택된 예약을 확인하세요.',pending?'매칭 수수료 10%를 결제하면 예약이 확정돼요.':'예약 진행 상태와 여행 상세를 바로 확인할 수 있어요.','guide-fee',pending?'예약 확정':'예약 보기'));}if(!r||!['requested','quoted'].includes(r.status))return side('guide',empty('제안을 작성할 요청이 없습니다.','요청함에서 진행 상태를 확인하세요.','guide-desk','요청함'));const sent=proposals().find(q=>q.guideId==='mina'&&q.expires>Date.now());if(sent)return side('guide',`${title('','보낸 제안','보낸 제안은 수정할 수 없어요. 여행자의 선택을 기다려 주세요.')}${mateRequestSummary(sent)}${proposalMessage(sent)}<section class="card pad quote-section"><h2>함께할 일정</h2>${requestItineraryMap(sent)}</section>${proposalWithdrawAction(sent)}`);return side('guide',`${title('','여행 제안 보내기','요청 조건을 확인하고 일행 전체 금액을 입력하세요.')}${mateRequestSummary(r)}<form id="quote-form" class="card pad quote-section">${r.requestType==='free'?`<label>날짜별 방문 코스<textarea name="plan" required minlength="10" maxlength="2000" placeholder="날짜별 방문 장소를 입력하세요."></textarea></label>`:`<h2>함께할 일정</h2>${requestItineraryMap(r)}`}<label>일행 전체 여행 금액 (원)<input type="number" name="amount" min="0" step="1" required placeholder="예: 240000"></label><label>여행자에게 남길 메시지를 작성해주세요!<textarea name="message" maxlength="1000" rows="4" placeholder="여행자에게 남길 메시지를 작성해주세요!"></textarea></label><p class="hint">보낸 제안은 24시간 유효하며 수정할 수 없어요. 식비·교통비·입장료의 포함 여부는 예약 확정 후 여행자와 채팅으로 정해 주세요.</p><label class="check"><input name="ack" type="checkbox" required>요청 일정과 전체 금액을 확인했습니다.</label><p id="quote-error" class="error" role="alert"></p><div class="rt-detail-actions"><button class="btn" type="submit">함께할 여행 제안하기</button></div></form>`);}
 
-function requestAvailable(r=state.request){return !!r&&!mateApplication().activityRestricted&&!mateConflict(r,'mina');}
+function requestAvailable(r=state.request){return !!r&&!activitySuspended(mateApplication())&&!mateConflict(r,'mina');}
 function admin(){return mateAdmin();}
 // Operations reads both language stores afresh so another app tab is visible without overwriting its data.
 function adminSafetyRecords(){
@@ -964,16 +1450,93 @@ function adminSafetyRecords(){
  }catch{}}
  return result;
 }
-function adminSafetyPanel(){
- const {reports,blocks}=adminSafetyRecords();
- const person=(name,id)=>`${esc(name||id||'—')} <small>${esc(id||'')}</small>`;
- const role=r=>(r.actorRole==='guide'||String(r.actor).startsWith('guide:'))?'메이트':'여행자';
- const meta=r=>`${r.language==='ko'?'KO':'EN'} · ${esc(chatTime(r.at))}`;
- return `<section class="stack"><div class="sectionhead"><h2>사용자 신고 · ${reports.length}</h2>${action('목록 새로고침','refresh-safety','secondary small')}</div>${reports.length?reports.slice().sort((a,b)=>b.at-a.at).map(r=>`<article class="card pad"><span class="badge">${meta(r)}</span><h3>${esc(reportReasons[r.reason]||r.reason)}</h3><p>신고자 (${role(r)}): ${person(r.actorName,r.actor)}</p><p>신고 대상: ${person(r.targetName,r.target)}</p><p>${esc(r.details||'상세 내용 없음')}</p><p class="hint">대화방: ${esc(r.threadId)}</p><p>차단 상태: ${blocks.some(b=>b.language===r.language&&b.actor===r.actor&&b.target===r.target)?'차단 중':'차단 안 함'}</p></article>`).join(''):'<div class="card pad"><p>접수된 사용자 신고가 없습니다.</p></div>'}<h2>현재 차단 내역 · ${blocks.length}</h2>${blocks.length?blocks.slice().sort((a,b)=>b.at-a.at).map(b=>`<article class="card pad"><span class="badge">${meta(b)}</span><p>차단한 사용자 (${role(b)}): ${person(b.actorName,b.actor)}</p><p>차단 대상: ${person(b.name,b.target)}</p></article>`).join(''):'<div class="card pad"><p>현재 차단 내역이 없습니다.</p></div>'}</section>`;
+const reportOutcomes={closed:'추가 제재 없음',warned:'주의 안내 완료',restricted:'메이트 활동 제한 완료'};
+const reportsRoute='admin-support?view=reports';
+function reportRecord(r){return r.language+':'+r.id;}
+function reportedMate(r){
+ if(!String(r.target).startsWith('guide:'))return null;
+ const guideId=r.target.slice(6);
+ if(guideId==='mina'){
+  const application=mateApplication();
+  return application.status==='approved'?{id:'application',application}:null;
+ }
+ const storeKey=`reeltrip-demo-${r.language}-map-v2-option-2`;
+ const stored=JSON.parse(localStorage.getItem(storeKey)||'null');
+ const application=stored?.adminMateSamples?.find(a=>a.guideId===guideId&&a.status==='approved');
+ return application?{id:application.id,application,storeKey,stored}:null;
 }
-function adminSupport(){const q=adminQuery();if(q.has('record')){const ticket=state.tickets.find(t=>t.id===q.get('record'));return side('admin',`${title('고객 문의',ticket?'문의 상세':'문의를 찾을 수 없어요.','',adminBack('admin-support'))}${ticket?supportTicketCard(ticket):''}`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=state.tickets.filter(t=>(!status||t.status===status)&&[t.id,t.type,t.body,t.email].join(' ').toLowerCase().includes(query));return side('admin',`${title('','문의 관리','접수 목록에서 상세 내용과 자료를 확인하고 처리하세요.')}${adminFilter('admin-support','문의 ID, 내용 또는 이메일 입력',[['open','접수'],['review','검토 중'],['needs_info','보완 요청'],['resolved','처리 완료']])}<section class="card rt-admin-panel"><div class="rt-admin-panel-head"><h2>문의 목록 <span>${rows.length}</span></h2></div><div class="tablewrap"><table><thead><tr><th>문의 ID</th><th>유형</th><th>문의 내용</th><th>이메일</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows.map(t=>`<tr><td>${esc(t.id)}</td><td>${esc(({no_show:'여행자 노쇼',late_no_show:'지각 후 미도착'})[t.type]||t.type||'—')}</td><td>${esc(String(t.body||'').slice(0,60))}${String(t.body||'').length>60?'…':''}</td><td>${esc(t.email||'—')}</td><td><span class="badge">${esc(({open:'접수',review:'검토 중',needs_info:'보완 요청',resolved:'처리 완료'})[t.status]||t.status)}</span></td><td><a class="textbtn" href="${adminRecordLink('admin-support',t.id)}">상세 검토</a></td></tr>`).join('')||'<tr><td colspan="6" class="rt-admin-empty">조건에 맞는 문의가 없습니다.</td></tr>'}</tbody></table></div></section><details class="card pad rt-admin-panel"><summary>사용자 신고·차단 내역</summary>${adminSafetyPanel()}</details>`);}
+function reportResolution(r){
+ const raw=localStorage.getItem('reeltrip-admin-report:'+reportRecord(r));
+ if(raw){try{return JSON.parse(raw);}catch{}}
+ const prior=reportedMate(r)?.application.restrictionHistory?.find(event=>event.report===reportRecord(r));
+ return prior?{outcome:'restricted',note:prior.reason,endDate:prior.endDate}:null;
+}
+function reportStatusBadge(done){
+ return `<span class="badge rt-status-badge" data-status="${done?'resolved':'open'}">${done?'처리 완료':'미처리'}</span>`;
+}
+function reportClosureForm(record,inDialog=false){
+ return `<form id="resolve-chat-report">${inDialog?'<h2>추가 제재 없음</h2>':''}<input type="hidden" name="record" value="${esc(record)}"><label>검토 기록<textarea name="note" required maxlength="1000" rows="2" placeholder="확인한 내용과 추가 제재가 필요하지 않은 이유를 적어 주세요."></textarea></label><div class="buttons">${inDialog?'<button type="button" class="btn secondary" data-action="close">취소</button>':''}<button type="submit" class="btn">신고 검토 완료</button></div></form>`;
+}
+function reportDecisionForm(){
+ return `<form id="report-decision-form"><fieldset class="rt-report-choices"><legend>처리 결과 선택</legend><label><input type="radio" name="decision" value="closed" required>추가 제재 없음</label><label><input type="radio" name="decision" value="suspend" required>메이트 활동 정지</label></fieldset><div class="buttons"><button type="submit" class="btn" disabled>다음</button></div></form>`;
+}
+function selectReportDecision(form){
+ if(!window.ReelAccess.isAdmin||current()!=='admin-support'||adminQuery().get('view')!=='reports')return;
+ const r=adminSafetyRecords().reports.find(item=>reportRecord(item)===adminQuery().get('record'));
+ if(!r||reportResolution(r)){render();return;}
+ const decision=new FormData(form).get('decision');
+ if(decision==='closed')modal(reportClosureForm(reportRecord(r),true));
+ if(decision==='suspend')openSuspensionDialog(true);
+}
+function adminSafetyPanel(){
+ const {reports}=adminSafetyRecords();
+ const record=adminQuery().get('record');
+ if(record){
+  const r=reports.find(item=>reportRecord(item)===record);
+  const back=adminBack('admin-support');
+  if(!r)return title('','신고를 찾을 수 없어요.','',back);
+  const resolution=reportResolution(r);
+  const profile=reportedMate(r);
+  const canRestrict=!resolution&&profile&&!activitySuspended(profile.application);
+  const outcome=resolution&&(reportOutcomes[resolution.outcome]||'검토 완료');
+  const review=resolution?`<h2>${esc(outcome)}</h2><p>${esc(resolution.note)}</p>${resolution.endDate?`<p>정지 종료일 · ${esc(resolution.endDate)}</p>`:''}`:
+   (canRestrict?reportDecisionForm():reportClosureForm(record));
+  return `<div class="rt-admin-detail">${suspensionHeader('신고 상세',back,'')}<section class="card pad rt-admin-panel"><header class="rt-admin-info-heading"><h2>${esc(reportReasons[r.reason]||r.reason)}</h2>${reportStatusBadge(!!resolution)}</header><dl class="rt-admin-info-grid"><div class="rt-admin-info-row"><dt>신고자</dt><dd>${esc(r.actorName||r.actor)}</dd></div><div class="rt-admin-info-row"><dt>신고 대상</dt><dd>${esc(r.targetName||r.target)} ${activitySuspended(profile?.application)?'<span class="badge">활동 제한 중</span>':''}</dd></div><div class="rt-admin-info-row rt-admin-info-row--wide"><dt>접수 일시</dt><dd>${esc(chatTime(r.at))}</dd></div></dl>${r.details?`<div class="rt-admin-narrative"><h3>신고 내용</h3><p>${esc(r.details)}</p></div>`:''}</section><section class="card pad rt-admin-panel">${resolution?'':'<h2>신고 처리</h2>'}<div class="rt-admin-review-form">${review}</div></section></div>`;
 
-function adminBookings(){const q=adminQuery();if(q.has('record')){const selected=allBookings().find(b=>b.id===q.get('record'));return side('admin',`<div class="rt-admin-detail">${title('',selected?'예약 상세':'예약을 찾을 수 없어요.',selected?statusLabel(selected.status):'',adminBack('admin-bookings'))}${selected?operationsBookingForm(selected):''}</div>`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',bookings=allBookings().filter(b=>(!status||adminBookingStatus(b.status)===status)&&(bookingReferenceLabel(b)+' '+b.guide).toLowerCase().includes(query));return side('admin',`${title('','매칭·예약 관리','매칭 수수료와 예약 처리 이력을 확인합니다.')}${adminFilter('admin-bookings','예약번호 또는 메이트 이름 입력',['awaiting_mate_fee','confirmed','completed','cancelled'].map(status=>[status,statusLabel(status)]))}<section class="card rt-admin-panel"><div class="rt-admin-panel-head"><h2>예약 목록 <span>${bookings.length}</span></h2></div>${adminBookingTable(bookings)}</section>`);}
+ }
+ const query=adminQuery();
+ const search=(query.get('query')||'').trim().toLowerCase(),status=query.get('status')||'';
+ const items=reports.map(r=>({r,done:!!reportResolution(r)})).filter(({r,done})=>{
+  if(status&&status!==(done?'resolved':'open'))return false;
+  return !search||[r.actorName,r.targetName,r.actor,r.target,reportReasons[r.reason],r.details].some(value=>String(value||'').toLowerCase().includes(search));
+ }).sort((a,b)=>Number(a.done)-Number(b.done)||b.r.at-a.r.at);
+ const rows=items.map(({r,done})=>`<tr><td>${esc(chatTime(r.at))}</td><td>${esc(r.actorName||r.actor)}</td><td>${esc(r.targetName||r.target)}</td><td class="rt-ticket-preview"><span>${esc(reportReasons[r.reason]||r.reason)}${r.details?` · ${esc(r.details)}`:''}</span></td><td>${reportStatusBadge(done)}</td>${adminDetailCell('admin-support',reportRecord(r),r.targetName||r.target)}</tr>`).join('');
+ return `${title('','신고 관리','채팅 신고를 확인하고 필요한 경우 메이트 활동을 제한하세요.')}${adminFilter(reportsRoute,'신고자, 신고 대상 또는 신고 내용 입력',[['open','미처리'],['resolved','처리 완료']])}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>신고 목록</h2></div><div class="tablewrap"><table><thead><tr><th scope="col">접수 일시</th><th scope="col">신고자</th><th scope="col">신고 대상</th><th scope="col">신고 내용</th><th scope="col">상태</th><th scope="col" class="rt-admin-manage">관리</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="rt-admin-empty">${search||status?'조건에 맞는 신고가 없습니다.':'접수된 사용자 신고가 없습니다.'}</td></tr>`}</tbody></table></div></section>`;
+}
+function resolveChatReport(form,decision='closed'){
+ if(!window.ReelAccess.isAdmin||current()!=='admin-support'||adminQuery().get('view')!=='reports')return;
+ const r=adminSafetyRecords().reports.find(item=>reportRecord(item)===adminQuery().get('record'));
+ const data=new FormData(form);
+ if(!r||reportResolution(r)||data.get('record')!==reportRecord(r)){
+  if($('#dialog')?.open)$('#dialog').close();
+  render();return;
+ }
+ const note=String(data.get('note')||'').trim();
+ if(!note||note.length>1000){toast('처리 사유를 입력해 주세요.');return;}
+ if(decision!=='confirm'&&decision!=='closed')return;
+ if(decision==='confirm'){
+  const profile=reportedMate(r);
+  if(!profile||!changeActivityRestriction(profile.id,'restrict',note,{profile,report:reportRecord(r),endDate:data.get('endDate')})){$('#dialog')?.close();render();toast('현재 상태와 사유를 확인해 주세요.');return;}
+ }
+ const result={outcome:decision==='confirm'?'restricted':'closed',note,...(decision==='confirm'?{endDate:data.get('endDate')}:{})};
+ try{localStorage.setItem('reeltrip-admin-report:'+reportRecord(r),JSON.stringify(result));}
+ catch{if(decision!=='confirm'){toast('저장하지 못했어요. 다시 시도해 주세요.');return;}}
+ if($('#dialog')?.open)$('#dialog').close();
+ const filters=adminQuery();filters.delete('record');go('admin-support?'+filters.toString());
+}
+function adminSupport(){const q=adminQuery();if(q.get('view')==='reports')return side('admin',adminSafetyPanel());if(q.has('record')){const ticket=state.tickets.find(t=>t.id===q.get('record'));return side('admin',`<div class="rt-admin-detail">${suspensionHeader(ticket?'문의 상세':'문의를 찾을 수 없어요.',adminBack('admin-support'),'')}${ticket?supportTicketCard(ticket):''}</div>`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=state.tickets.filter(t=>(!q.get('type')||t.type===q.get('type'))&&(!status||(status==='open'?t.status!=='resolved':t.status===status))&&[ticketReferenceLabel(t),t.id,supportTypeLabel(t),t.body,t.email].join(' ').toLowerCase().includes(query)).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));return side('admin',`${title('','문의 관리','문의 내용을 확인하고 문의자에게 이메일로 답변하세요.')}${adminFilter('admin-support','문의번호, 내용 또는 이메일 입력',[['open','접수'],['resolved','처리 완료']])}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>문의 목록</h2></div><div class="tablewrap"><table><thead><tr><th scope="col">문의번호</th><th scope="col">접수일</th><th scope="col">유형</th><th scope="col">문의 내용</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" class="rt-admin-manage">관리</th></tr></thead><tbody>${rows.map(t=>`<tr><td><strong>${esc(ticketReferenceLabel(t))}</strong></td><td>${adminDate(t.createdAt)}</td><td>${esc(supportTypeLabel(t))}</td><td class="rt-ticket-preview"><span>${esc(t.body||'')}</span></td><td>${esc(t.email||'—')}</td><td><span class="badge rt-status-${({open:'available',review:'waiting',needs_info:'selected',resolved:'confirmed'})[t.status]||'expired'}">${esc(({open:'접수',review:'검토 중',needs_info:'보완 요청',resolved:'처리 완료'})[t.status]||t.status)}</span></td>${adminDetailCell('admin-support',t.id,ticketReferenceLabel(t))}</tr>`).join('')||'<tr><td colspan="7" class="rt-admin-empty">조건에 맞는 문의가 없습니다.</td></tr>'}</tbody></table></div></section>`);}
+
+function adminBookings(){const q=adminQuery();if(q.has('record')){const selected=allBookings().find(b=>b.id===q.get('record'));return side('admin',`<div class="rt-admin-detail">${suspensionHeader(selected?'예약 상세':'예약을 찾을 수 없어요.',adminBack('admin-bookings'),'')}${selected?operationsBookingForm(selected):''}</div>`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',bookings=allBookings().filter(b=>(!status||adminBookingStatus(b.status)===status||(status==='refund_pending'&&pendingRefund(b))||(status==='dispute_open'&&b.disputeStatus==='open'))&&(bookingReferenceLabel(b)+' '+b.guide).toLowerCase().includes(query));return side('admin',`${title('','예약 관리','예약 상태와 매칭 수수료를 확인하고 취소·반환 내역을 관리하세요.')}${adminFilter('admin-bookings','예약번호 또는 메이트 이름 입력',['awaiting_mate_fee','confirmed','completed','cancelled'].map(status=>[status,statusLabel(status)]).concat([['refund_pending','반환 처리 중'],['dispute_open','운영 확인 중']]))}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>예약 목록</h2></div>${adminBookingTable(bookings)}</section>`);}
 
 
 const demoSignupCode='482916';
@@ -1131,7 +1694,6 @@ function signupEmail(){
  let content;
  if(signupEmailStep==='code'){
   content=`${heading(signupText('verify'),signupText('codeIntro'))}
-   <p class="signup-demo-code developer-only">${signupText('demo')} <strong>${demoSignupCode}</strong></p>
 
    <form id="signup-code-form">
     <label for="signup-code">${signupText('code')}</label>
@@ -1161,10 +1723,10 @@ function showSignupEmailStep(step){
 }
 
 const views={'guide-activity':guideActivity,'mate-register':mateRegistration,signup,'signup-email':signupEmail,'guide-fee':guideFee,settings:settingsPage,notifications,home,processing,results,manual,board,planner,trips,account,support,policies,guides,guide:guidePage,request,requested,quote,checkout,booking,messages,chat,cancel,'guide-desk':guideDesk,'guide-quote':guideQuote,admin,'admin-support':adminSupport,'admin-guides':mateAdmin,'admin-bookings':adminBookings};
-function render(){if(ensureBookingReferences())save();expireAllMateFees();const routeParams=new URLSearchParams(location.hash.split('?')[1]||'');const matchingId=routeParams.get('request')||matchingContexts().find(x=>x.booking?.id===routeParams.get('record'))?.request.id;if(matchingId&&state.request?.id!==matchingId)activateMatching(matchingId);
+function render(){scheduleSuspensionRefresh();if(ensureBookingReferences()||ensureTicketReferences())save();expireAllMateFees();closeStartedRequests();const routeParams=new URLSearchParams(location.hash.split('?')[1]||'');const matchingId=routeParams.get('request')||matchingContexts().find(x=>x.booking?.id===routeParams.get('record'))?.request.id;if(!window.ReelAccess.isAdmin&&matchingId&&state.request?.id!==matchingId)activateMatching(matchingId,false);
  expireMateFee();
  clearTimeout(feeExpiryTimer);
- if(!isGuest()&&allBookings().some(b=>b.status==='awaiting_mate_fee')){const remaining=Math.min(...allBookings().filter(b=>b.status==='awaiting_mate_fee').map(feeDeadline))-Date.now();if(remaining>0&&remaining<2147483647)feeExpiryTimer=setTimeout(()=>render(),remaining);}
+ if(!isGuest()){const remaining=Math.min(scheduleTravelNotices(),...allBookings().filter(b=>b.status==='awaiting_mate_fee').map(feeDeadline))-Date.now();if(remaining>0&&remaining<2147483647)feeExpiryTimer=setTimeout(()=>render(),remaining);}
  markChatRead();
  if(!['member-required','signup','signup-email'].includes(current())){pendingRestaurant=null;pendingEstimate=false;}
  const route=current();
@@ -1191,7 +1753,7 @@ function modal(html,kind=''){html=interfaceMarkup(html);const d=$('#dialog');del
  if(d.querySelector?.('.btn.danger'))d.querySelector('.buttons .secondary')?.focus();
 }
 function snapshot(){return state.board.map(place).filter(Boolean).map(p=>({...p}));}
-function makeQuote(amount,plan,reason,pricing,sender='mina',message=''){const r=state.request;if(!r||!['requested','quoted'].includes(r.status)||state.booking)return false;if(mateApplication().activityRestricted||mateConflict(r,sender)){toast('메이트가 함께할 수 없는 날짜입니다. 다른 날짜를 선택하세요.');return false;}if(amount===undefined)amount=240000*(r.dayCount||1);if(!Number.isSafeInteger(amount)||amount<0||!['mina','jun'].includes(sender))return false;const existing=proposals().find(q=>q.guideId===sender);if(existing?.expires>Date.now())return false;plan=r.requestType==='free'?String(plan||'').trim():requestPlan(r);if(r.requestType==='free'&&(plan.length<10||plan.length>2000))return false;message=String(message||'').trim();if(message.length>1000)return false;state.quote={message,requestId:r.id,guideId:sender,pricingPolicyVersion:"2026-11-23-mvp",feeRate:.1,feeVatIncluded:null,pricing:{hours:4*(r.dayCount||1)},id:'QT-'+r.id+'-'+sender,version:(existing?.version||0)+1,guide:sender==='jun'?'준':'미나',requestType:r.requestType||'itinerary',tripTitle:r.tripTitle,region:r.region,endDate:r.endDate||r.date,dayCount:r.dayCount||1,days:JSON.parse(JSON.stringify(r.days||[])),date:r.date,time:r.time,party:r.party,amount,plan:plan||requestPlan(r),reason:r.requestType==='free'?'요청한 날짜와 인원에 맞춘 여행 코스예요.':'요청한 일정 그대로 함께해요.',expires:Date.now()+86400000};state.proposals=[...proposals().filter(q=>q.guideId!==sender),state.quote];state.request.status='quoted';save();return true;}
+function makeQuote(amount,plan,reason,pricing,sender='mina',message=''){const r=state.request;if(!r||bookingStarted(r)||!['requested','quoted'].includes(r.status)||state.booking)return false;if((sender==='mina'&&activitySuspended(mateApplication()))||mateConflict(r,sender)){toast('메이트가 함께할 수 없는 날짜입니다. 다른 날짜를 선택하세요.');return false;}if(amount===undefined)amount=240000*(r.dayCount||1);if(!Number.isSafeInteger(amount)||amount<0||!['mina','jun'].includes(sender))return false;const existing=proposals().find(q=>q.guideId===sender);if(existing?.expires>Date.now())return false;plan=r.requestType==='free'?String(plan||'').trim():requestPlan(r);if(r.requestType==='free'&&(plan.length<10||plan.length>2000))return false;message=String(message||'').trim();if(message.length>1000)return false;state.quote={message,requestId:r.id,guideId:sender,pricingPolicyVersion:"2026-11-23-mvp",feeRate:.1,feeVatIncluded:null,pricing:{hours:4*(r.dayCount||1)},id:'QT-'+r.id+'-'+sender,version:(existing?.version||0)+1,guide:sender==='jun'?'준':'미나',requestType:r.requestType||'itinerary',tripTitle:r.tripTitle,region:r.region,endDate:r.endDate||r.date,dayCount:r.dayCount||1,days:JSON.parse(JSON.stringify(r.days||[])),date:r.date,time:r.time,party:r.party,amount,plan:plan||requestPlan(r),reason:r.requestType==='free'?'요청한 날짜와 인원에 맞춘 여행 코스예요.':'요청한 일정 그대로 함께해요.',expires:Date.now()+86400000};state.proposals=[...proposals().filter(q=>q.guideId!==sender),state.quote];state.request.status='quoted';recordBookingNotice('proposal',state.quote,['customer']);save();return true;}
 function download(name,data){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function sample(){previewExtractionStarted=true;state.source='성수의 카페와 산책';state.filter='전체';state.selected=['forest','cafe','shop'];state.extraction='processing';save();go('processing');}
 function loadScenario(kind){
@@ -1213,7 +1775,19 @@ document.addEventListener('pointercancel',()=>{dialogBackdropPressed=false;});
 document.addEventListener('click',e=>{const dismiss=dialogBackdropPressed&&isDialogBackdrop(e);dialogBackdropPressed=false;if(!dismiss)return;const d=$('#dialog');if(d.dispatchEvent(new Event('cancel',{cancelable:true})))d.close();});
 document.addEventListener('error',e=>{if(e.target.matches?.('.provider-photo img')){e.target.parentElement.innerHTML=art();}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.place-menu[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus();});}});
-document.addEventListener('change',e=>{if(e.target.id==='support-files')readSupportFiles(e.target);if(e.target.id==='support-type'){$('#support-no-show').hidden=!['no_show','late_no_show'].includes(e.target.value);}});
+document.addEventListener('change',e=>{const control=e.target;
+ if(control.name==='markDispute'&&control.form?.id.startsWith('operations-ticket-form-')){
+  control.form.querySelector('#ticket-dispute-booking').hidden=!control.checked;
+  control.form.elements.disputeReference.disabled=!control.checked;
+  if(control.checked)control.form.elements.disputeReference.focus();
+  return;
+ }
+ if(control.name==='reasonCode'&&control.form?.id.startsWith('operations-booking-form-')){
+  updateCancellationRefund(control);return;
+ }
+ if(control.form?.id==='report-decision-form'&&control.name==='decision'){control.form.querySelector('button[type="submit"]').disabled=false;return;}
+ if(control.form?.id==='admin-filter-form'&&control.name==='status'&&control.form.elements.route.value===reportsRoute){control.form.requestSubmit();return;}
+ if(e.target.id==='support-files')readSupportFiles(e.target);if(e.target.id==='support-type'||e.target.name==='refundReason'){const group=$('#support-refund-reason'),select=group.querySelector('select'),refund=$('#support-type').value==='fee_refund';group.hidden=!refund;select.disabled=!refund;const incident=$('#support-refund-date');incident.hidden=!refund;incident.disabled=!refund;if(!refund)select.value='';const fields=$('#support-no-show'),active=['no_show','late_no_show'].includes(select.value);fields.hidden=!active;fields.disabled=!active;fields.querySelector('[name=waited]').checked=false;$('#support-wait-label').textContent=select.value==='late_no_show'?'지각 연락 후 60분을 기다렸지만 만나지 못했어요.':'30분을 기다리고 채팅을 두 번 이상 보냈지만 답변이 없었어요.';if(!active){supportLocation=null;$('#support-location-status').textContent='';}}});
 document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[open]').forEach(menu=>{if(!menu.contains(e.target)||e.target.closest('[data-action]'))menu.open=false;});if(e.target.closest('.skip')){e.preventDefault();$('#main')?.focus();return;}const b=e.target.closest('[data-action]');if(!b)return;e.preventDefault();const a=b.dataset.action,id=b.dataset.id;
  if(a==='open-matching'){if(activateMatching(id))go(window.ReelAccess.mode()==='guide'?'guide-quote':'requested');return;}
  if(a==='withdraw-proposal'){const context=matchingContexts().find(x=>x.proposals?.some(q=>q.id===id)),q=context?.proposals.find(q=>q.id===id);if(!canWithdrawProposal(q))return;modal(`<h2>이 제안을 철회할까요?</h2><p>철회하면 여행자가 이 제안을 선택할 수 없어요.</p><div class="buttons">${action('취소','close','secondary')}${action('제안 철회','confirm-withdraw-proposal','danger',`data-id="${esc(id)}"`)}</div>`);return;}
@@ -1276,7 +1850,7 @@ document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[ope
  if(a==='guides-tab'){if(['discover','requests'].includes(id)){guidesTab=id;render();}return;}
  if(a==='notification-filter'){if(['all','trip','guide'].includes(id)){notificationFilter=id;render();}return;}
  if(a==='notifications-read-all'){markNotificationsRead(notificationItems().map(n=>n.id));render();return;}
- if(a==='notification-open'){const item=notificationItems().find(n=>n.id===id);if(item){markNotificationsRead([id]);go(item.route);}return;}
+ if(a==='notification-open'){const item=notificationItems().find(n=>n.id===id);if(item){markNotificationsRead([id]);if(item.requestId&&!matchingContexts().some(x=>x.request.id===item.requestId)&&!allBookings().some(b=>b.id===item.bookingId)){render();toast('연결된 내역을 찾을 수 없어요.');return;}if(item.role&&window.ReelAccess.mode()!==item.role&&!window.ReelAccess.switchMode(item.role)){render();toast('현재 열 수 없는 내역이에요.');return;}go(item.route);}return;}
 
  if(a==='trip-stop-menu'){tripStopMenu(id);return;}
  if(a==='trip-day-settings'){tripDaySettings();return;}
@@ -1311,10 +1885,10 @@ document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[ope
  else if(a==='save-places'){if(!saveSelectedPlaces(state.selected))return;go('board');toast('선택한 장소를 저장했어요.');}
  else if(a==='add-board'){const unresolved=state.selected.find(id=>!pinEligible(place(id)));if(unresolved){resolvePlace(unresolved,true);return;}if(state.selected.some(id=>!place(id)?.verified)){toast('같은 이름의 다른 지점에 가지 않도록, 확인이 필요한 장소에서 주소를 먼저 확인해 주세요.');return;}const ids=[...new Set([...state.board,...state.selected])];if(ids.length>20){toast('하루에 20곳까지 담을 수 있어요.');return;}state.library=[...new Set([...libraryIds(),...state.selected])];state.board=ids;state.saved=false;save();go(tripDetailRoute());}
  else if(a==='correct'){resolvePlace(id,isTripDetail()||current()==='planner');}
- else if(a==='refresh-safety'){if(window.ReelAccess.isAdmin)render();}
+ else if(a==='mate-suspension'){openSuspensionDialog(false);}
  else if(a==='user-safety'){safetyMenu();}
  else if(a==='blocked-users'){blockedUsers();}
- else if(a==='user-report'){const room=chatContext()?.room;if(!safetyAllowed(room))return;if(state.userReports?.some(r=>r.actor===safetyActor(room)&&r.threadId===room.id)){modal(`<h2>이미 신고를 저장했어요.</h2>${action('닫기','close','secondary')}`);return;}modal(`<form id="user-report-form"><input type="hidden" name="thread" value="${esc(room.id)}"><h2>사용자 신고</h2><p>${esc(safetyName(room))}</p><label>신고 사유<select name="reason" required><option value="">선택해 주세요</option>${Object.entries(reportReasons).map(([value,label])=>`<option value="${value}">${label}</option>`).join('')}</select></label><label>상세 내용 (기타 선택 시 필수)<textarea name="details" maxlength="1000"></textarea></label><p id="report-error" role="alert" class="error"></p><div class="buttons">${action('취소','close','secondary')}<button type="submit" class="btn">신고 저장</button></div></form>`);}
+ else if(a==='user-report'){const room=chatContext()?.room;if(!safetyAllowed(room))return;if(state.userReports?.some(r=>r.actor===safetyActor(room)&&r.threadId===room.id)){modal(`<h2>이미 신고를 저장했어요.</h2>${action('닫기','close','secondary')}`);return;}modal(`<form id="user-report-form"><input type="hidden" name="thread" value="${esc(room.id)}"><h2>사용자 신고</h2><p>${esc(safetyName(room))}</p><p class="hint">신고 후에도 예약 내역과 대화 기록은 남아요. 예약 취소는 예약 상세에서 확인하고, 상대방을 차단하려면 채팅 메뉴를 이용해 주세요.</p><label>신고 사유<select name="reason" required><option value="">선택해 주세요</option>${Object.entries(reportReasons).map(([value,label])=>`<option value="${value}">${label}</option>`).join('')}</select></label><label>상세 내용 (기타 선택 시 필수)<textarea name="details" maxlength="1000"></textarea></label><p id="report-error" role="alert" class="error"></p><div class="buttons">${action('취소','close','secondary')}<button type="submit" class="btn">신고 저장</button></div></form>`);}
  else if(a==='user-block'){const room=chatContext()?.room;if(!safetyAllowed(room))return;const blocked=!!ownBlock(room);modal(`<h2>${blocked?'차단을 해제할까요?':'이 사용자를 차단할까요?'}</h2><p>${blocked?unblockNotice():'차단하면 이 상대와 메시지를 주고받을 수 없어요. 기존 대화와 예약은 유지돼요.'}</p><div class="buttons">${action('취소','close','secondary')}${action(blocked?'차단 해제':'차단','user-block-confirm','danger',`data-id="${esc(room.id)}" data-block="${!blocked}"`)}</div>`);}
  else if(a==='user-block-confirm'){const room=chatContext()?.room;if(room?.id!==id||!setUserBlock(room,b.dataset.block==='true'))return;$('#dialog').close();render();toast(b.dataset.block==='true'?'사용자를 차단했어요.':'차단을 해제했어요.');}
  else if(a==='user-unblock'){const room=syncConversations().find(r=>safetyActor(r)===b.dataset.actor&&safetyTarget(r)===id);if(!safetyAllowed(room)||!ownBlock(room))return;modal(`<h2>차단을 해제할까요?</h2><p>${esc(safetyName(room))}</p><p>${unblockNotice()}</p><div class="buttons">${action('취소','blocked-users','secondary')}${action('차단 해제','user-unblock-confirm','',`data-id="${esc(id)}" data-actor="${esc(b.dataset.actor)}"`)}</div>`);}
@@ -1339,22 +1913,78 @@ document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[ope
  else if(a==='expire-quote'){if(state.quote){state.quote.expires=Date.now()-1;save();render();}}
 
  else if(a==='decline'){if(state.request&&['requested','quoted'].includes(state.request.status)&&!state.booking)modal(`<h2>요청 거절</h2><form id="decline-form"><label>사유<textarea name="reason" required minlength="5" maxlength="500"></textarea></label><div class="buttons"><button class="btn danger" type="submit">요청 거절</button>${action('돌아가기','close','secondary')}</div></form>`);}
- else if(a==='resolve-ticket'){const t=state.tickets.find(x=>x.id===id);if(t){t.status='resolved';save();render();}}
- else if(a==='refund-fail')toast('모의 PG 오류: 환불 검토 상태와 정산 보류를 유지합니다.');
+ else if(a==='refund-fail')toast('환불 결과를 확인하지 못했어요. PG 처리 내역을 확인해 주세요.');
 });
 document.addEventListener('input',e=>{if(e.target.id==='mate-phone-code')e.target.value=e.target.value.replace(/[^0-9]/g,'').slice(0,6);if(e.target.name==='contact'&&e.target.closest?.('#mate-form')){matePhoneDemo.verified=false;const status=$('#mate-phone-status');if(status)status.textContent='';const send=$('[data-action="mate-phone-send"]');if(send)send.disabled=false;}if(e.target.matches?.('input[name="party"]'))e.target.value=e.target.value.replace(/[^0-9]/g,'').slice(0,2);if(e.target.closest?.('#mate-form')&&!isGuest()){const a=mateApplication();if(!['pending','approved'].includes(a.status))saveMate(captureMate(e.target.closest('#mate-form'),a));}if(e.target.id==='mate-name'){const message=$('#mate-name-status');if(message)message.textContent='';e.target.setAttribute('aria-invalid','false');}if(e.target.id==='profile-nickname'){checkedNickname='';setNicknameStatus();}});
 document.addEventListener('change',e=>{const t=e.target;if(t.id==='signup-marketing'){signupMarketing=t.checked;return;}if(t.dataset.tripDayField){if(!updateTripDay(t.dataset.tripDayField,t.value)){t.value=state[t.dataset.tripDayField];return;}render();return;}if(t.id==='mate-edit-photo'){readMateEditPhoto(t);return;}if(t.id==='mate-photo'){readMatePhoto(t);return;}if(t.id==='mate-city'){mateRegionCity=Number(t.value);mateRegionSheet(false);return;}if(t.id==='profile-photo'){const file=t.files?.[0];if(!file)return;const error=$('#profile-error');if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>1048576){error.textContent='1MB 이하의 JPG·PNG·WebP 사진을 선택해 주세요.';t.value='';return;}error.textContent='';const reader=new FileReader();$('#profile-save').disabled=true;reader.onload=()=>{profileDraftPhoto=reader.result;$('#profile-photo-preview').innerHTML=profileAvatar(profileDraftPhoto);$('#profile-photo-clear').hidden=false;$('#profile-camera-button').hidden=true;$('#profile-save').disabled=false;};reader.onerror=()=>{error.textContent='사진을 불러오지 못했어요. 다시 선택해 주세요.';$('#profile-save').disabled=false;};reader.readAsDataURL(file);return;}if(t.id==='screen-jump')go(t.value);else if(t.dataset.select){const id=t.dataset.select;state.selected=t.checked?[...new Set([...state.selected,id])]:state.selected.filter(x=>x!==id);save();render();}else if(['trip-title','trip-date','trip-time'].includes(t.id)){if(!t.value)return;state[t.id==='trip-title'?'title':t.id==='trip-date'?'date':'time']=t.value;state.saved=false;save();if(t.id==='trip-time')render();}});
-document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFormElement))return;e.preventDefault();if(f.id==='admin-filter-form' &&window.ReelAccess.isAdmin){const data=new FormData(f),params=new URLSearchParams();for(const key of ['query','status']){const value=String(data.get(key)||'').trim();if(value)params.set(key,value);}go(String(data.get('route'))+(params.size?'?'+params.toString():''));return;}if(f.id==='discover-search-form'){startDiscovery(f.elements.query.value);return;}if(isGuest() && !['signup-code-form','signup-email-form'].includes(f.id)){go('member-required');return;}
+document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFormElement))return;e.preventDefault();if(window.ReelAccess.isAdmin&&f.id.startsWith('operations-'))restoreSharedState(localStorage.getItem(key));if(f.id==='report-decision-form'){selectReportDecision(f);return;}if(f.id==='resolve-chat-report'){resolveChatReport(f);return;}if(f.id==='confirm-report-restriction'){resolveChatReport(f,'confirm');return;}if(f.id==='admin-filter-form' &&window.ReelAccess.isAdmin){const data=new FormData(f),params=new URLSearchParams();for(const key of ['query','type','status']){const value=String(data.get(key)||'').trim();if(value)params.set(key,value);}go(String(data.get('route'))+(params.size?(data.get('route')===reportsRoute?'&':'?')+params.toString():''));return;}if(f.id==='discover-search-form'){startDiscovery(f.elements.query.value);return;}if(isGuest() && !['signup-code-form','signup-email-form'].includes(f.id)){go('member-required');return;}
  if(f.id==='mate-edit-form'){saveMateEdit(f);return;}
  if(f.id==='mate-form'){submitMate(f);return;}
  if(f.id==='mate-review-form'){confirmMateReview('approved');return;}
- if(f.id==='mate-review-confirm-form'){const values=new FormData(f),reason=String(values.get('reason')||'').trim();if(!f.checkValidity())return;if(reviewMate(String(values.get('decision')),reason,String(values.get('record')))){$('#dialog').close();render();}else $('#mate-review-confirm-error').textContent='처리할 수 없어요. 신청 상태와 사유를 확인해 주세요.';return;}
+ if(f.id==='mate-review-confirm-form'){const values=new FormData(f),reason=String(values.get('reason')||'').trim();if(!f.checkValidity())return;if(reviewMate(String(values.get('decision')),reason,String(values.get('record')))){$('#dialog').close();const q=adminQuery();q.delete('record');go('admin-guides'+(q.size?'?'+q.toString():''));}else $('#mate-review-confirm-error').textContent='처리할 수 없어요. 신청 상태와 사유를 확인해 주세요.';return;}
  if(f.id==='withdraw-account-form'){withdrawAccount(f);return;}
  const d=Object.fromEntries(new FormData(f));
- if(f.id==='activity-restriction-form'){if(!window.ReelAccess.isAdmin||!String(d.reason||'').trim())return;const record=adminQuery().get('record')||'application',a=adminReviewApplication(record);if(!a)return;a.activityRestricted=!!d.restricted;a.restrictionReason=String(d.reason).trim();a.restrictionUpdatedAt=Date.now();if(saveAdminApplication(a,record))render();return;}
- if(f.id.startsWith('operations-ticket-form-')){if(!window.ReelAccess.isAdmin)return;const t=state.tickets.find(x=>x.id===d.ticketId);if(t&&['open','review','needs_info','resolved'].includes(d.status)&&String(d.note||'').trim()){t.status=d.status;t.note=String(d.note).trim();t.updatedAt=Date.now();t.history=t.history||[];t.history.push({at:t.updatedAt,status:t.status,note:t.note});save();render();}return;}
- if(f.id.startsWith('operations-booking-form-')){if(f.checkValidity())confirmOperationsBooking(d);return;}
- if(f.id==='operations-booking-confirm-form'){if(saveOperationsBooking(d)){$('#dialog').close();render();toast('처리 기록을 저장했어요.');}else $('#operations-booking-error').textContent='예약 상태·사유와 PG 전액 취소 확인을 확인해 주세요.';return;}
+ if(f.id==='activity-restriction-form'){const record=adminQuery().get('record')||'application';if(d.record===record&&changeActivityRestriction(record,d.transition,d.note,{endDate:d.endDate})){$('#dialog').close();render();}else toast('현재 상태와 사유를 확인해 주세요.');return;}
+ if(f.id.startsWith('operations-ticket-form-')){if(!window.ReelAccess.isAdmin)return;const t=state.tickets.find(x=>x.id===d.ticketId);if(d.expectedUpdate!==undefined&&String(t?.updatedAt||0)!==String(d.expectedUpdate)){render();toast('처리 기록이 변경됐어요. 최신 내용을 확인해 주세요.');return;}const note=String(d.note||'').trim(),replySent=d.replySent==='on',evidenceDate=t?.type==='fee_refund'?String(d.evidenceDate??t.evidenceDate??''):'';
+  if(evidenceDate&&(!/^\d{4}-\d{2}-\d{2}$/.test(evidenceDate)||dateAfter(evidenceDate,0)!==evidenceDate||evidenceDate>refundIncidentRange().today||t.createdAt&&evidenceDate<new Date(t.createdAt).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}))){toast('자료 접수 완료일을 확인해 주세요.');return;}
+  if(!t||!note||note.length>1000)return;
+  d.status='resolved';
+  if(!replySent){toast('이메일 안내 완료를 확인해 주세요.');return;}
+  let booking;
+  if(d.markDispute){
+   if(allBookings().some(row=>row.disputeStatus==='open'&&row.disputeTicketId===t.id)){toast('이미 운영 확인 중인 예약입니다.');return;}
+   const reference=String(d.disputeReference||'').trim().toUpperCase().replace(/^RS-/,'');
+   booking=allBookings().find(row=>bookingReference(row)===reference);
+   if(!booking){toast('일치하는 예약번호가 없습니다.');return;}
+   if(booking.disputeStatus==='open'){toast('이미 운영 확인 중인 예약입니다.');return;}
+  }
+  let refundBooking;
+  if(t.type==='fee_refund'&&!t.refundBookingId&&String(d.refundReference||'').trim()){
+   const reference=d.refundReference.trim().toUpperCase().replace(/^RS-/,'');
+   refundBooking=allBookings().find(row=>bookingReference(row)===reference);
+   if(!refundBooking){toast('일치하는 예약번호가 없습니다.');return;}
+   if(!hasPaidFee(refundBooking)||!['cancelled','completed'].includes(refundBooking.status)){toast('결제된 수수료가 있는 취소 또는 완료 예약을 확인해 주세요.');return;}
+  }
+  if(!booking&&!refundBooking&&t.status===d.status&&t.note===note&&!!t.replySent===replySent&&(t.evidenceDate||'')===evidenceDate)return;
+  const at=Math.max(Date.now(),(Number(t.updatedAt)||0)+1);
+  const entry={at,status:d.status,note,replySent,replyEmail:t.email};
+  if(booking){
+   booking.disputeStatus='open';booking.disputeOpenedAt=at;booking.disputeTicketId=t.id;
+   t.disputeBookingId=booking.id;entry.disputeBookingNumber=bookingReferenceLabel(booking);
+   (booking.operationsLog||=[]).push({at,operation:'open_dispute',ticketId:t.id,note,bookingStatus:booking.status});
+  }
+  if(refundBooking){
+   t.refundBookingId=refundBooking.id;
+   const status=refundBooking.refundStatus;
+   const unreviewedDenial=status==='not_eligible'&&!refundBooking.refundReviewedAt;
+   if(!status||['none','없음'].includes(status)||unreviewedDenial){
+    refundBooking.refundStatus='review';refundBooking.refundRequestedAt=at;
+    refundBooking.refundRequestedAmount=refundBooking.feeAmount;
+   }
+  }
+  if(t.type==='fee_refund'){t.evidenceDate=evidenceDate;if(evidenceDate)entry.evidenceDate=evidenceDate;}
+  if(!t.history?.length)t.history=t.note?[{at:t.updatedAt,status:t.status,note:t.note}]:[];
+  t.status=entry.status;t.note=note;t.replySent=replySent;t.updatedAt=at;t.history.push(entry);
+  if(saveOperationsRecord()){render();toast('처리 기록을 저장했어요.');}
+  return;
+ }
+ if(f.id.startsWith('operations-booking-form-')){
+  if(d.operation==='refund_review')d.decision=e.submitter?.value;
+  if(f.checkValidity())confirmOperationsBooking(d);
+  return;
+ }
+ if(f.id==='operations-booking-confirm-form'){
+  if(!saveOperationsBooking(d)){$('#operations-booking-error').textContent='예약 상태가 변경되었거나 저장할 수 없습니다. 예약 정보를 다시 확인해 주세요.';return;}
+  $('#dialog').close();render();
+  const b=allBookings().find(row=>row.id===d.bookingId);
+  const requestedRefund=['cancel','refund'].includes(d.operation)||(d.operation==='refund_review'&&d.decision==='approved');
+  if(requestedRefund&&b?.refundStatus==='failed')toast('수수료 환불에 실패했어요. 예약 상세에서 다시 시도해 주세요.');
+  else if(requestedRefund&&b?.refundStatus==='completed')toast('매칭 수수료 전액을 환불했어요.');
+  else if(d.operation==='cancel'&&b?.refundStatus==='review')toast('예약을 취소하고 수수료 환불 심사를 접수했어요.');
+  else if(d.operation==='cancel'&&b?.status==='cancelled')toast('환불 없이 예약을 취소했어요.');
+  else toast('처리 기록을 저장했어요.');
+  return;
+ }
 
  if(f.id==='place-search-form'){searchPlaces(f,d);return;}
  if(f.id==='notification-settings-form'){if(saveNotificationPreferences(!!d.serviceEmail,!!d.marketingEmail,'settings')){$('#dialog').close();toast(signupText('notificationSaved'));}else $('#notification-settings-error').textContent=signupText('notificationError');return;}
@@ -1378,13 +2008,13 @@ document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFo
  }
  else if(f.id==='edit-trip-form'){if(!updateTripInfo(d)){$('#edit-trip-error').textContent='여행 이름과 날짜를 확인해 주세요.';return;}$('#dialog').close();render();}
  else if(f.id==='new-trip-form'){const dayCount=tripRangeDays(tripDraft?.start,tripDraft?.end);if(!dayCount||tripDraft.start<tripToday()||!createTrip({...d,date:tripDraft.start,dayCount})){$('#new-trip-error').textContent='여행 이름과 날짜를 확인해 주세요.';return;}$('#dialog').close();go(tripDetailRoute());}
- else if(f.id==='support-form'){if(storeSupport(d)){render();toast('문의 내용을 저장했어요.');}}
+ else if(f.id==='support-form'){if(storeSupport(d)){const reference=ticketReferenceLabel(state.tickets.at(-1));render();toast('문의가 저장됐어요. '+reference);}}
  else if(f.id==='request-form'){const params=new URLSearchParams(location.hash.split('?')[1]||'');const result=submitTravelRequest(d,{free:params.get('mode')==='free',example:params.get('sample')==='1'});if(result.error){$('#request-error').textContent=result.error;return;}go(result.route);}
  else if(f.id==='quote-form'){if(!requestAvailable()){ $('#quote-error').textContent='해당 날짜가 수락 불가입니다. 가능 일정부터 변경해주세요.';return;}if(!d.ack){$('#quote-error').textContent='요청 일정과 전체 금액을 확인해 주세요.';return;}if(makeQuote(Number(d.amount),d.plan,undefined,undefined,'mina',d.message)){go('guide-activity');toast('제안을 보냈어요.');}else $('#quote-error').textContent='금액과 코스를 확인해 주세요. 이미 보냈거나 마감된 요청에는 보낼 수 없어요.';}
 
  else if(f.id==='checkout-form'){if(!d.terms||!d.pendingAck||!d.adult)return;if(requestBooking(d.name.trim(),d.email)){go('booking');}else{go(state.booking?'booking':'quote');}}
  else if(f.id==='mate-cancel-form'){if(cancelBooking('guide',d.reason))go('guide-activity?tab=bookings');else toast('시작 이후 중단·취소는 별도 CS로 문의해 주세요.');}
- else if(f.id==='mate-progress-form'){const b=state.booking;if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||!d.ack)return;if(d.kind==='mate-complete'&&b.status==='confirmed'&&Date.now()>=Date.parse((b.endDate||b.date)+'T'+(b.time||'00:00')+':00+09:00')+4*3600000){b.status='completed';b.completedAt=Date.now();state.request.status='completed';}else return;save();$('#dialog').close();go('guide-fee');}
+ else if(f.id==='mate-progress-form'){const b=state.booking;if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||!d.ack)return;if(d.kind==='mate-complete'&&(b.guideId||'mina')==='mina'&&b.status==='confirmed'&&Date.now()>=Date.parse((b.endDate||b.date)+'T'+(b.time||'00:00')+':00+09:00')+4*3600000){b.status='completed';b.completedAt=Date.now();state.request.status='completed';}else return;save();$('#dialog').close();go('guide-fee');}
  else if(f.id==='mate-fee-form'){if(!d.terms)return;if(confirmMateFee(d.outcome||'success')){go('guide-fee');toast('수수료 결제 후 예약이 확정됐어요.');}else{if(!state.booking||state.booking.status==='cancelled'){render();return;}const error=$('#mate-fee-error');if(error)error.textContent='결제가 완료되지 않았어요. 예약은 아직 확정되지 않았습니다.';}}
  else if(f.id==='user-report-form'){const room=chatContext()?.room;if(room?.id!==d.thread||!reportUser(room,d.reason,d.details)){$('#report-error').textContent='신고 사유를 선택하고 기타 사유는 상세 내용을 입력해 주세요. 중복 신고는 저장되지 않아요.';return;}$('#dialog').close();toast('신고를 저장했어요.');}
  else if(f.id==='chat-form'){if(sendChatMessage(d.text)){render();$('#chat-form textarea')?.focus();}else{render();}}
@@ -1393,7 +2023,13 @@ document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFo
 
 });
 window.addEventListener('reeltrip-access-change',()=>render());
-window.addEventListener('storage',e=>{if(e.key===mateKey){window.ReelAccess.syncMate?.();render();}});
+window.addEventListener('storage',e=>{
+ if(e.key===mateKey){window.ReelAccess.syncMate?.();render();return;}
+ if(e.key===key&&restoreSharedState(localStorage.getItem(key))){
+  const editing=document.activeElement?.closest?.('form');
+  if(!editing&&!$('#dialog')?.open)render();
+ }
+});
 window.addEventListener('hashchange',()=>{if(current()!=='manual'){placeSearchVersion++;placeSelectionVersion++;placeSearchResults=[];placePickerTab='search';placePickerQuery='';placePickerStatus='';placePickerSelected='';pendingAPIPlace=null;}if(current()!=='signup-email')signupEmailStep='address';if(current()!=='support'){supportEvidenceVersion++;supportFiles=[];supportLocation=null;supportFilesLoading=false;}render();window.scrollTo(0,0);$('#main')?.focus({preventScroll:true});});
 if(comparison){
  state.saved=true;ensureDays();
@@ -1509,6 +2145,7 @@ window.addEventListener('storage',event=>{
  pendingRestaurant=null;pendingEstimate=false;pendingRequestRoute=null;pendingRecommendation=null;profileDraftPhoto='';checkedNickname='';
  $('#dialog')?.close();go('home');render();
 });
+migrateBookingNotices();
 if(window.ReelAccess.isAdmin&&!window.ReelStatePreview)seedAdminSamples();
 if(!location.hash)location.hash=window.ReelAccess.home();
 render();

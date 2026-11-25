@@ -32,7 +32,7 @@ for(const lang of ['ko','en']){
  a.state.bookingHistory=[{...first,id:'legacy-other',requestId:undefined,guideId:'jun',status:'cancelled'}];const old=a.syncConversations().find(r=>r.bookingId==='legacy-other');assert.equal(old.messages.length,0);assert.equal(old.requestId,'legacy-other');
  // Selecting any mate closes withdrawal of all other proposals on that request.
  a.activateMatching(secondRequest);a.state.proposals.push({...a.state.quote,id:'other-offer',guideId:'mina'});c.window.ReelAccess.mode=()=> 'guide';assert(!a.withdrawProposal('other-offer'));assert.equal(a.state.request.status,'booked');
- c.location.hash='#booking';a.state.booking.refundStatus='completed';assert(a.booking().includes(lang==='ko'?'반환 완료':'Refund completed'),'Traveler sees the final refund state');
+ c.location.hash='#booking';a.state.booking.refundStatus='completed';assert(a.booking().includes(lang==='ko'?'전액 환불 완료':'Refunded in full'),'Traveler sees the final refund state');
 
  // Terminal bookings remain read-only in active and historical detail routes.
  for(const status of ['completed','cancelled']){

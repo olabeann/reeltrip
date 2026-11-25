@@ -97,8 +97,8 @@ for(const lang of ['ko','en']){
  assert(a.state.library.includes('food'));assert.equal(c.location.hash,'#results');
  assert.deepEqual([...a.state.board],board);assert.deepEqual(plain(a.state.days),before);
  c.handlers.click({target:{closest:s=>s==='[data-action]'?individual:null},preventDefault(){}});
- assert.equal(a.state.library.filter(id=>id==='food').length,1);
- assert(setup(lang,c.storage).api.state.library.includes('food'));
+ assert(!a.state.library.includes('food'),'Pressing the saved place again removes it');
+ assert(!setup(lang,c.storage).api.state.library.includes('food'));
  const date=new Date(Date.now()+10*86400000).toISOString().slice(0,10);
  const fields={region:'Busan',date,time:'10:00',dayCount:'2',party:'2',notes:'Food and walks',language:'English',guideAck:'on',ack:'on'};
  c.location.hash='#request?mode=free';assert(a.request().includes('name="region"'));assert(a.request().includes('name="dayCount"'));
@@ -135,10 +135,16 @@ for(const lang of ['ko','en']){
  assert(a.requestBooking('Traveler','guest@example.com'));assert.equal(a.state.booking.endDate,r.endDate);assert.equal(a.state.booking.requestType,'free');assert.equal(a.state.booking.feeAmount,42000);assert(a.booking().includes(r.endDate));
  // Reopening a selected proposal leads directly to its booking, never another mate's fee.
  assert(a.guideQuote().includes('href="#guide-desk"'));assert(!a.guideQuote().includes('href="#guide-fee"'));
- const selectedGuide=a.state.booking.guideId;a.state.booking.guideId='mina';
+ c.window.ReelAccess.mode=()=> 'guide';
+ assert(!a.confirmMateFee('success'),'A different mate cannot confirm this booking');
+ assert(!a.guideFee().includes('id="mate-fee-form"'));
+ c.window.ReelAccess.mode=()=> 'customer';
+ // Exercise the rest of the flow on a booking for the local mate.
+ a.state.booking=null;r.status='quoted';a.state.quote=a.proposals().find(q=>q.guideId==='mina');
+ assert(a.requestBooking('Traveler','guest@example.com'));
  assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'예약 확정':'Confirm booking'));
  a.state.booking.status='confirmed';assert(a.guideQuote().includes('href="#guide-fee"'));assert(a.guideQuote().includes(lang==='ko'?'예약 보기':'View booking'));
- a.state.booking.status='awaiting_mate_fee';a.state.booking.guideId=selectedGuide;
+ a.state.booking.status='awaiting_mate_fee';
  // Exercise real submit handlers without re-seeding between matching stages.
  const submit=(id,values)=>{const form=new c.HTMLFormElement();Object.assign(form,{id,values});c.handlers.submit({target:form,preventDefault(){}});};
  const chosen=a.state.quote;a.state.quote=a.state.proposals.find(q=>q.guideId!==chosen.guideId);assert(a.quote().includes('href="#booking"'));assert(!a.quote().includes('href="#checkout"'));a.state.quote=chosen;

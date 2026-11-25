@@ -3,11 +3,11 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const root=__dirname+'/../../src/';
 function setup(lang,saved,member=true){
  const storage=new Map(saved||[]);
- const ctx={sessionStorage:{getItem:()=>member?'yes':null},URLSearchParams,Event:class{},location:{search:'',hash:'#messages'},document:{documentElement:{lang},body:{dataset:{},classList:{add(){}}},addEventListener(){}},window:{addEventListener(){},dispatchEvent(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},setTimeout,clearTimeout};
+ const ctx={FormData:class{constructor(fields){this.fields=fields;}get(key){return this.fields[key];}},sessionStorage:{getItem:()=>member?'yes':null},URLSearchParams,Event:class{},location:{search:'',hash:'#messages'},document:{querySelector:()=>null,documentElement:{lang},body:{dataset:{},classList:{add(){}}},addEventListener(){}},window:{addEventListener(){},dispatchEvent(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},setTimeout,clearTimeout};
  vm.createContext(ctx);
  for(const file of ['assets/nickname-bases.js','assets/signup-copy.js','assets/access.js',`assets/catalog${lang==='en'?'.en':''}.js`])vm.runInContext(fs.readFileSync(root+file,'utf8'),ctx);
  const code=fs.readFileSync(root+`assets/app${lang==='en'?'.en':''}.js`,'utf8').split('window.ReelBookingTools.init(')[0];
- vm.runInContext(code+'globalThis.chatAPI={guideFee,state,adminSafetyRecords,adminSafetyPanel,setUserBlock,reportUser,conversationBlocked,ensureConversation,syncConversations,conversationRoute,conversationOpen,chatContext,sendChatMessage,markChatRead,unreadChats,messages,chat,requestBooking,makeQuote,save,layout};})();',ctx);
+ vm.runInContext(code+'globalThis.chatAPI={activitySuspended,suspensionDeadline,selectReportDecision,changeActivityRestriction,resolveChatReport,displayedBooking,allBookings,guideFee,state,adminSafetyRecords,adminSafetyPanel,setUserBlock,reportUser,conversationBlocked,ensureConversation,syncConversations,conversationRoute,conversationOpen,chatContext,sendChatMessage,markChatRead,unreadChats,messages,chat,requestBooking,makeQuote,save,layout};})();',ctx);
  return {...ctx,storage};
 }
 for(const lang of ['ko','en']){
@@ -45,7 +45,13 @@ for(const lang of ['ko','en']){
  a.state.conversations=a.state.conversations.filter(r=>r.id===room.id);
  assert(a.chat().includes('data-action="user-safety"'));
  assert(!a.reportUser(room,'invalid',''));assert(!a.reportUser(room,'other','   '));assert(!a.reportUser(room,'abuse','x'.repeat(1001)));
+ const beforeReport=JSON.stringify(a.state.booking);
  assert(a.reportUser(room,'other','Unwanted contact'));assert(!a.reportUser(room,'spam','duplicate'));assert.equal(a.state.userReports.length,1);
+ assert.equal(JSON.stringify(a.state.booking),beforeReport);
+ assert(a.allBookings().some(b=>b.id===a.state.booking.id));
+ assert.equal(a.displayedBooking().id,a.state.booking.id);
+ assert(a.conversationOpen(room));
+ assert(!a.conversationBlocked(room));
  assert(a.setUserBlock(room,true));assert(a.setUserBlock(room,true));assert.equal(a.state.userBlocks.length,1);
  assert(!a.sendChatMessage('Blocked'));assert(!a.chat().includes('id="chat-form"'));assert.equal(a.unreadChats(),0);
  const samePerson={...room,id:'another-trip'};assert(a.conversationBlocked(samePerson));assert(!a.conversationBlocked({...room,guideId:'jun'}));
@@ -57,11 +63,20 @@ for(const lang of ['ko','en']){
  c.window.ReelAccess.mode=()=> 'guide';assert(a.reportUser(room,'abuse','<mate report>'));assert(a.setUserBlock(room,true));
  assert.equal(a.adminSafetyRecords().reports.length,0,'member cannot read operations records');
  c.window.ReelAccess.isAdmin=true;assert.equal(a.adminSafetyRecords().reports.length,2);assert.equal(a.adminSafetyRecords().blocks.length,1);
- assert(a.adminSafetyPanel().includes('&lt;mate report&gt;'));assert(!a.adminSafetyPanel().includes('<mate report>'));assert(a.adminSafetyPanel().includes('data-action="refresh-safety"'));
+ assert(a.adminSafetyPanel().includes('&lt;mate report&gt;'));assert(!a.adminSafetyPanel().includes('<mate report>'));assert(!a.adminSafetyPanel().includes('data-action="refresh-safety"'));
  assert(!a.reportUser(room,'spam','admin'));assert(!a.setUserBlock(room,false));
  const otherKey=`reeltrip-demo-${lang==='ko'?'en':'ko'}-map-v2-option-2`;
  c.storage.set(otherKey,JSON.stringify({userReports:[{actor:'guide:jun',reason:'spam',details:'Other language report'}],userBlocks:[]}));
- assert.equal(a.adminSafetyRecords().reports.length,3);assert(a.adminSafetyPanel().includes('Other language report'));c.storage.delete(otherKey);
+ assert.equal(a.adminSafetyRecords().reports.length,3);assert(a.adminSafetyPanel().includes('Other language report'));const report=a.adminSafetyRecords().reports.find(item=>item.id);
+ const reportHash='#admin-support?view=reports&record='+encodeURIComponent(report.language+':'+report.id);
+ c.location.hash=reportHash;
+ assert(a.adminSafetyPanel().includes('id="resolve-chat-report"'));
+ assert(!a.adminSafetyPanel().includes('name="outcome"'));
+ a.resolveChatReport({record:report.language+':'+report.id,note:'Reviewed <record>'});
+ c.location.hash=reportHash;
+ assert(a.adminSafetyPanel().includes('Reviewed &lt;record&gt;'));
+ assert(!a.adminSafetyPanel().includes('id="resolve-chat-report"'));
+ c.storage.delete(otherKey);
  c.window.ReelAccess.isAdmin=false;a.setUserBlock(room,false);c.window.ReelAccess.mode=()=> 'customer';
 
  a.state.booking.status='completed';assert(!a.conversationOpen(room),'Completed trips are read-only even before the end date');
@@ -77,4 +92,77 @@ for(const lang of ['ko','en']){
  c.location.hash='#chat?sample=1';assert.equal(a.chatContext(),null);assert(!a.sendChatMessage('Sample'));
  const guest=setup(lang,c.storage,false);guest.location.hash='#'+a.conversationRoute(room);assert.equal(guest.chatAPI.chatContext(),null);assert(!guest.chatAPI.chat().includes('&lt;Hello&gt;'));assert(!guest.chatAPI.sendChatMessage('Guest'));assert(!guest.chatAPI.setUserBlock(room,true));assert(!guest.chatAPI.reportUser(room,'spam',''));
  console.log(`PASS ${lang}: mutual consent, empty room, both senders, unread, escaped text, date closure, cancellation, reload and guest isolation`);
+}
+
+for(const lang of ['ko','en']){
+ const key='reeltrip-mate-application-v1';
+ const c=setup(lang,[[key,JSON.stringify({status:'approved',fields:{name:'Test'}})]]);
+ const change=c.chatAPI.changeActivityRestriction;
+ assert(!change('application','restrict','Unauthorized'));
+ c.window.ReelAccess.isAdmin=true;
+ assert(!change('application','restrict','Missing end date'));
+ for(const endDate of ['2000-01-01','2099-02-30'])assert(!change('application','restrict','Invalid date',{endDate}));
+ const endDate='2099-04-01';
+ assert(change('application','restrict','Confirmed risk',{endDate}));
+ const until=Date.parse('2099-04-01T15:00:00Z');
+ const stored=JSON.parse(c.storage.get(key));
+ assert(c.chatAPI.activitySuspended(stored,until-1));
+ assert(!c.chatAPI.activitySuspended(stored,until));
+ assert(c.chatAPI.activitySuspended({activityRestricted:true},until));
+ assert.equal(stored.restrictionHistory[0].endDate,endDate);
+ assert(JSON.parse(c.storage.get(key)).activityRestricted);
+ assert(!change('application','restrict','Duplicate',{endDate}));
+ assert(!change('application','release','   '));
+ assert(change('application','release','Rechecked evidence'));
+ const profile=JSON.parse(c.storage.get(key));
+ assert(!profile.activityRestricted);
+ assert.deepEqual(profile.restrictionHistory.map(item=>item.reason),['Confirmed risk','Rechecked evidence']);
+}
+
+for(const lang of ['ko','en']){
+ const origin=lang==='ko'?'en':'ko';
+ const storeKey='reeltrip-demo-'+origin+'-map-v2-option-2';
+ const report={id:'case-1',target:'guide:demo1',reason:'spam'};
+ const sample={id:'sample-1',guideId:'demo1',status:'approved',fields:{}};
+ const c=setup(lang,[[storeKey,JSON.stringify({userReports:[report],adminMateSamples:[sample]})]]);
+ const a=c.chatAPI;
+ c.window.ReelAccess.isAdmin=true;
+ c.location.hash='#admin-support?view=reports&record='+origin+'%3Acase-1';
+ assert(a.adminSafetyPanel().includes('name="decision" value="suspend"'));
+ const dialog={dataset:{},querySelector(){return null;},removeAttribute(){},showModal(){this.open=true;}};
+ c.document.querySelector=()=>dialog;
+ a.selectReportDecision({decision:'closed'});
+ assert(dialog.open&&dialog.innerHTML.includes('id="resolve-chat-report"')&&!dialog.innerHTML.includes('name="endDate"'));
+ assert(!c.storage.has('reeltrip-admin-report:'+origin+':case-1'));
+ dialog.open=false;
+ a.selectReportDecision({decision:'suspend'});
+ assert(dialog.open&&dialog.innerHTML.includes('type="date" name="endDate" required'));
+ assert(dialog.innerHTML.includes('id="confirm-report-restriction"'));
+ c.document.querySelector=()=>null;
+ a.resolveChatReport({record:origin+':case-1',note:'Verified spam',endDate:'2099-12-31'},'confirm');
+ const saved=JSON.parse(c.storage.get(storeKey)).adminMateSamples[0];
+ assert.equal(saved.activityRestricted,true);
+ assert.equal(saved.restrictionHistory[0].report,origin+':case-1');
+ const resolutionKey='reeltrip-admin-report:'+origin+':case-1';
+ assert.equal(JSON.parse(c.storage.get(resolutionKey)).outcome,'restricted');
+ const fixture=JSON.parse(c.storage.get(storeKey));
+ fixture.userReports.push({id:'case-2',actorName:'Jamie',targetName:'Mary',reason:'other',details:'Lost key'});
+ c.storage.set(storeKey,JSON.stringify(fixture));
+ c.location.hash='#admin-support?view=reports&query=KEY&status=open';
+ let list=a.adminSafetyPanel();
+ assert(list.includes('Lost key')&&list.includes('data-status="open"')&&!list.includes('case-1'));
+ assert(list.includes('query=KEY&amp;status=open&amp;record='));
+ c.location.hash='#admin-support?view=reports&query=Mary&status=resolved';
+ assert(!a.adminSafetyPanel().includes('Lost key'));
+ c.location.hash='#admin-support?view=reports&status=resolved';
+ list=a.adminSafetyPanel();assert(list.includes('data-status="resolved"')&&!list.includes('Lost key'));
+ c.location.hash='#admin-support?view=reports&query=Jamie';
+ assert(a.adminSafetyPanel().includes('Lost key'));
+ c.storage.delete(resolutionKey);
+ c.location.hash='#admin-support?view=reports&record='+origin+'%3Acase-1';
+ assert(a.adminSafetyPanel().includes('Verified spam'));
+ assert(!a.adminSafetyPanel().includes('name="decision" value="suspend"'));
+ report.target='customer:traveler';
+ c.storage.set(storeKey,JSON.stringify({userReports:[report],adminMateSamples:[sample]}));
+ assert(!a.adminSafetyPanel().includes('name="decision" value="suspend"'));
 }

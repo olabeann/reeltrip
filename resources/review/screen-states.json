@@ -728,7 +728,7 @@
       "transition": "문의 작성 → 제출 → 일시적 완료 안내 후 빈 양식",
       "fixture": {},
       "expect": "support-form",
-      "note": "저장됨·처리 완료 화면과 사용자 문의 이력은 제공하지 않는다. 시제품은 로컬 저장만 하며 실제 전송하지 않는다."
+      "note": "저장됨·처리 완료 화면과 사용자 문의 이력은 제공하지 않는다."
     },
     {
       "id": "guest",
@@ -1419,7 +1419,7 @@
       "id": "guest",
       "label": "가입 시작",
       "condition": "로그인 전 · 가입 수단 선택",
-      "transition": "이메일 가입 또는 시연 가입",
+      "transition": "이메일 가입 또는 소셜 가입",
       "fixture": {
         "guest": true
       },
@@ -1439,13 +1439,13 @@
       "id": "signin",
       "label": "로그인 시작",
       "condition": "기존 회원 · 로그인 수단 선택",
-      "transition": "이메일 로그인 또는 시연 로그인",
+      "transition": "이메일 로그인 또는 소셜 로그인",
       "fixture": {
         "guest": true,
         "hash": "signup?mode=signin"
       },
       "expect": "signup-screen",
-      "note": "실제 인증 연결 전 시제품입니다."
+      "note": "로그인하면 선택했던 작업으로 돌아갑니다."
     }
   ],
   "signup-email": [
@@ -1464,7 +1464,7 @@
       "id": "code",
       "label": "인증번호 입력",
       "condition": "인증번호 단계 · 실제 발송 없음",
-      "transition": "시연 코드 확인 → 가입",
+      "transition": "인증 코드 확인 → 가입",
       "fixture": {
         "guest": true,
         "emailStep": "code"
@@ -1482,7 +1482,7 @@
         "hash": "signup-email?mode=signin"
       },
       "expect": "signup-email-form",
-      "note": "실제 인증 연결 전 시제품입니다."
+      "note": "로그인하면 선택했던 작업으로 돌아갑니다."
     },
     {
       "id": "signin-code",
@@ -1495,7 +1495,7 @@
         "emailStep": "code"
       },
       "expect": "signup-code-form",
-      "note": "실제 인증 연결 전 시제품입니다."
+      "note": "로그인하면 선택했던 작업으로 돌아갑니다."
     }
   ],
   "admin": [
@@ -1791,6 +1791,40 @@
         "flow": "completed"
       },
       "note": ""
+    },
+    {
+      "id": "refund-on-cancel",
+      "label": "예약 취소 · 수수료 전액 환불",
+      "condition": "수수료 결제가 완료된 확정 예약",
+      "transition": "여행자 취소 선택 → 사유 입력 → 예약 취소 및 환불 → 환불 완료",
+      "fixture": {
+        "adminSamples": true,
+        "hash": "admin-bookings?record=RT-DEMO-1"
+      },
+      "expect": "rt-admin-disclosure"
+    },
+    {
+      "id": "refund-retry",
+      "label": "예약 취소 · 환불 실패 후 재시도",
+      "condition": "수수료 결제가 완료된 확정 예약",
+      "transition": "여행자 취소 선택 → 사유 입력 → 예약 취소 및 환불 → 환불 실패 → 환불 재시도 → 완료",
+      "fixture": {
+        "adminSamples": true,
+        "hash": "admin-bookings?record=RT-DEMO-1",
+        "firstRefundFails": true
+      },
+      "expect": "rt-admin-disclosure"
+    },
+    {
+      "id": "fee-refund-review",
+      "label": "예외 환불 심사",
+      "condition": "결제된 매칭 수수료가 있는 예약의 예외 사유 심사",
+      "transition": "사유 입력 → 전액 환불 또는 환불 불가 확인.",
+      "fixture": {
+        "adminSamples": true,
+        "hash": "admin-bookings?record=RT-DEMO-3"
+      },
+      "expect": "name=\"decision\" value=\"approved\""
     }
   ],
   "mate-register": [
@@ -2002,7 +2036,7 @@
         "activityMany": true,
         "hash": "guide-activity?tab=bookings"
       },
-      "note": "각 예약 상태를 필터로 구분합니다. 결제는 시연입니다."
+      "note": "예약 상태별로 목록을 필터링합니다."
     },
     {
       "id": "many-sent",
@@ -2026,7 +2060,7 @@
         "activityMany": true,
         "hash": "guide-activity?tab=bookings&filter=pending"
       },
-      "note": "각 예약 상태를 필터로 구분합니다. 결제는 시연입니다."
+      "note": "예약 상태별로 목록을 필터링합니다."
     },
     {
       "id": "many-history",
@@ -2038,7 +2072,7 @@
         "activityMany": true,
         "hash": "guide-activity?tab=bookings&filter=history"
       },
-      "note": "각 예약 상태를 필터로 구분합니다. 결제는 시연입니다."
+      "note": "예약 상태별로 목록을 필터링합니다."
     }
   ]
 }

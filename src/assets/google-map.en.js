@@ -26,8 +26,7 @@
     dispose();let cancelled=false;const markers=[];let map;
     dispose=()=>{cancelled=true;markers.forEach(m=>{m.map=null;});if(map&&window.google?.maps?.event)google.maps.event.clearInstanceListeners(map);};
     if(!host)return;
-    if(!window.REEL_MAPS_CONFIG?.apiKey){status(host,'Google Maps is not connected yet. You can still use the places below.');return;}
-    if(location.protocol==='file:'){status(host,'Open the app from a local server or hosted address to use Google Maps.');return;}
+    if(!window.REEL_MAPS_CONFIG?.apiKey||location.protocol==='file:'){status(host,'The map could not load. You can still use the places below.');return;}
     status(host,'Loading Google Maps…');
     try{
       await load();if(cancelled||!host.isConnected)return;

@@ -26,8 +26,7 @@
     dispose();let cancelled=false;const markers=[];let map;
     dispose=()=>{cancelled=true;markers.forEach(m=>{m.map=null;});if(map&&window.google?.maps?.event)google.maps.event.clearInstanceListeners(map);};
     if(!host)return;
-    if(!window.REEL_MAPS_CONFIG?.apiKey){status(host,'Google 지도 연결 설정이 필요합니다. 아래 장소 목록은 계속 사용할 수 있어요.');return;}
-    if(location.protocol==='file:'){status(host,'Google 지도를 사용하려면 로컬 서버 또는 배포 주소로 앱을 열어 주세요.');return;}
+    if(!window.REEL_MAPS_CONFIG?.apiKey||location.protocol==='file:'){status(host,'지도를 불러오지 못했어요. 아래 장소 목록을 이용해 주세요.');return;}
     status(host,'Google 지도를 불러오는 중이에요…');
     try{
       await load();if(cancelled||!host.isConnected)return;

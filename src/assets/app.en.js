@@ -12,12 +12,12 @@ const money=n=>`₩${Number(n||0).toLocaleString('en-US')}`;
 const future=()=>{const d=new Date(Date.now()+7*86400000);return d.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});};
 const sampleStopIds=['forest','cafe','shop'];
 const initial=()=>({places:JSON.parse(JSON.stringify(window.REEL_PLACES)),selected:['forest','cafe','shop'],board:comparison?['forest','cafe','shop','n-seoul-tower']:[...sampleStopIds],library:[...sampleStopIds,'n-seoul-tower'],towerSeedVersion:1,must:[],title:'A slow afternoon in Seongsu',date:future(),time:'13:00',party:2,saved:false,filter:'All',source:'Coffee and walks in Seongsu',extraction:'idle',guide:'mina',request:null,quote:null,booking:null,messages:[],review:null,tickets:[],available:true,guideApproved:false,adminReview:'pending',rating:0});
-let state=initial(),storageWarning=false;
-try{const saved=comparison?null:JSON.parse(localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.places)&&Array.isArray(saved.board))state={...state,...saved,library:saved.library,towerSeedVersion:saved.towerSeedVersion||0};}catch{storageWarning=true;}
+let state=initial(),storageWarning=false,lastSavedState=null;
+try{lastSavedState=comparison?null:localStorage.getItem(key);const saved=JSON.parse(lastSavedState||'null');if(saved&&Array.isArray(saved.places)&&Array.isArray(saved.board))state={...state,...saved,library:saved.library,towerSeedVersion:saved.towerSeedVersion||0};}catch{storageWarning=true;}
 // Complete legacy cancellation requests without changing storage keys or fee refunds.
 for(const b of [state.booking,...(state.bookingHistory||[])]){
  if(b?.status!=='cancellation_requested')continue;
- b.status='cancelled';if(b.feeStatus==='paid')b.refundStatus='review';
+ b.status='cancelled';if(b.feeStatus==='paid'&&(!b.refundStatus||['none','None'].includes(b.refundStatus)))b.refundStatus='review';
  if(state.request&&(b===state.booking||b.requestId===state.request.id))state.request.status='cancelled';
 }
 // Give pending activity samples the same request/payment flow as the selected booking.
@@ -60,58 +60,258 @@ function libraryIds(){if(!Array.isArray(state.library))state.library=[...new Set
 // MVP request contexts retain the legacy active request/quote/booking fields.
 function matchingContexts(){const rows=(state.matchingContexts||[]).filter(x=>x.request&&x.request.id!==state.request?.id);if(state.request)rows.push({request:state.request,proposals:proposals(),quote:state.quote,booking:state.booking});return rows;}
 function stashMatching(){state.matchingContexts=matchingContexts();}
-function activateMatching(id){const row=matchingContexts().find(x=>x.request.id===id);if(!row)return false;stashMatching();state.request=row.request;state.proposals=row.proposals||[];state.quote=row.quote||null;state.booking=row.booking||null;state.messages=[];save();return true;}
-function allBookings(){const rows=[state.booking,...matchingContexts().map(x=>x.booking),...(state.bookingHistory||[])].filter(Boolean);return [...new Map(rows.map(b=>[b.id,b])).values()];}
+function activateMatching(id,persist=true){const row=matchingContexts().find(x=>x.request.id===id);if(!row)return false;stashMatching();state.request=row.request;state.proposals=row.proposals||[];state.quote=row.quote||null;state.booking=row.booking||null;state.messages=[];if(persist)save();return true;}
+function isOperationsSample(b){return /^RT-DEMO-[123]$/.test(b?.id);}
+function allBookings(){
+ const unique=new Map();
+ for(const b of [state.booking,...matchingContexts().map(x=>x.booking),...(state.bookingHistory||[])])if(b&&(window.ReelAccess.isAdmin||!isOperationsSample(b))&&!unique.has(b.id))unique.set(b.id,b);
+ return [...unique.values()];
+}
 // Public references are separate from legacy IDs used by routes and relations.
 function bookingReference(b){
  const registry=state.bookingReferences||(state.bookingReferences={});
  if(Object.prototype.hasOwnProperty.call(registry,b.id))return b.bookingNumber=registry[b.id];
- const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789',used=new Set(Object.values(registry));
+ const reference=allocateReference(new Set(Object.values(registry)));
+ registry[b.id]=reference;return b.bookingNumber=reference;
+}
+function allocateReference(used){
+ const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789';
  for(let attempt=0;attempt<100;attempt++){
   const values=new Uint32Array(6);if(globalThis.crypto?.getRandomValues)globalThis.crypto.getRandomValues(values);else for(let i=0;i<6;i++)values[i]=Math.floor(Math.random()*4294967296);
   const reference=Array.from(values,value=>alphabet[value%alphabet.length]).join('');
-  if(!used.has(reference)){registry[b.id]=reference;return b.bookingNumber=reference;}
+  if(!used.has(reference))return reference;
  }
- throw new Error('Unable to allocate a unique booking reference');
+ throw new Error('Unable to allocate a unique reference');
 }
-function bookingReferenceLabel(b){return 'RT-'+bookingReference(b);}
+function ensureTicketReferences(){
+ const tickets=state.tickets||[],used=new Set(tickets.map(t=>t.ticketNumber).filter(Boolean));
+ let changed=false;
+ for(const ticket of tickets){
+  if(ticket.ticketNumber)continue;
+  ticket.ticketNumber=allocateReference(used);
+  used.add(ticket.ticketNumber);changed=true;
+ }
+ return changed;
+}
+function ticketReferenceLabel(ticket){return 'VOC-'+ticket.ticketNumber;}
+function bookingReferenceLabel(b){return 'RS-'+bookingReference(b);}
 function ensureBookingReferences(){let changed=false;const rows=[...allBookings(),state.booking,...(state.matchingContexts||[]).map(x=>x.booking),...(state.bookingHistory||[])].filter(Boolean);for(const b of rows){const previous=b.bookingNumber,registered=state.bookingReferences?.[b.id];bookingReference(b);if(previous!==b.bookingNumber||registered!==b.bookingNumber)changed=true;}return changed;}
 function overlaps(a,b){return !!(a?.date&&b?.date&&a.date<=(b.endDate||b.date)&&b.date<=(a.endDate||a.date));}
 function bookingHolds(b){return b.status==='confirmed'||(b.status==='awaiting_mate_fee'&&feeDeadline(b)>Date.now());}
 function mateConflict(r,mate='mina',except=null){return allBookings().some(b=>b.id!==except&&(b.guideId||'mina')===mate&&bookingHolds(b)&&overlaps(r,b));}
-function proposalSelectable(q){return !!q&&!(q.guideId==='mina'&&mateApplication().activityRestricted)&&!q.unavailableAt&&!q.withdrawnAt&&q.expires>Date.now()&&!mateConflict(q,q.guideId||'mina');}
+function proposalSelectable(q){return !!q&&!(q.guideId==='mina'&&activitySuspended(mateApplication()))&&!q.unavailableAt&&!q.withdrawnAt&&q.expires>Date.now()&&!mateConflict(q,q.guideId||'mina');}
 function bookingStarted(b){return Date.now()>=Date.parse(b.date+'T'+(b.time||'00:00')+':00+09:00');}
 function canCancelBooking(b){return !!b&&['awaiting_mate_fee','confirmed'].includes(b.status)&&!bookingStarted(b);}
-function cancelBooking(actor,reason){const b=state.booking;if(!canCancelBooking(b)||window.ReelAccess.isAdmin||window.ReelAccess.mode()!==actor||String(reason||'').trim().length<2)return false;const pending=b.status==='awaiting_mate_fee';if(pending&&actor==='guide'){releaseMateSelection('declined',reason);return true;}b.cancelReason=String(reason).trim();b.cancelledAt=Date.now();b.cancelActor=actor;b.status='cancelled';if(pending)b.feeStatus='void';else if(actor==='customer'){b.refundStatus='review';b.refundRequestedAt=Date.now();b.refundRequestedAmount=b.feeAmount;b.refundReason='traveler_cancel';}else b.refundStatus='not_eligible';if(state.request)state.request.status=pending?'withdrawn':'cancelled';syncConversations();save();return true;}
+function cancelBooking(actor,reason){
+ const b=state.booking,note=String(reason||'').trim();
+ if(!canCancelBooking(b)||window.ReelAccess.isAdmin||window.ReelAccess.mode()!==actor||(actor==='guide'&&(b.guideId||'mina')!=='mina')||note.length<2)return false;
+ const pending=b.status==='awaiting_mate_fee';
+ if(pending&&actor==='guide'){releaseMateSelection('declined',reason);return true;}
+ b.cancelReason=note;b.cancelledAt=Date.now();b.cancelActor=actor;b.status='cancelled';
+ if(state.request)state.request.status=pending?'withdrawn':'cancelled';
+ if(!pending)recordBookingNotice('cancelled',b,[actor==='customer'?'guide':'customer']);
+ if(pending){b.feeStatus='void';b.refundStatus='none';}
+ else if(!hasPaidFee(b))b.refundStatus='none';
+ else if(actor==='customer'&&b.refundStatus!=='completed'){
+  b.refundRequestedAt=b.cancelledAt;b.refundRequestedAmount=b.feeAmount;b.refundReason='traveler_cancel';
+  applyFeeRefundResult(b,note);
+ }else if(actor==='guide'&&b.refundStatus!=='completed')b.refundStatus='not_eligible';
+ syncConversations();return saveOperationsRecord();
+}
 function canWithdrawProposal(q){const context=matchingContexts().find(x=>x.proposals?.some(p=>p.id===q?.id));return !!q&&q.guideId==='mina'&&!q.withdrawnAt&&!q.unavailableAt&&q.expires>Date.now()&&mateProposalStatus(q)==='waiting'&&!!context&&!context.booking&&['requested','quoted'].includes(context.request.status);}
 function proposalWithdrawAction(q){return canWithdrawProposal(q)?`<div class="rt-detail-actions">${action('Withdraw this proposal','withdraw-proposal','secondary',`data-id="${esc(q.id)}"`)}</div>`:'';}
 function withdrawProposal(id){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide')return false;const q=proposals().find(x=>x.id===id&&x.guideId==='mina');if(!canWithdrawProposal(q)||state.booking)return false;q.withdrawnAt=Date.now();q.expires=Date.now();if(state.request)state.request.status=proposals().some(proposalSelectable)?'quoted':'requested';save();return true;}
 function matchingPicker(){return matchingContexts().map(x=>`<article class="card pad rt-booking-card"><h2>${esc(x.request.tripTitle||x.request.region||'Trip requests')}</h2><p>${requestPeriod(x.request)} · ${esc(x.booking?(x.booking.status==='awaiting_mate_fee'?'Mate selected':statusLabel(x.booking.status)):x.request.status==='requested'?'Awaiting proposals':x.request.status==='quoted'?'Proposals received':'Close request')}</p>${action('Open request or booking','open-matching','secondary',`data-id="${esc(x.request.id)}"`)}</article>`).join('');}
 function ownsMateBooking(b){return (b.guideId||'mina')==='mina'&&(mateApplication().status==='approved'||JSON.parse(localStorage.getItem('reeltrip-prototype-access-v1')||'{}').profile==='guide');}
-function pendingRefund(b){return ['review','needs_info','approved','processing'].includes(b.refundStatus);}
-function operationsRefundEligible(b){return b.cancelActor==='customer'||b.cancelCategory==='exception'||pendingRefund(b);}
-function operationsBookingForm(b){const cancellable=['confirmed','awaiting_mate_fee'].includes(b.status),refundable=b.status==='cancelled'&&b.feeStatus==='paid'&&b.feeAmount>0&&b.refundStatus!=='completed',eligible=operationsRefundEligible(b);return `<form class="card pad" id="operations-booking-form-${esc(b.id)}"><input type="hidden" name="bookingId" value="${esc(b.id)}"><h2>${esc(bookingReferenceLabel(b))}</h2><p>${requestPeriod(b)} · ${esc(b.guide)}</p><p>Paid matching fee · <strong>${money(b.feeStatus==='paid'?b.feeAmount:0)}</strong><br>Matching fee refund status · ${esc(refundLabel(b.refundStatus))}</p>${cancellable?`<input type="hidden" name="operation" value="cancel"><label>Cancellation category<select name="reasonCode" required><option value="">Please select</option><option value="customer">Traveler cancellation · full fee refund eligible</option><option value="guide">Mate responsibility · no fee refund</option><option value="exception">Accident, illness or severe weather · full refund after review</option></select></label><label>Cancellation reason<textarea name="note" required maxlength="1000"></textarea></label><p>${b.feeStatus==='paid'?'After cancelling an eligible booking, refund the full matching fee in the payment provider dashboard.':'This booking is unpaid. Only the booking will be cancelled; no refund is due.'}</p><button class="btn danger" type="submit">Cancel booking</button>`:refundable?`<input type="hidden" name="operation" value="refund"><p>Full refund amount · <strong>${money(b.feeAmount)}</strong><br>Trip expenses are paid directly on site and are not included in this refund.</p>${eligible?'':`<label class="check"><input type="checkbox" name="exceptionConfirmed" required>I verified an exception such as accident, illness or severe weather and approved a full refund.</label>`}<label>Reason for processing<textarea name="note" required maxlength="1000"></textarea></label><label>Payment cancellation reference<input name="reference" required maxlength="120"></label><label class="check"><input type="checkbox" name="pgConfirmed" required>I confirmed the full matching fee refund was completed by the payment provider.</label><button class="btn" type="submit">Record full refund completion</button>`:`<p>${b.refundStatus==='completed'?'Full refund completion has been recorded.':b.status==='completed'?'This trip is completed.':'No further refund action is available.'}</p>`}<p class="hint">Demo operations record. No payment cancellation or email is sent.</p></form>`;}
+function pendingRefund(b){return ['review','needs_info','approved','processing','failed'].includes(b.refundStatus);}
 
-function refundLabel(v){return ({none:'Not applicable',review:'Under review',needs_info:'More information needed',approved:'Refund approved',processing:'Refund processing',completed:'Refund completed',not_eligible:'Not eligible for refund'})[v]||'Not applicable';}
+function adminFacts(rows){
+ return `<dl class="rt-admin-info-grid">${rows.map(([label,value,wide])=>`<div class="rt-admin-info-row${wide?' rt-admin-info-row--wide':''}"><dt>${esc(label)}</dt><dd>${esc(value==null||value===''?'—':value)}</dd></div>`).join('')}</dl>`;
+}
+function bookingActionPanel(heading,form,opened=false,status=''){
+ return `<details class="card rt-admin-panel rt-admin-disclosure"${opened?' open':''}><summary><strong>${heading}</strong>${status?`<span class="rt-admin-action-state">${status}</span>`:''}${icon('chevronDown',18)}</summary>${form}</details>`;
+}
+function awaitingGuaranteedRefund(b){return guaranteedFeeRefund(b)&&['review','needs_info'].includes(b.refundStatus);}
+function bookingDetailSummary(b){
+ const feeStatus=({paid:'Paid',pending:'Awaiting payment',failed:'Payment failed',void:'Payment voided'})[b.feeStatus]||'—';
+ const period=b.date&&b.endDate&&b.endDate!==b.date?`${b.date} ~ ${b.endDate}`:b.date;
+ let refundState=refundLabel(b.refundStatus);
+ if(b.status==='cancelled'){
+  if(b.refundStatus==='not_eligible'||(!hasPaidFee(b)&&(!b.refundStatus||b.refundStatus==='none')))refundState=`No refund · ${money(0)}`;
+  else if(awaitingGuaranteedRefund(b))refundState='Full refund pending';
+  else if(b.refundStatus==='review')refundState='Under review · Refund not yet decided';
+  else if(b.refundStatus==='failed')refundState='Refund failed · No refund issued';
+ }
+ const rows=[];
+ if(b.tripTitle)rows.push(['Trip name',b.tripTitle,true]);
+ rows.push(['Traveler',b.customer],['Assigned mate',b.guide],['Travel dates',period],['Start time',b.time],['Party size',b.party],['Trip cost (cash on site)',b.amount==null?'—':money(b.amount)],['Mate matching fee',b.feeAmount==null?'—':money(b.feeAmount)],['Matching fee paid',b.feeStatus==='paid'&&b.feeAmount==null?'—':money(b.feeStatus==='paid'?b.feeAmount:0)],['Fee payment status',feeStatus],['Fee refund status',refundState]);
+ if(b.cancelReason)rows.push(['Cancellation reason',b.cancelReason,true]);
+ if(b.refundStatus==='completed'&&b.refundAmount!=null)rows.push(['Refunded amount',money(b.refundAmount)]);
+ if(b.refundReference)rows.push(['Payment cancellation reference',b.refundReference,true]);
+ return `<section class="card pad rt-admin-panel"><header class="rt-admin-info-heading"><h2>${esc(bookingReferenceLabel(b))}</h2>${mateStatusChip(adminBookingStatus(b.status))}</header>${adminFacts(rows)}</section>`;
+}
+function caseHistory(entries,describe){
+ if(!entries?.length)return '';
+ return `<section class="card pad rt-admin-panel"><h2>Case history</h2><ol class="rt-admin-history">${[...entries].reverse().map(entry=>`<li><div><strong>${esc(describe(entry))}</strong><time>${esc(chatTime(entry.at))}</time></div><p>${esc(entry.note||entry.reason||'')}</p>${entry.reply?`<h3>Reply to requester</h3><p>${esc(entry.reply)}</p><small>${entry.replySent?'Email sent':'Reply draft'} · ${esc(entry.replyEmail||'')}</small>`:''}${entry.replySent&&!entry.reply?`<small>Email sent · ${esc(entry.replyEmail||'')}</small>`:''}${entry.evidenceDate?`<small>Date all evidence was received · ${esc(entry.evidenceDate)}</small>`:''}${entry.reference?`<small>Payment cancellation reference · ${esc(entry.reference)}</small>`:''}</li>`).join('')}</ol></section>`;
+}
+function hasPaidFee(b){return b.feeStatus==='paid'&&Number.isSafeInteger(b.feeAmount)&&b.feeAmount>0;}
+function refundWithCancellation(b,reason){return b.status==='confirmed'&&hasPaidFee(b)&&['customer','no_show'].includes(reason);}
+function cancellationRefundTerms(b,reason){
+ if(!hasPaidFee(b)||reason==='guide')return {outcome:`No refund · ${money(0)}`,button:'Cancel without a refund'};
+ if(!reason)return {outcome:'Select a cancellation category.',button:'Cancel booking'};
+ if(refundWithCancellation(b,reason))return {outcome:`Full refund upon confirmation · ${money(b.feeAmount)}`,button:'Cancel booking and refund'};
+ return {outcome:`Subject to review · Full refund of ${money(b.feeAmount)} if approved`,button:'Cancel and submit for refund review'};
+}
+function cancellationRefundField(terms){
+ return `<p class="rt-admin-amount"><span>Matching fee refund</span><strong data-refund-outcome aria-live="polite">${esc(terms.outcome)}</strong></p>`;
+}
+function updateCancellationRefund(control){
+ const form=control.form;
+ const b=allBookings().find(row=>row.id===form.elements.bookingId.value);
+ if(!b)return;
+ const terms=cancellationRefundTerms(b,control.value);
+ form.querySelector('[data-refund-outcome]').textContent=terms.outcome;
+ form.querySelector('button[type="submit"]').textContent=terms.button;
+}
+function guaranteedFeeRefund(b){
+ return b.status==='cancelled'&&(['customer','no_show'].includes(b.cancelCategory)||(!b.cancelCategory&&(b.cancelActor==='customer'||b.refundReason==='traveler_cancel')));
+}
+function canRequestFeeRefund(b){
+ if(!['cancelled','completed'].includes(b.status)||!hasPaidFee(b))return false;
+ return ['approved','failed','processing'].includes(b.refundStatus)||(guaranteedFeeRefund(b)&&!['completed','not_eligible'].includes(b.refundStatus));
+}
+function refundReviewOptions(b){
+ if(!hasPaidFee(b)||!['cancelled','completed'].includes(b.status)||guaranteedFeeRefund(b))return [];
+ if(!['review','needs_info'].includes(b.refundStatus))return [];
+ return ['not_eligible','approved'];
+}
+function refundActionLabel(decision){
+ return ({approved:'Refund in full',not_eligible:'No refund'})[decision];
+}
+function bookingCaseControls(b){
+ const choices=refundReviewOptions(b),disputed=b.disputeStatus==='open';
+ const idField=`<input type="hidden" name="bookingId" value="${esc(b.id)}">`;
+ const note='<label>Reason for action<textarea name="note" required maxlength="1000" rows="3"></textarea></label>';
+ const review=choices.length?bookingActionPanel('Fee refund review',`<form class="rt-admin-action-form" id="operations-booking-form-review-${esc(b.id)}">${idField}<input type="hidden" name="operation" value="refund_review"><input type="hidden" name="previous" value="${esc(b.refundStatus)}">${note}<div class="buttons">${choices.map(value=>`<button type="submit" name="decision" value="${value}" class="${value==='not_eligible'?'btn secondary':'btn'}">${refundActionLabel(value)}</button>`).join('')}</div></form>`,true,refundLabel(b.refundStatus)):'';
+ const inquiry=disputed&&b.disputeTicketId?state.tickets.find(t=>t.id===b.disputeTicketId):null;
+ const source=inquiry?`<a class="textbtn" href="#admin-support?record=${encodeURIComponent(inquiry.id)}">View related inquiry · ${esc(ticketReferenceLabel(inquiry))}</a>`:'';
+ const dispute=disputed?bookingActionPanel('Operations review',`<form class="rt-admin-action-form" id="operations-booking-form-dispute-${esc(b.id)}">${idField}<input type="hidden" name="operation" value="close_dispute"><input type="hidden" name="expectedDisputeAt" value="${esc(b.disputeOpenedAt||0)}">${source}${note}<button class="btn secondary" type="submit">Operations review completed</button></form>`,true):'';
+ return {review,dispute};
+}
+function bookingOperationLabel(operation,decision){
+ return ({cancel:'Cancel booking',refund:'Full matching fee refund',refund_failed:'Fee refund failed',open_dispute:'Flag for operations review',close_dispute:'Operations review completed',refund_review:refundLabel(decision)})[operation];
+}
+function operationsBookingForm(b){
+ const cancellable=['confirmed','awaiting_mate_fee'].includes(b.status);
+
+ const formStart=`<form class="rt-admin-action-form" id="operations-booking-form-${esc(b.id)}"><input type="hidden" name="bookingId" value="${esc(b.id)}"><input type="hidden" name="expectedStatus" value="${esc(b.status)}"><input type="hidden" name="expectedFee" value="${esc(b.feeStatus||'')}">`;
+ let actionPanel='';
+ if(cancellable){
+  const terms=cancellationRefundTerms(b,'');
+  actionPanel=bookingActionPanel('Cancel booking',`${formStart}<input type="hidden" name="operation" value="cancel"><label>Cancellation category<select name="reasonCode" required><option value="">Select a reason</option><option value="customer">Traveler Cancel</option><option value="guide">Mate at fault</option><option value="exception">Accident, illness or severe weather</option>${b.status==='confirmed'?'<option value="no_show">Verified traveler no-show or non-arrival after notice of delay</option><option value="interrupted">Trip interrupted</option>':''}</select></label>${cancellationRefundField(terms)}<label>Cancellation reason<textarea name="note" required maxlength="1000" rows="3"></textarea></label><button class="btn danger" type="submit">${terms.button}</button></form>`);
+ }else if(canRequestFeeRefund(b)){
+  const refundAction=b.refundStatus==='failed'?'Retry refund':'Refund in full';
+  actionPanel=bookingActionPanel(refundAction,`${formStart}<input type="hidden" name="operation" value="refund"><p class="rt-admin-amount">Full refund amount <strong>${money(b.feeAmount)}</strong></p><label>Reason for action<textarea name="note" required maxlength="1000" rows="3"></textarea></label><button class="btn" type="submit">${refundAction}</button></form>`,true);
+ }
+ const controls=bookingCaseControls(b);
+ return `${bookingDetailSummary(b)}${controls.review}${actionPanel}${controls.dispute}${caseHistory(b.operationsLog,entry=>bookingOperationLabel(entry.operation,entry.refundStatus))}`;
+}
+
+function refundLabel(v){return ({none:'Not applicable',review:'Under review',needs_info:'More information needed',approved:'Refund approved',processing:'Refund processing',failed:'Refund failed',completed:'Refund completed',not_eligible:'Not eligible for refund'})[v]||'Not applicable';}
+function restoreSharedState(raw,force=false){
+ if(!raw||!force&&raw===lastSavedState||comparison||window.ReelStatePreview)return false;
+ try{
+  const saved=JSON.parse(raw);
+  if(!Array.isArray(saved?.places)||!Array.isArray(saved.board))return false;
+  state={...initial(),...saved};lastSavedState=raw;window.ReelPlaceAPI?.restore(state);return true;
+ }catch{return false;}
+}
+function saveOperationsRecord(){
+ if(save()!==false)return true;
+ try{restoreSharedState(localStorage.getItem(key),true);}catch{}return false;
+}
+// The handoff flow uses an in-memory PG result. Production resolves this on the server against the original payment.
+function localFeeRefundResult(b){
+ if(window.ReelStatePreview?.fixture?.firstRefundFails&&b.refundStatus!=='failed')return null;
+ return {amount:b.feeAmount,reference:'RF-'+bookingReference(b)};
+}
+function applyFeeRefundResult(b,note){
+ const result=localFeeRefundResult(b),at=Date.now();
+ const success=result?.amount===b.feeAmount&&!!result.reference;
+ b.refundStatus=success?'completed':'failed';
+ const entry={at,operation:success?'refund':'refund_failed',note,refundStatus:b.refundStatus,bookingStatus:b.status};
+ if(success){
+  b.refundAmount=result.amount;b.refundReference=result.reference;b.refundedAt=at;
+  entry.amount=result.amount;entry.reference=result.reference;
+  recordBookingNotice('refunded',b,['guide']);
+ }
+ (b.operationsLog||=[]).push(entry);
+}
 function saveOperationsBooking(d){
  if(!window.ReelAccess.isAdmin)return false;
  const b=allBookings().find(x=>x.id===d.bookingId),note=String(d.note||'').trim();
- if(!b||!note||note.length>1000)return false;
+ if(!b||!note||note.length>1000||d.expectedStatus&&d.expectedStatus!==b.status||d.expectedFee&&d.expectedFee!==b.feeStatus)return false;
+ const combined=d.operation==='cancel'&&refundWithCancellation(b,d.reasonCode);
+ if(d.expectedRefundAmount!==undefined&&(!hasPaidFee(b)||Number(d.expectedRefundAmount)!==b.feeAmount))return false;
+ if(d.expectedRefundStatus!==undefined&&(b.refundStatus||'none')!==d.expectedRefundStatus)return false;
  if(d.operation==='cancel'){
-  if(!['confirmed','awaiting_mate_fee'].includes(b.status)||b.refundStatus==='completed'||!['customer','guide','exception'].includes(d.reasonCode))return false;
-  b.status='cancelled';b.cancelActor=d.reasonCode==='exception'?'operations':d.reasonCode;b.cancelCategory=d.reasonCode;b.cancelledAt=Date.now();b.cancelReason=note;
+  if(!['confirmed','awaiting_mate_fee'].includes(b.status)||b.refundStatus==='completed'||!['customer','guide','exception','no_show','interrupted'].includes(d.reasonCode)||(['no_show','interrupted'].includes(d.reasonCode)&&b.status!=='confirmed'))return false;
+  if(b.status==='awaiting_mate_fee'&&d.reasonCode==='guide'){
+   const context=matchingContexts().find(x=>x.booking?.id===b.id);
+   if(context){
+    const active=state.request?.id;activateMatching(context.request.id,false);
+    (b.operationsLog||=[]).push({at:Date.now(),operation:'cancel',note,refundStatus:'none',bookingStatus:'cancelled'});
+    releaseMateSelection('declined',note);
+    if(active&&active!==context.request.id)activateMatching(active,false);
+    return saveOperationsRecord();
+   }
+  }
+  if(b.status==='confirmed')recordBookingNotice('cancelled',b,['customer','guide']);
+  b.status='cancelled';b.cancelActor=['customer','guide'].includes(d.reasonCode)?d.reasonCode:'operations';b.cancelCategory=d.reasonCode;b.cancelledAt=Date.now();b.cancelReason=note;
   const paid=b.feeStatus==='paid',eligible=d.reasonCode!=='guide';
-  b.refundStatus=paid?(eligible?'review':'not_eligible'):'none';b.refundRequestedAmount=paid&&eligible?b.feeAmount:0;
-  if(paid&&eligible)b.refundRequestedAt=Date.now();if(!paid)b.feeStatus='void';
+  b.refundStatus=paid&&b.feeAmount>0?(eligible?'review':'not_eligible'):'none';b.refundRequestedAmount=paid&&eligible?b.feeAmount:0;
+  if(paid&&b.feeAmount>0&&eligible)b.refundRequestedAt=Date.now();if(!paid)b.feeStatus='void';
   for(const x of matchingContexts())if(x.request.id===b.requestId)x.request.status='cancelled';
  }else if(d.operation==='refund'){
-  if(b.status!=='cancelled'||b.feeStatus!=='paid'||b.refundStatus==='completed'||!Number.isSafeInteger(b.feeAmount)||b.feeAmount<=0||!d.pgConfirmed||(!operationsRefundEligible(b)&&!d.exceptionConfirmed)||!String(d.reference||'').trim()||String(d.reference).trim().length>120)return false;
-  if(d.refundAmount!==undefined&&Number(d.refundAmount)!==b.feeAmount)return false;
-  b.refundStatus='completed';b.refundAmount=b.feeAmount;b.refundReference=String(d.reference).trim();b.refundedAt=Date.now();if(d.exceptionConfirmed)b.refundExceptionReason=note;
+  if(!canRequestFeeRefund(b))return false;
+  applyFeeRefundResult(b,note);
+  return saveOperationsRecord();
+ }else if(d.operation==='refund_review'){
+  if((b.refundStatus||'none')!==d.previous||!refundReviewOptions(b).includes(d.decision))return false;
+  b.refundStatus=d.decision;b.refundDecisionReason=note;b.refundReviewedAt=Date.now();
+  if(!b.refundRequestedAt)b.refundRequestedAt=b.refundReviewedAt;
+ }else if(d.operation==='close_dispute'){
+  if(b.disputeStatus!=='open'||(d.expectedDisputeAt!==undefined&&String(b.disputeOpenedAt||0)!==String(d.expectedDisputeAt)))return false;
+  b.disputeStatus='closed';
  }else return false;
- b.operationsLog=b.operationsLog||[];b.operationsLog.push({at:Date.now(),operation:d.operation,note,refundStatus:b.refundStatus,amount:b.refundAmount||0,reference:b.refundReference||'',bookingStatus:b.status});syncConversations();save();return true;
+ b.operationsLog=b.operationsLog||[];b.operationsLog.push({at:Date.now(),operation:d.operation,note,refundStatus:b.refundStatus,amount:b.refundAmount||0,reference:b.refundReference||'',bookingStatus:b.status});
+ if(combined||(d.operation==='refund_review'&&d.decision==='approved'))applyFeeRefundResult(b,note);
+ syncConversations();return saveOperationsRecord();
 }
-function confirmOperationsBooking(d){if(!window.ReelAccess.isAdmin)return;const b=allBookings().find(x=>x.id===d.bookingId);if(!b||!['cancel','refund'].includes(d.operation))return;const label=d.operation==='cancel'?'Cancel booking':'Record full refund completion';modal(`<form id="operations-booking-confirm-form"><h2>${label}</h2><p>${esc(bookingReferenceLabel(b))}</p><p>${d.operation==='refund'?'Record the full fee refund already completed by the payment provider.':b.feeStatus!=='paid'?'Cancel this unpaid booking. No refund is due.':d.reasonCode==='guide'?'Cancel the booking without refunding the fee due to mate responsibility.':'Cancel the booking and mark the full fee for refund review. Process the actual refund separately with the payment provider.'}</p>${b.feeStatus==='paid'&&(d.operation==='refund'||d.reasonCode!=='guide')?`<p>Full refund amount · ${money(b.feeAmount)}</p>`:''}${Object.entries(d).map(([key,value])=>`<input type="hidden" name="${esc(key)}" value="${esc(value)}">`).join('')}<div class="buttons">${action('Cancel','close','secondary')}<button class="btn" type="submit">${label}</button></div><p class="error" id="operations-booking-error" role="alert"></p></form>`);}
+function confirmOperationsBooking(d){
+ if(!window.ReelAccess.isAdmin)return;
+ const b=allBookings().find(x=>x.id===d.bookingId);
+ if(!b)return;
+ const combined=d.operation==='cancel'&&refundWithCancellation(b,d.reasonCode);
+ const reviewing=d.operation==='refund_review';
+ if(reviewing&&!refundReviewOptions(b).includes(d.decision))return;
+ const refund=combined||d.operation==='refund'||(reviewing&&d.decision==='approved');
+ const terms=d.operation==='cancel'?cancellationRefundTerms(b,d.reasonCode):null;
+ const actionLabel=terms?.button||(reviewing?refundActionLabel(d.decision):d.operation==='refund'?'Refund in full':bookingOperationLabel(d.operation,d.decision));
+ if(!actionLabel)return;
+ const heading=combined?'Cancel the booking and refund the fee?':terms?'Cancel this booking?':refund?'Refund the matching fee?':actionLabel;
+ let message=esc(d.note);
+ if(refund)message='The full matching fee will be refunded to the mate’s original payment method.';
+ else if(reviewing)message='The refund amount is ₩0. Email the mate to explain the decision.';
+ else if(d.operation==='cancel'){
+  if(!hasPaidFee(b))message='The booking will be cancelled. There is no fee to refund.';
+  else if(d.reasonCode==='guide')message='Cancel the booking without refunding the fee due to mate responsibility.';
+  else message='The booking will be cancelled and the fee submitted for review. Choosing a full refund returns it to the original payment method.';
+ }
+ const values={...d,expectedRefundStatus:b.refundStatus||'none'};
+ if(refund)values.expectedRefundAmount=b.feeAmount;
+ modal(`<form id="operations-booking-confirm-form"><h2>${heading}</h2><p>${esc(bookingReferenceLabel(b))}</p><p>${message}</p>${terms?cancellationRefundField(terms):refund?`<p class="rt-admin-amount">Full refund amount <strong>${money(b.feeAmount)}</strong></p>`:''}${Object.entries(values).map(([key,value])=>`<input type="hidden" name="${esc(key)}" value="${esc(value)}">`).join('')}<div class="buttons">${action('Cancel','close','secondary')}<button class="btn" type="submit">${actionLabel}</button></div><p class="error" id="operations-booking-error" role="alert"></p></form>`);
+}
 
 
 function proposals(){if(!Array.isArray(state.proposals))state.proposals=state.quote?[{...state.quote,guideId:state.quote.guideId||'mina'}]:[];return state.proposals;}
@@ -168,7 +368,7 @@ function tripDetailsDialog(){const n=tripRangeDays(tripDraft?.start,tripDraft?.e
 
 function tripDetailRoute(){return 'trips?view=detail&id='+encodeURIComponent(state.activeTripId||'trip-legacy');}
 function isTripDetail(){return location.hash.split('?')[0]==='#planner'||current()==='trips'&&new URLSearchParams(location.hash.split('?')[1]||'').get('view')==='detail';}
-const save=()=>{if(isGuest())return;ensureBookingReferences();libraryIds();stashDay();stashTrip();stashMatching();if(comparison)return;try{localStorage.setItem(key,JSON.stringify(state,window.ReelPlaceAPI?.replacer));}catch{storageWarning=true;toast('Storage is unavailable. Your changes will not be saved after this session.');}};
+const save=()=>{if(isGuest())return;ensureBookingReferences();ensureTicketReferences();libraryIds();stashDay();stashTrip();stashMatching();if(comparison)return;try{const raw=JSON.stringify(state,window.ReelPlaceAPI?.replacer);localStorage.setItem(key,raw);lastSavedState=raw;return true;}catch{storageWarning=true;toast('Could not save your changes. Please try again.');return false;}};
 const screens=window.REEL_SCREENS.filter(s=>s.both||guided).map(s=>({...s}));
 const byRoute=r=>screens.find(s=>s.route===r);
 // B-27 remains reserved; its retired place-review route opens operations home.
@@ -179,7 +379,7 @@ const guide=()=>state.guide==='jun'?{name:'Jun',initial:'Jun',field:'Local food 
 const statusLabel=s=>({awaiting_mate_fee:'Awaiting mate confirmation',matching:'Awaiting mate confirmation',requested:'Awaiting reply',quoted:'Proposals received',booked:'Confirmed',withdrawn:'Withdrawn',declined:'Declined',confirmed:'Confirmed',completed:'Trip completed',cancelled:'Cancelled',pending:'Pending review',approved:'Approved',needs_info:'More information needed',open:'Received',resolved:'Resolved'})[s]||s;
 let timer,toastTimer,feeExpiryTimer,previewExtractionStarted=false;
 function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3500);}
-function go(r){if(current()===r)render();else location.hash=r;}
+function go(r){if(location.hash.slice(1)===r)render();else location.hash=r;}
 function btn(label,route,kind=''){return `<a class="btn ${kind}" href="#${route}">${label}</a>`;}
 function action(label,name,kind='',extra=''){return `<button class="btn ${kind}" data-action="${name}" ${extra}>${label}</button>`;}
 function chip(t,active=false,attr=''){return `<button class="chip rt-filter-chip ${active?'active':''}" ${attr}>${t}</button>`;}
@@ -243,6 +443,7 @@ function brandLogo(){
  return `<img class="brand-logo" src="../assets/brand/${filename}" alt="${english?'Reeltrip':'Reeltrip'}" width="${english?1164:993}" height="446">`;
 }
 function layout(content){
+ const reviewTools=new URLSearchParams(location.search).get('tools')==='1';
  const r=current(),screen=byRoute(r),role=screen?.role||'customer',access=window.ReelAccess;
  if(access.isAdmin)return `<main id="main" class="page" tabindex="-1">${content}</main>`;
  const tabs=access.isAdmin?[]:!isGuest()&&access.mode()==='guide'?[['guide-desk','▤','Find trips'],['guide-activity','▤','My activity'],['messages','◇','Chats'],['account','○','My account']]:[['home','⌂','Discover'],['trips','▤','My trips'],['guides','♧','Mates'],['messages','◇','Chats'],['account','○','My account']];
@@ -256,19 +457,97 @@ function layout(content){
  const shortTitle=activityDetail?(activityParams.has('proposal')?'Trip proposal':'Booking details'):signupRoute?signupText(r==='signup'?'title':'emailTitle'):shortTitleOriginal;
  const isRoot=tabs.some(t=>t[0]===r)&&!isTripDetail()&&!activityDetail;
  const header=access.isAdmin?`${access.controls()}<header class="topbar"><a class="brand brand-lockup" href="#admin">${brandLogo()}</a><span class="brand-surface-label">${document.documentElement.lang==='en'?'Operations':'운영'}</span></header>`:isTripDetail()&&!isGuest()&&!content.includes('trip-unavailable')?tripDetailHeader():isRoot&&r!=='messages'||r==='chat'&&chatContext()?'':`<header class="topbar detail-topbar"><a class="app-back" href="#${parent}" aria-label="${signupRoute?signupText('back'):'Go back'}">${icon('chevronLeft')}</a><strong class="app-title">${shortTitle}</strong>${r==='messages'||r==='chat'&&!chatContext()?chatPolicyButton():r==='board'&&!isGuest()?`<button type="button" class="library-add" data-action="board-add" aria-label="Save a place">${icon('plus')}</button>`:'<span class="header-balance" aria-hidden="true"></span>'}</header>`;
- return `${isGuest()?'':`<details class="reviewtools"><summary>모바 days 앱 검토 도구</summary><div class="reviewlinks">${access.tools()}<a href="../../docs/index.html">Planning hub</a><a href="../../docs/product.html">Plans and specifications</a><button class="textbtn" data-action="scenarios">Manage states</button><label>Jump to screen<select id="screen-jump">${screens.filter(s=>access.allowed(s.role,s.route)).map(s=>`<option value="${s.route}" ${r===s.route?'selected':''}>${s.id} ${s.name}</option>`).join('')}</select></label><p>Review tools. These are not part of the customer app.</p></div></details>`}${header}<main id="main" class="page ${!access.isAdmin&&isRoot?'tab-page':''} ${isTripDetail()&&!isGuest()?'trip-detail-page':''}" tabindex="-1">${!access.isAdmin&&['home','guide-desk'].includes(r)?`<div class="home-entry-row"><div class="home-brand">${signupBrandLogo()}</div>${notificationBell()}</div>`:''}<div class="screennote">${screen?`${screen.id} · ${screen.name}`:'Page not found'}${role!=='customer'?' · Role review screen (no authentication)':''}</div>${storageWarning?'<div class="infobar warn">Browser storage is unavailable. Changes will last only for this session.</div>':''}${content}</main>${access.isAdmin||signupRoute||r==='chat'&&chatContext()?'':`<nav class="mobiletabs" aria-label="Main navigation">${tabs.map(([route,icon,label])=>`<a href="#${route}" class="${tabRoute===route?'active':''}" ${tabRoute===route?'aria-current="page"':''}><b aria-hidden="true">${navIcon(route)}</b>${label}${route==='messages'&&unreadChats()?`<span class="chat-tab-unread" aria-label="${unreadChats()} unread messages">${unreadChats()}</span>`:''}</a>`).join('')}</nav>`}`;
+ return `${isGuest()||!reviewTools?'':`<details class="reviewtools"><summary>모바 days 앱 검토 도구</summary><div class="reviewlinks">${access.tools()}<a href="../../docs/index.html">Planning hub</a><a href="../../docs/product.html">Plans and specifications</a><button class="textbtn" data-action="scenarios">Manage states</button><label>Jump to screen<select id="screen-jump">${screens.filter(s=>access.allowed(s.role,s.route)).map(s=>`<option value="${s.route}" ${r===s.route?'selected':''}>${s.id} ${s.name}</option>`).join('')}</select></label></div></details>`}${header}<main id="main" class="page ${!access.isAdmin&&isRoot?'tab-page':''} ${isTripDetail()&&!isGuest()?'trip-detail-page':''}" tabindex="-1">${!access.isAdmin&&['home','guide-desk'].includes(r)?`<div class="home-entry-row"><div class="home-brand">${signupBrandLogo()}</div>${notificationBell()}</div>`:''}${reviewTools&&screen?`<div class="screennote">${esc(screen.id)} · ${esc(screen.name)}</div>`:''}${storageWarning?'<div class="infobar warn">Could not save your changes. Please try again.</div>':''}${content}</main>${access.isAdmin||signupRoute||r==='chat'&&chatContext()?'':`<nav class="mobiletabs" aria-label="Main navigation">${tabs.map(([route,icon,label])=>`<a href="#${route}" class="${tabRoute===route?'active':''}" ${tabRoute===route?'aria-current="page"':''}><b aria-hidden="true">${navIcon(route)}</b>${label}${route==='messages'&&unreadChats()?`<span class="chat-tab-unread" aria-label="${unreadChats()} unread messages">${unreadChats()}</span>`:''}</a>`).join('')}</nav>`}`;
+}
+function notificationCopy(kind,entity){
+ const dates=entity.endDate&&entity.endDate!==entity.date?`${entity.date} ~ ${entity.endDate}`:entity.date;
+ const fee=Number(entity.refundAmount??entity.feeAmount??0).toLocaleString('en-US');
+ const deadline=Number.isFinite(new Date(entity.feeDeadline).getTime())&&entity.feeDeadline?new Date(entity.feeDeadline).toLocaleString('sv-SE',{timeZone:'Asia/Seoul'}).slice(0,16):'';
+ return ({
+  proposal:['You received a mate proposal',`A new proposal is available for your trip on ${dates}.`],
+  selected:['The traveler selected your proposal',`Pay the ₩${fee} fee by ${deadline} (KST) to confirm the booking.`],
+  confirmed:['Your booking is confirmed',`Your trip on ${dates} is confirmed. You can now start chatting.`],
+  released:['The booking was not confirmed',`The booking for ${dates} was not confirmed. Check the request status.`],
+  cancelled:['The booking was cancelled',`The booking for ${dates} was cancelled. Open the booking to see the reason.`],
+  refunded:['Your fee refund is complete',`The ₩${fee} fee for your booking on ${dates} was refunded.`],
+  approved:['Your mate application was approved','You can now plan trips with travelers.'],
+  needs_info:['Your mate application needs more information','Check the review notes, update your application and resubmit it.'],
+  rejected:['Your mate application was declined','Open your application to review the reason.'],
+  restricted:['Your mate activity was restricted','Check the reason and how to contact support.'],
+  payment_due:['Your fee payment is due soon',`Pay the ₩${fee} fee by ${deadline} (KST).`],
+  trip_due:['Get ready for tomorrow’s trip',`Use chat to confirm the meeting place and what to bring for your trip on ${dates}.`]
+ })[kind];
+}
+function recordBookingNotice(kind,entity,recipients,time=Date.now()){
+ if(isOperationsSample(entity))return false;
+ const items=state.serviceNotifications||=[];
+ const id=[kind,entity.id,kind==='proposal'?entity.version:1].join(':');
+ if(items.some(item=>item.id===id))return false;
+ const [title,body]=notificationCopy(kind,entity);
+ items.push({id,kind,title,body,time,recipients,mateId:entity.guideId||'mina',requestId:entity.requestId,bookingId:kind==='proposal'?null:entity.id});
+ return true;
+}
+function recordApplicationNotice(a,kind){
+ const [title,body]=notificationCopy(kind,a),items=a.notices||=[];
+ items.push({id:`application:${items.length+1}:${kind}`,kind,title,body,time:Date.now(),route:'mate-register',recipients:['applicant']});
+}
+function noticeDestination(n){
+ if(n.route)return {route:n.route};
+ const mate=ownsMateBooking({guideId:n.mateId})||window.ReelAccess.mode()==='guide'&&n.mateId==='mina';
+ const traveler=n.recipients.includes('customer'),guide=mate&&n.recipients.includes('guide');
+ if(!traveler&&!guide)return null;
+ const role=guide&&(!traveler||window.ReelAccess.mode()==='guide')?'guide':'customer';
+ const query='?record='+encodeURIComponent(n.bookingId);
+ if(['released','proposal'].includes(n.kind)&&role==='customer')return {role,route:'requested?request='+encodeURIComponent(n.requestId)};
+ return {role,route:(role==='guide'?'guide-fee':'booking')+query};
 }
 function notificationItems(){
- const mode=window.ReelAccess.mode(),guideMode=mode==='guide',items=[];
- const b=state.booking,q=state.request;
- if(b)items.push({id:`${mode}:booking:${b.id}:${b.status}`,category:'guide',symbol:'trips',route:guideMode?'guide-fee':'booking',title:({confirmed:'Your booking is confirmed',cancelled:'Your booking was cancelled',completed:'Your trip is complete'})[b.status]||statusLabel(b.status),body:`Trip date ${b.date} · ${b.guide}`,time:b.confirmedAt||b.requestedAt||0});
- else if(q)items.push({id:`${mode}:request:${q.id}:${q.status}:${state.quote?.version||0}`,category:'guide',symbol:q.status==='quoted'?'board':'trips',route:guideMode?'guide-desk':q.status==='quoted'?'quote':'requested',title:guideMode?(q.status==='requested'?'A new trip request arrived':'Trip request status updated'):(q.status==='quoted'?'Your mate’s proposal is here':'Check your trip request'),body:`Trip date ${q.date} · ${statusLabel(q.status)}`,time:q.createdAt||0});
- return [...items,...(state.previewNotifications||[])].sort((a,b)=>b.time-a.time).map(n=>({...n,read:(state.readNotifications||[]).includes(n.id)}));
+ const stored=[...(state.serviceNotifications||[]),...(mateApplication().notices||[]),...(state.previewNotifications||[])];
+ return stored.flatMap(n=>{
+  const destination=noticeDestination(n);
+  return destination?[{...n,...destination,read:(state.readNotifications||[]).includes(n.id)}]:[];
+ }).sort((a,b)=>b.time-a.time);
 }
-function markNotificationsRead(ids){state.readNotifications=[...new Set([...(state.readNotifications||[]),...ids])].slice(-200);save();}
+function migrateBookingNotices(){
+ if(state.noticeHistoryVersion||!lastSavedState||isGuest()||window.ReelStatePreview)return;
+ const reads=new Set(state.readNotifications||[]);
+ for(const b of allBookings()){
+  if(!b.id||!b.requestId||isOperationsSample(b))continue;
+  const prior=kind=>['customer','guide'].some(role=>reads.has(`${role}:booking:${b.id}:${kind}`));
+  const restore=(kind,recipients,at,wasRead)=>{
+   const time=new Date(at).getTime();
+   if(!at||!Number.isFinite(time)||!recordBookingNotice(kind,b,recipients,time))return;
+   if(wasRead)reads.add(state.serviceNotifications.at(-1).id);
+  };
+  if(b.feeDeadline)restore('selected',['guide'],b.requestedAt,prior('awaiting_mate_fee'));
+  restore('confirmed',['customer','guide'],b.confirmedAt,prior('confirmed'));
+  if(b.status==='cancelled'&&b.feeStatus==='paid'&&b.cancelActor){
+   const byOps=b.operationsLog?.some(entry=>entry.operation==='cancel');
+   restore('cancelled',byOps?['customer','guide']:[b.cancelActor==='customer'?'guide':'customer'],b.cancelledAt,prior('cancelled'));
+  }
+  if(b.refundStatus==='completed')restore('refunded',['guide'],b.refundedAt,false);
+ }
+ state.readNotifications=[...reads];state.noticeHistoryVersion=1;save();
+}
+function scheduleTravelNotices(){
+ let next=Infinity,changed=false;
+ const now=Date.now();
+ for(const b of allBookings()){
+  const pending=b.status==='awaiting_mate_fee';
+  if(!pending&&b.status!=='confirmed')continue;
+  const end=pending?feeDeadline(b):Date.parse(b.date+'T'+(b.time||'00:00')+':00+09:00');
+  const due=end-(pending?3600000:86400000),created=pending?b.requestedAt:b.confirmedAt;
+  if(!created||due<=created||now>=end)continue;
+  if(now<due){next=Math.min(next,due);continue;}
+  if(now-due<=1800000)changed=recordBookingNotice(pending?'payment_due':'trip_due',b,pending?['guide']:['customer','guide'])||changed;
+ }
+ if(changed)save();
+ return next;
+}
+function markNotificationsRead(ids){state.readNotifications=[...new Set([...(state.readNotifications||[]),...ids])];save();}
 function notificationBell(){const count=notificationItems().filter(n=>!n.read).length;return `<a class="notification-bell" href="#notifications" aria-label="Notifications${count?' · Unread notifications':''}">${icon('bell')}${count?'<span class="notification-dot" aria-hidden="true"></span>':''}</a>`;}
 let notificationFilter='all';
-function notifications(){const items=notificationItems(),visible=items;return `<section class="notifications-page">${visible.length?`<div class="notification-list">${visible.map(n=>`<a class="notification-item ${n.read?'is-read':'is-unread'}" href="#${n.route}" data-action="notification-open" data-id="${esc(n.id)}"><div><strong>${!n.read?'<span class="notification-unread-mark" aria-hidden="true"></span><span class="sr-only">Unread notifications · </span>':''}${esc(n.title)}</strong><p>${esc(n.body)}</p>${n.time?`<time datetime="${new Date(n.time).toISOString()}">${new Date(n.time).toLocaleDateString(document.documentElement.lang==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul',month:'short',day:'numeric'})}</time>`:''}</div><span class="notification-chevron" aria-hidden="true">${icon('chevronRight')}</span></a>`).join('')}</div>`:`<div class="notification-empty rt-empty-card rt-empty-plain"><span class="rt-empty-card-icon">${icon('bell')}</span><h2>No notifications yet</h2><p>New updates will appear here.</p></div>`}</section>`;}
+function notifications(){const items=notificationItems(),visible=items;return `<section class="notifications-page">${visible.length?`<div class="notification-list">${visible.map(n=>`<a class="notification-item ${n.read?'is-read':'is-unread'}" href="#${esc(n.route)}" data-action="notification-open" data-id="${esc(n.id)}"><div><strong>${!n.read?'<span class="notification-unread-mark" aria-hidden="true"></span><span class="sr-only">Unread notifications · </span>':''}${esc(n.title)}</strong><p>${esc(n.body)}</p>${n.time?`<time datetime="${new Date(n.time).toISOString()}">${new Date(n.time).toLocaleDateString(document.documentElement.lang==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul',month:'short',day:'numeric'})}</time>`:''}</div><span class="notification-chevron" aria-hidden="true">${icon('chevronRight')}</span></a>`).join('')}</div>`:`<div class="notification-empty rt-empty-card rt-empty-plain"><span class="rt-empty-card-icon">${icon('bell')}</span><h2>No notifications yet</h2><p>New updates will appear here.</p></div>`}</section>`;}
 
 function saveRestaurant(id){
   const item=window.ReelRestaurants.find(restaurant=>restaurant.id===id);
@@ -429,7 +708,7 @@ function mateEntry(){
   pending:['Mate application under review','We are reviewing your application. You can view your submission.'],
   approved:['Mate registration approved','Switch to mate mode to explore trip requests.'],
   needs_info:['Your mate application needs more information','Review the feedback and update your application.'],
-  rejected:['Your mate application was not approved','Review the reason, update your application and apply again.']
+  rejected:['Your mate application was declined','Review the reason, update your application and apply again.']
  }[a.status]||['Become a mate','Live here? Share the journey as a local mate.'];
  return `<a class="mate-entry" ${a.status==='approved'?'href="#guide-desk" data-access-mode="guide"':'href="#mate-register"'}><span class="mate-entry-content"><span class="mate-entry-heading"><span class="mate-entry-icon" aria-hidden="true">${icon('local')}</span><strong>${copy[0]}</strong></span><small>${copy[1]}</small></span><span class="mate-entry-arrow" aria-hidden="true">${icon('external')}</span></a>`;
 }
@@ -495,17 +774,17 @@ function mateField(a,name,label,extra='',area=false,required=true){return `<labe
 let mateEmailChallenge=null,signupPendingEmail='';
 function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||''))&&String(value).length<=254;}
 function mateEmailVerified(a){return validEmail(a.fields.email)&&a.fields.emailVerified===a.fields.email.toLowerCase();}
-function mateEmailUI(a){return `<label>Notification email<input name="email" type="email" required maxlength="254" value="${esc(a.fields.email||'')}"></label>${mateEmailVerified(a)?'<p class="hint">Email verified · Demo</p>':'<button class="btn secondary" type="button" data-action="mate-email-send">Get email verification code</button><label>Email verification code<input name="emailCode" inputmode="numeric" maxlength="6"></label><button class="btn secondary" type="button" data-action="mate-email-verify">Verify email code</button>'}<p class="hint">Demo code 482916 · No email is sent · Valid for 3 minutes</p>`;}
+function mateEmailUI(a){return `<label>Notification email<input name="email" type="email" required maxlength="254" value="${esc(a.fields.email||'')}"></label>${mateEmailVerified(a)?'<p class="hint">Email verified</p>':'<button class="btn secondary" type="button" data-action="mate-email-send">Get email verification code</button><label>Email verification code<input name="emailCode" inputmode="numeric" maxlength="6"></label><button class="btn secondary" type="button" data-action="mate-email-verify">Verify email code</button>'}${!mateEmailVerified(a)&&mateEmailChallenge?.email===a.fields.email?'<p class="hint">The code is valid for 3 minutes.</p>':''}`;}
 function mateEmailAction(kind){const form=$('#mate-form');if(!form)return false;const a=captureMate(form,mateApplication());a.fields.email=String(a.fields.email||'').trim().toLowerCase();if(!validEmail(a.fields.email)){toast('Enter a valid email address.');return false;}if(kind==='send'){if(mateEmailChallenge&&Date.now()-mateEmailChallenge.sentAt<30000){toast('Please wait 30 seconds before resending.');return false;}mateEmailChallenge={email:a.fields.email,sentAt:Date.now(),attempts:0};delete a.fields.emailVerified;saveMate(a);render();return true;}const c=mateEmailChallenge;if(!c||c.email!==a.fields.email||Date.now()-c.sentAt>180000||c.attempts>=5){toast('Request a new email verification code.');return false;}c.attempts++;if(a.fields.emailCode!=='482916'){toast('Check the verification code.');return false;}a.fields.emailVerified=a.fields.email;delete a.fields.emailCode;mateEmailChallenge=null;saveMate(a);render();return true;}
 
 let matePhoneDemo={phone:'',sentAt:0,verified:false,attempts:0};
 const matePhoneDigits=value=>String(value||'').replace(/[^0-9]/g,'');
 function matePhoneVerified(a){return matePhoneDemo.verified&&matePhoneDemo.phone===matePhoneDigits(a.fields.contact);}
-function matePhoneUI(a){const verified=matePhoneVerified(a),sent=matePhoneDemo.sentAt&&matePhoneDemo.phone===matePhoneDigits(a.fields.contact);return `<p class="hint">SMS verification demo. No real text messages are sent.</p>${verified?'':`<button type="button" class="btn secondary" data-action="mate-phone-send">${sent?'Resend code':'Get verification code'}</button>`}${sent&&!verified?`<p class="hint">Demo code: 123456 · Valid for 3 minutes · Resend after 30 seconds.</p><label>6-digit verification code<input id="mate-phone-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6 digits" aria-describedby="mate-phone-status"></label><button type="button" class="btn secondary" data-action="mate-phone-verify">Verify code</button>`:''}<p id="mate-phone-status" role="status" aria-live="polite">${verified?'Verification complete.':''}</p>`;}
+function matePhoneUI(a){const verified=matePhoneVerified(a),sent=matePhoneDemo.sentAt&&matePhoneDemo.phone===matePhoneDigits(a.fields.contact);return `${verified?'':`<button type="button" class="btn secondary" data-action="mate-phone-send">${sent?'Resend code':'Get verification code'}</button>`}${sent&&!verified?`<p class="hint">The code is valid for 3 minutes. You can request another after 30 seconds.</p><label>6-digit verification code<input id="mate-phone-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6 digits" aria-describedby="mate-phone-status"></label><button type="button" class="btn secondary" data-action="mate-phone-verify">Verify code</button>`:''}<p id="mate-phone-status" role="status" aria-live="polite">${verified?'Verification complete.':''}</p>`;}
 function matePhoneAction(kind){const form=$('#mate-form');if(!form||isGuest())return;const a=captureMate(form,mateApplication());if(['pending','approved'].includes(a.status))return;if(!validMatePhone(a.fields.contact)){toast('Enter a valid Korean mobile phone number starting with 010.');return;}const phone=matePhoneDigits(a.fields.contact),now=Date.now();if(kind==='send'){if(matePhoneDemo.sentAt&&now-matePhoneDemo.sentAt<30000){toast('Please wait 30 seconds before resending.');return;}matePhoneDemo={phone,sentAt:now,verified:false,attempts:0};saveMate(a);render();$('#mate-phone-code')?.focus();return;}const message=$('#mate-phone-status'),code=$('#mate-phone-code')?.value||'';if(!message)return;if(phone!==matePhoneDemo.phone||!matePhoneDemo.sentAt){message.textContent='Request a verification code first.';return;}if(now-matePhoneDemo.sentAt>=180000){message.textContent='The code has expired. Please request another.';return;}if(matePhoneDemo.attempts>=5){message.textContent='Too many attempts. Please request another code.';return;}if(!/^[0-9]{6}$/.test(code)){message.textContent='Enter the 6-digit verification code.';return;}matePhoneDemo.attempts++;if(code!=='123456'){message.textContent='The verification code does not match.';return;}matePhoneDemo.verified=true;saveMate(a);render();}
 function mateRegistration(){
  const a=mateApplication(),step=Math.min(4,Math.max(1,a.step||1));
- if(['pending','approved'].includes(a.status))return `<section class="mate-onboarding rt-card-stack"><section class="card pad rt-status-card rt-card-actions-centered"><span class="rt-status-symbol" aria-hidden="true">${icon(a.status==='approved'?'check':'clock',32)}</span>${a.status==='pending'?`<span class="badge">${mateStatus(a.status)}</span>`:''}<h1>${a.status==='approved'?'You are now registered as a mate':'Your application is under review'}</h1><p>${a.status==='approved'?'You can now switch to mate mode to view trips and send proposals.':'You can start as a mate once an administrator approves your application!'}</p>${a.status==='approved'?'<button class="btn" data-access-mode="guide">Switch to mate mode</button>':''}</section><details class="card rt-disclosure-card"><summary><span>View submitted application</span>${icon('chevronDown',20)}</summary><div class="rt-disclosure-body">${mateSummary(a)}</div></details>${a.status==='pending'?'<p class="rt-status-note">You can still use traveler features while your application is under review.</p>':''}</section>`;
+ if(['pending','approved'].includes(a.status))return `<section class="mate-onboarding rt-card-stack">${a.status==='approved'&&a.restrictionReason?`<section class="card pad"><h2>${activitySuspended(a)?'Suspended':'Active'}</h2><p>${esc(a.restrictionReason)}</p>${a.restrictionEndDate?`<p>Suspension end date · ${esc(a.restrictionEndDate)}</p>`:''}${btn('Contact support','support','secondary')}</section>`:''}${a.revision?`<section class="card pad"><h2>Profile change review</h2><p>${esc(mateStatus(a.revision.status))}</p><p>${esc(a.revision.reason||'')}</p></section>`:''}<section class="card pad rt-status-card rt-card-actions-centered"><span class="rt-status-symbol" aria-hidden="true">${icon(a.status==='approved'?'check':'clock',32)}</span>${a.status==='pending'?`<span class="badge">${mateStatus(a.status)}</span>`:''}<h1>${a.status==='approved'?'You are now registered as a mate':'Your application is under review'}</h1><p>${a.status==='approved'?'You can now switch to mate mode to view trips and send proposals.':'You can start as a mate once an administrator approves your application!'}</p>${a.status==='approved'?'<button class="btn" data-access-mode="guide">Switch to mate mode</button>':''}</section><details class="card rt-disclosure-card"><summary><span>View submitted application</span>${icon('chevronDown',20)}</summary><div class="rt-disclosure-body">${mateSummary(a)}</div></details>${a.status==='pending'?'<p class="rt-status-note">You can still use traveler features while your application is under review.</p>':''}</section>`;
  let body='';
  if(step===1)body=`<h1>Where can you join travelers?</h1><div class="mate-field"><span>Activity area</span><button class="mate-region-trigger" type="button" data-action="mate-region-open">${esc(mateRegionText(a.fields.regions)||'Select activity areas')}<span aria-hidden="true">${icon('plus')}</span></button></div><fieldset class="mate-language"><legend>Language</legend><p>Select all languages you speak.</p><div class="rt-multi-choice-group">${Object.entries(mateLanguages).map(([id,label])=>`<label class="rt-multi-choice"><input type="checkbox" name="languages" value="${id}" ${mateLanguageValues(a.fields.languages).includes(id)?'checked':''}><span>${label}</span></label>`).join('')}</div></fieldset>`;
  if(step===2)body=`${matePhotoEditor(a)}${mateNameField(a)}${mateField(a,'bio','Introduction','class="rt-textarea-large" rows="8" minlength="10" maxlength="1000" placeholder="Tell travelers about your connection to the area, your walking style and how you can help."',true)}`;
@@ -516,17 +795,97 @@ function mateRegistration(){
 function captureMate(f,a){const languageInputs=Array.from(f.elements).filter(el=>el.name==='languages'&&el.type==='checkbox');if(languageInputs.length)a.fields.languages=languageInputs.filter(el=>el.checked).map(el=>el.value);for(const el of f.elements){if(el.name==='languages'&&el.type==='checkbox')continue;if(!el.name||el.type==='file')continue;if(el.type==='radio'){if(el.checked)a.fields[el.name]=el.value;}else a.fields[el.name]=el.type==='checkbox'?el.checked:el.value;}if(a.fields.nameChecked!==normalizeNickname(a.fields.name))delete a.fields.nameChecked;return a;}
 function validMatePhone(value){return /^010[ -]?[0-9]{4}[ -]?[0-9]{4}$/.test(String(value||'').trim());}
 function validMate(a){const f=a.fields;return ['languages','name','bio','contact'].every(k=>String(f[k]||'').trim())&&validMateRegions(f.regions)&&validMateLanguages(f.languages)&&f.name.trim().length>=2&&!mateNameProblem(f.name)&&f.bio.trim().length>=10&&f.bio.length<=1000&&!!f.photo&&validMatePhone(f.contact)&&f.policy&&f.consent&&f.adult&&mateEmailVerified(a);}
-function submitMate(f){const a=mateApplication();if(['pending','approved'].includes(a.status))return;captureMate(f,a);if([3,4].includes(a.step)&&!matePhoneVerified(a)){a.step=3;saveMate(a);render();toast('Please complete phone verification.');return;}if([3,4].includes(a.step)&&!mateEmailVerified(a)){a.step=3;saveMate(a);render();toast('Complete email verification.');return;}if(a.step===3&&!validMatePhone(a.fields.contact)){toast('Enter a valid Korean mobile phone number starting with 010.');return;}if(a.step===1&&(!validMateRegions(a.fields.regions)||!validMateLanguages(a.fields.languages))){toast('Select your activity areas and language.');return;}if(a.step===2&&(!a.fields.photo||!a.fields.name?.trim()||a.fields.name.trim().length<2||!a.fields.bio||a.fields.bio.trim().length<10||a.fields.bio.length>1000)){toast('Add a profile photo, activity name and introduction. All are required.');return;}if(a.step===2||a.step===4){const problem=mateNameProblem(a.fields.name);if(problem){toast(problem);return;}if(a.fields.nameChecked!==normalizeNickname(a.fields.name)){toast('Check nickname availability first.');return;}}if(a.step===4){if(!validMate(a)){toast('Check the required information.');return;}a.status='pending';a.submittedAt=new Date().toISOString();a.reason='';}else a.step=(a.step||0)+1;if(saveMate(a)){render();resetMateScroll();}}
-function activityRestrictionForm(a){return `<form id="activity-restriction-form" class="card pad"><div class="sectionhead"><h2>Mate activity restrictions</h2><span class="badge ${a.activityRestricted?'warm':''}">${a.activityRestricted?'Currently restricted':'Currently active'}</span></div><p>Use this setting when a report and the facts warrant restricting activity. For urgent safety concerns, you can apply a temporary restriction during the investigation.</p><label class="check"><input name="restricted" type="checkbox" aria-describedby="restriction-help" ${a.activityRestricted?'checked':''}>Restrict new trip proposals and booking confirmations</label><p id="restriction-help" class="hint">When checked, this mate cannot send new trip proposals or confirm bookings. Uncheck to remove the restriction. Changes apply when you save below.</p><label for="restriction-reason">Reason for restricting or restoring activity <span class="hint">(required)</span></label><textarea id="restriction-reason" name="reason" required maxlength="1000" rows="4" aria-describedby="restriction-reason-help" placeholder="Example: Temporarily restricted while investigating a safety report.&#10;When restoring activity: Record the findings and why activity can resume.">${esc(a.restrictionReason||'')}</textarea><p id="restriction-reason-help" class="hint">Record the verified facts and your reasoning. When removing a restriction, replace the previous reason with the reason for restoring activity.</p><div class="notice"><strong>Existing bookings are not automatically cancelled.</strong><p>Review safety and whether each booking can proceed, then inform both the traveler and mate. Send the restriction or restoration reason separately by email. This screen does not send emails.</p></div><div class="buttons"><button class="btn" type="submit">Save activity restriction settings</button></div></form>`;}
-
+function submitMate(f){const a=mateApplication();if(['pending','approved'].includes(a.status))return;captureMate(f,a);if([3,4].includes(a.step)&&!matePhoneVerified(a)){a.step=3;saveMate(a);render();toast('Please complete phone verification.');return;}if([3,4].includes(a.step)&&!mateEmailVerified(a)){a.step=3;saveMate(a);render();toast('Complete email verification.');return;}if(a.step===3&&!validMatePhone(a.fields.contact)){toast('Enter a valid Korean mobile phone number starting with 010.');return;}if(a.step===1&&(!validMateRegions(a.fields.regions)||!validMateLanguages(a.fields.languages))){toast('Select your activity areas and language.');return;}if(a.step===2&&(!a.fields.photo||!a.fields.name?.trim()||a.fields.name.trim().length<2||!a.fields.bio||a.fields.bio.trim().length<10||a.fields.bio.length>1000)){toast('Add a profile photo, activity name and introduction. All are required.');return;}if(a.step===2||a.step===4){const problem=mateNameProblem(a.fields.name);if(problem){toast(problem);return;}if(a.fields.nameChecked!==normalizeNickname(a.fields.name)){toast('Check nickname availability first.');return;}}if(a.step===4){if(!validMate(a)){toast('Check the required information.');return;}a.status='pending';a.firstSubmittedAt||=a.submittedAt||new Date().toISOString();a.submittedAt=new Date().toISOString();(a.submissionHistory||=[]).push({at:a.submittedAt,kind:'new'});a.reason='';}else a.step=(a.step||0)+1;if(saveMate(a)){render();resetMateScroll();}}
+function suspensionDeadline(endDate){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(endDate))return NaN;
+ const midnight=Date.parse(endDate+'T00:00:00Z');
+ if(!Number.isFinite(midnight)||new Date(midnight).toISOString().slice(0,10)!==endDate)return NaN;
+ // Seoul midnight after the inclusive end date is 15:00 UTC on that date.
+ return midnight+15*3600000;
+}
+function activitySuspended(a,now=Date.now()){
+ if(!a?.activityRestricted)return false;
+ const deadline=suspensionDeadline(a.restrictionEndDate);
+ return !Number.isFinite(deadline)||now<deadline;
+}
+let suspensionRefreshTimer;
+function scheduleSuspensionRefresh(){
+ clearTimeout(suspensionRefreshTimer);
+ const now=Date.now();
+ const profiles=[mateApplication()];
+ if(window.ReelAccess.isAdmin)profiles.push(...(state.adminMateSamples||[]));
+ const deadlines=profiles.filter(a=>a.activityRestricted).map(a=>suspensionDeadline(a.restrictionEndDate)).filter(end=>end>now);
+ if(deadlines.length)suspensionRefreshTimer=setTimeout(render,Math.min(Math.min(...deadlines)-now,2147483647));
+}
+function suspensionButton(a){
+ const release=activitySuspended(a);
+ const text=release?'Lift suspension':'Suspend mate activity';
+ return `<button class="btn ${release?'secondary':'rt-danger-outline'}" type="button" data-action="mate-suspension">${icon(release?'check':'lock',16)}${text}</button>`;
+}
+function suspensionHeader(heading,back,button){
+ return `<header class="rt-admin-detail-toolbar"><h1>${heading}</h1><div class="buttons">${back}${button}</div></header>`;
+}
+function openSuspensionDialog(fromReport){
+ if(!window.ReelAccess.isAdmin)return;
+ const record=adminQuery().get('record');
+ const r=fromReport&&adminSafetyRecords().reports.find(item=>reportRecord(item)===record);
+ const profile=fromReport?(r&&reportedMate(r)?.application):adminReviewApplication(record);
+ if(profile?.status!=='approved'||(fromReport&&(reportResolution(r)||activitySuspended(profile))))return;
+ const release=activitySuspended(profile),label=release?'Lift suspension':'Suspend mate activity';
+ const today=new Date(Date.now()+9*3600000).toISOString().slice(0,10);
+ modal(`<form id="${fromReport?'confirm-report-restriction':'activity-restriction-form'}">
+  <header class="sectionhead"><h2>${label}</h2><button class="iconbtn" type="button" data-action="close" aria-label="Close">${icon('close',18)}</button></header>
+  <p><strong>${esc(fromReport?r.targetName||r.target:profile.fields?.name)}</strong> · ${release?'New proposals and booking confirmations will be enabled again.':'New proposals and booking confirmations will be blocked. Existing confirmed bookings stay active.'}</p>
+  <input type="hidden" name="transition" value="${release?'release':'restrict'}"><input type="hidden" name="record" value="${esc(record)}">
+  <label>${release?'Reason for lifting the restriction':'Suspension reason'}<textarea name="note" required maxlength="1000" rows="3" placeholder="${release?'Enter the reason for lifting the suspension.':'Enter the reason for the suspension.'}"></textarea></label>
+  ${release?'':`<label>Suspension end date <span class="hint">(required)</span><input type="date" name="endDate" required min="${today}"></label><p class="hint">The suspension ends at midnight Korea time after the selected day.</p>`}
+  <div class="buttons"><button type="button" class="btn secondary" data-action="close">Cancel</button><button type="submit" class="btn ${release?'':'danger'}">${release?'Lift suspension':fromReport?'Suspend and close report':'Suspend'}</button></div></form>`);
+}
+function changeActivityRestriction(record,transition,reason,source={}){
+ if(!window.ReelAccess.isAdmin||!['release','restrict'].includes(transition))return false;
+ const a=source.profile?.application||adminReviewApplication(record),restricted=transition==='restrict';
+ reason=String(reason||'').trim();
+ if(a?.status!=='approved'||restricted===activitySuspended(a)||!reason||reason.length>1000)return false;
+ const deadline=suspensionDeadline(source.endDate);
+ if(restricted&&(!Number.isFinite(deadline)||deadline<=Date.now()))return false;
+ const history=Array.isArray(a.restrictionHistory)?a.restrictionHistory.slice():[];
+ if(!history.length&&a.restrictionReason)history.push({restricted:!!a.activityRestricted,reason:a.restrictionReason,at:a.restrictionUpdatedAt||null});
+ const at=Date.now();
+ history.push({restricted,reason,at,...(restricted?{endDate:source.endDate}:{}),...(source.report?{report:source.report}:{})});
+ Object.assign(a,{activityRestricted:restricted,restrictionReason:reason,restrictionUpdatedAt:at,restrictionEndDate:restricted?source.endDate:null,restrictionHistory:history});
+ if(source.profile?.storeKey){
+  const {storeKey,stored}=source.profile;
+  try{localStorage.setItem(storeKey,JSON.stringify(stored));}catch{return false;}
+  if(storeKey===key)state.adminMateSamples=stored.adminMateSamples;
+  return true;
+ }
+ return saveAdminApplication(a,record,restricted?'restricted':null);
+}
 function adminApplications(){const main=mateApplication();return [...(main.status!=='draft'?[{id:'application',application:main}]:[]),...(state.adminMateSamples||[]).map(application=>({id:application.id,application}))];}
 function adminReviewApplication(id='application'){return id==='application'?mateApplication():(state.adminMateSamples||[]).find(a=>a.id===id);}
-function saveAdminApplication(a,id){if(id==='application')return saveMate(a);save();return true;}
-function mateAdmin(){const q=adminQuery();const selected=adminApplications().find(x=>x.id===q.get('record'));if(q.has('record'))return selected?mateAdminDetail(selected.application):side('admin',`${title('','Application not found.','',adminBack('admin-guides'))}`);const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=adminApplications().filter(({application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return (!status||a.status===status)&&[f.name,f.email,f.region,mateRegionText(f.regions||[])].join(' ').toLowerCase().includes(query);});return side('admin',`${title('','Mate management','Open an application from the list to review its details.')}${adminFilter('admin-guides','Enter a name, email or area',[['pending','Pending review'],['needs_info','More information needed'],['rejected','Not approved'],['approved','Registration complete']])}<section class="card rt-admin-panel"><div class="rt-admin-panel-head"><h2>Application list <span>${rows.length}</span></h2></div><div class="tablewrap"><table><thead><tr><th>Public name</th><th>Application type</th><th>Activity area</th><th>Submitted</th><th>Status</th><th>Manage</th></tr></thead><tbody>${rows.map(({id,application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return `<tr><td><strong>${esc(f.name||'—')}</strong></td><td>${base.revision?'Re-review':'New'}</td><td>${esc(mateRegionText(f.regions||[])||f.region||'—')}</td><td>${adminDate(a.submittedAt)}</td><td><span class="badge rt-status-badge" data-status="${esc(a.status)}">${mateStatus(a.status)}</span></td><td><a class="textbtn" href="${adminRecordLink('admin-guides',id)}">Review details</a></td></tr>`;}).join('')||'<tr><td colspan="6" class="rt-admin-empty">No applications match your filters.</td></tr>'}</tbody></table></div></section>`);}
-function adminMateSummary(a){const f=a.fields||{},rows=[['Application status',mateStatus(a.status)],['Submitted',adminDate(a.submittedAt)],['Activity area',mateRegionText(f.regions||[])||f.region],['Language',mateLanguageText(f.languages)],['Email',f.email,true],['Mobile phone number',f.contact,true],['Introduction',mateBio(f),true]];return `<section class="rt-admin-info"><header class="rt-admin-info-heading"><h2>Mate information</h2><span class="badge rt-status-badge" data-status="${esc(a.status)}">${mateStatus(a.status)}</span></header><div class="rt-admin-info-identity"><span class="my-avatar">${profileAvatar(f.photo||'')}</span><strong>${esc(f.name||'—')}</strong></div><dl class="rt-admin-info-grid">${rows.map(([label,value,wide])=>`<div class="rt-admin-info-row${wide?' rt-admin-info-row--wide':''}"><dt>${label}</dt><dd>${esc(value||'—')}</dd></div>`).join('')}</dl></section>`;}
-function mateAdminDetail(base=mateApplication()){const a=base.revision?{...base,...base.revision}:base;return side('admin',`<div class="rt-admin-detail">${title('Mate application review','Review application','',adminBack('admin-guides'))}${base.status==='approved'?activityRestrictionForm(base):''}<section class="card pad rt-admin-panel">${a.status==='draft'?'<p>No submitted applications.</p>':`${adminMateSummary(a)}${a.reason?`<p class="notice">${esc(a.reason)}</p>`:''}${a.status==='pending'?`<form id="mate-review-form" class="rt-admin-review-form"><div class="buttons"><button class="btn" type="submit">Approve registration</button><button class="btn secondary" type="button" data-action="mate-review" data-id="needs_info">More information needed</button><button class="btn secondary" type="button" data-action="mate-review" data-id="rejected">Declined</button></div></form>`:''}`}</section></div>`);}
+function saveAdminApplication(a,id,notice){
+ if(id==='application'){if(notice)recordApplicationNotice(a,notice);return saveMate(a);}
+ return saveOperationsRecord();
+}
+function compareApplications(left,right){
+ const priority={pending:0,needs_info:1,approved:2,rejected:2};
+ const a=left.application.revision||left.application,b=right.application.revision||right.application;
+ const timestamp=value=>value==null||!Number.isFinite(new Date(value).getTime())?-Infinity:new Date(value).getTime();
+ return (priority[a.status]??3)-(priority[b.status]??3)||timestamp(b.submittedAt)-timestamp(a.submittedAt)||String(left.id).localeCompare(String(right.id),'en');
+}
+function applicationPages(query,page,total){
+ if(total<2)return '';
+ const link=(number,label)=>{const params=new URLSearchParams(query);params.set('page',number);return `<a class="btn secondary small" href="#admin-guides?${esc(params.toString())}">${label}</a>`;};
+ return `<nav class="rt-card-actions" aria-label="Pagination">${page>1?link(page-1,'이전'):''}<span>${page} / ${total}</span>${page<total?link(page+1,'다음'):''}</nav>`;
+}
+function mateAdmin(){const q=adminQuery();const selected=adminApplications().find(x=>x.id===q.get('record'));if(q.has('record'))return selected?mateAdminDetail(selected.application):side('admin',`${title('','Application not found.','',adminBack('admin-guides'))}`);const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=adminApplications().filter(({application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return (!status||a.status===status)&&[f.name,f.email,f.region,mateRegionText(f.regions||[])].join(' ').toLowerCase().includes(query)&&a.status!=='draft';}).sort(compareApplications);const pages=Math.max(1,Math.ceil(rows.length/20)),page=Math.min(pages,Math.max(1,parseInt(q.get('page'),10)||1));return side('admin',`${title('','Mate management','Review applications and manage activity restrictions for approved mates.')}${adminFilter('admin-guides','Enter a name, email or area',[['pending','Pending review'],['needs_info','More information needed'],['rejected','Not approved'],['approved','Registration complete']])}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>Mates</h2></div><div class="tablewrap"><table><thead><tr><th scope="col">Public name</th><th scope="col">Application type</th><th scope="col">Activity area</th><th scope="col">Submitted</th><th scope="col">Status</th><th scope="col" class="rt-admin-manage">Manage</th></tr></thead><tbody>${rows.slice((page-1)*20,page*20).map(({id,application:base})=>{const a=base.revision?{...base,...base.revision}:base,f=a.fields||{};return `<tr><td><strong>${esc(f.name||'—')}</strong></td><td>${base.revision||base.lastApprovedRevisionAt?'Re-review':'New'}</td><td>${esc(mateRegionText(f.regions||[])||f.region||'—')}</td><td>${adminDate(a.submittedAt)}</td><td><span class="badge rt-status-badge" data-status="${esc(a.status)}">${activitySuspended(base)?'Suspended':mateStatus(a.status)}</span></td>${adminDetailCell('admin-guides',id,f.name)}</tr>`;}).join('')||'<tr><td colspan="6" class="rt-admin-empty">No applications match your filters.</td></tr>'}</tbody></table></div>${applicationPages(q,page,pages)}</section>`);}
+function adminMateSummary(a){
+ const f=a.fields||{},rows=[['Submitted',adminDate(a.submittedAt)],['Activity area',mateRegionText(f.regions||[])||f.region],['Language',mateLanguageText(f.languages)],['Mobile phone number',f.contact],['Email',f.email,true],['Introduction',mateBio(f),true]];
+ return `<section class="rt-admin-info"><header class="rt-admin-info-heading"><h2>Mate information</h2><span class="badge rt-status-badge" data-status="${esc(a.status)}">${mateStatus(a.status)}</span></header><div class="rt-admin-info-identity"><span class="my-avatar">${profileAvatar(f.photo||'')}</span><strong>${esc(f.name||'—')}</strong></div>${adminFacts(rows)}</section>`;
+}
+function mateAdminDetail(base=mateApplication()){const a=base.revision?{...base,...base.revision}:base;return side('admin',`<div class="rt-admin-detail">${suspensionHeader(base.status==='approved'&&!base.revision?'Mate details':'Review application',adminBack('admin-guides'),base.status==='approved'?suspensionButton(base):'')}<section class="card pad rt-admin-panel">${a.status==='draft'?'<p>No submitted applications.</p>':`${adminMateSummary(a)}${base.status==='approved'&&base.restrictionReason?`<div class="notice"><strong>${activitySuspended(base)?'Suspended':'Active'}</strong><p>${esc(base.restrictionReason)}</p>${base.restrictionEndDate?`<p>Suspension end date · ${esc(base.restrictionEndDate)}</p>`:''}</div>`:''}${a.reason?`<div class="rt-admin-narrative"><h3>Review note</h3><p>${esc(a.reason)}</p></div>`:''}${a.status==='pending'?`<form id="mate-review-form" class="rt-admin-review-form"><h3>Review application</h3><div class="buttons"><button class="btn" type="submit">Approve registration</button><button class="btn secondary" type="button" data-action="mate-review" data-id="needs_info">More information needed</button><button class="btn secondary" type="button" data-action="mate-review" data-id="rejected">Declined</button></div></form>`:''}`}</section></div>`);}
 function confirmMateReview(status){if(!window.ReelAccess.isAdmin||!['approved','needs_info','rejected'].includes(status))return;const record=adminQuery().get('record')||'application',a=adminReviewApplication(record);if(!a||(a.revision?.status||a.status)!=='pending')return;const label=({approved:'Approved',rejected:'Declined',needs_info:'More information needed'})[status];modal(`<form id="mate-review-confirm-form"><h2>${label} application</h2><p>${esc((a.revision?.fields||a.fields).name)}’s application: ${label}?</p><input type="hidden" name="record" value="${esc(record)}"><input type="hidden" name="decision" value="${status}">${status==='approved'?'':`<label>Reason<textarea name="reason" required maxlength="1000" placeholder="Enter a specific reason to share with the applicant."></textarea></label>`}<p class="error" id="mate-review-confirm-error" role="alert"></p><div class="buttons">${action('Cancel','close','secondary')}<button class="btn" type="submit">${label}</button></div></form>`);}
-function reviewMate(status,reason='',record='application'){if(!window.ReelAccess.isAdmin||!['approved','needs_info','rejected'].includes(status))return false;const a=adminReviewApplication(record);if(!a)return false;if(a.revision){if(a.revision.status!=='pending'||!['approved','needs_info','rejected'].includes(status))return false;if(status!=='approved'&&!reason.trim())return false;if(status==='approved'){if(a.revision.fields.name!==a.fields.name&&mateNameProblem(a.revision.fields.name)){toast('Check the display name availability again.');return false;}a.fields=a.revision.fields;delete a.revision;}else{a.revision.status=status;a.revision.reason=reason.trim();a.revision.reviewedAt=Date.now();}return saveAdminApplication(a,record);}if(a.status!=='pending')return false;if(status!=='approved'&&!reason.trim()){toast('Enter a reason for requesting changes or rejecting the application.');return false;}a.status=status;a.reason=reason.trim();a.reviewedAt=new Date().toISOString();return saveAdminApplication(a,record);}
+function reviewMate(status,reason='',record='application'){if(!window.ReelAccess.isAdmin||!['approved','needs_info','rejected'].includes(status))return false;const a=adminReviewApplication(record);if(!a)return false;if(a.revision){if(a.revision.status!=='pending'||!['approved','needs_info','rejected'].includes(status))return false;if(status!=='approved'&&!reason.trim())return false;if(status==='approved'){if(a.revision.fields.name!==a.fields.name&&mateNameProblem(a.revision.fields.name)){toast('Check the display name availability again.');return false;}a.fields=a.revision.fields;a.firstSubmittedAt||=a.submittedAt;a.submittedAt=a.revision.submittedAt;a.lastApprovedRevisionAt=new Date().toISOString();delete a.revision;}else{a.revision.status=status;a.revision.reason=reason.trim();a.revision.reviewedAt=Date.now();}return saveAdminApplication(a,record,status);}if(a.status!=='pending')return false;if(status!=='approved'&&!reason.trim()){toast('Enter a reason for requesting changes or rejecting the application.');return false;}a.status=status;a.reason=reason.trim();a.reviewedAt=new Date().toISOString();return saveAdminApplication(a,record,status);}
 
 // Approved mate edits stay in memory until explicit save.
 let mateEditDraft=null,mateEditSection='profile',mateEditPhotoLoading=false;
@@ -552,7 +911,7 @@ function saveMateEdit(form){
  if(problem){$('#mate-edit-error').textContent=problem;return;}
  const keys=mateEditSection==='profile'?['name','nameChecked','photo','bio']:['specialty','regions','languages'];
  const revised=JSON.parse(JSON.stringify(current.revision?.fields||current.fields));for(const key of keys)revised[key]=f[key];
- if(mateEditSection==='activity'){revised.region=mateRegionText(f.regions);delete revised.range;}current.revision={status:'pending',fields:revised,submittedAt:Date.now(),reason:''};
+ if(mateEditSection==='activity'){revised.region=mateRegionText(f.regions);delete revised.range;}current.revision={status:'pending',fields:revised,submittedAt:Date.now(),reason:''};(current.submissionHistory||=[]).push({at:current.revision.submittedAt,kind:'revision'});
  if(saveMate(current)){mateEditDraft=null;$('#dialog').close();render();toast('Changes submitted for review. Your approved profile stays active until approval.');}
 }
 function readMateEditPhoto(input){
@@ -578,13 +937,13 @@ function account(){
 function withdrawalKeys(){return ['ko','en'].flatMap(lang=>['', '-comparison'].map(suffix=>`reeltrip-demo-${lang}-map-v2-option-2${suffix}`));}
 function withdrawalBlocked(){
  const records=[state,...withdrawalKeys().map(k=>JSON.parse(localStorage.getItem(k)||'null')).filter(Boolean)];
- return records.some(record=>[record.booking,...(record.bookingHistory||[]),...(record.matchingContexts||[]).map(x=>x.booking)].some(b=>b&&(!['completed','cancelled'].includes(b.status)||(ownsMateBooking(b)&&pendingRefund(b))||b.disputeStatus==='open')));
+ return records.some(record=>[record.booking,...(record.bookingHistory||[]),...(record.matchingContexts||[]).map(x=>x.booking)].some(b=>b&&!isOperationsSample(b)&&(!['completed','cancelled'].includes(b.status)||(ownsMateBooking(b)&&pendingRefund(b))||b.disputeStatus==='open')));
 }
 function withdrawalDialog(){
  if(isGuest()||window.ReelAccess.isAdmin)return;
  try{if(withdrawalBlocked()){modal(`<h2>You have an active booking</h2><p>Finish active bookings, your matching fee refunds and booking disputes before deleting your account.</p><div class="buttons">${action('Close','close','secondary')}${action('Help and support','withdrawal-support')}</div>`);return;}}
  catch{toast('Could not check your saved data. Please try again.');return;}
- modal(`<form id="withdraw-account-form"><h2>Delete account</h2><p>Deleting your account ends both traveler and mate activity.</p><ul><li>Your profile, saved places, trips, requests, proposals, chats and support history will be deleted.</li><li>Your mate application and permissions will also be deleted.</li><li>Saved data in both Korean and English apps will be deleted and cannot be recovered.</li></ul><p class="hint">This prototype deletes only the data in this browser.</p><label><input type="checkbox" name="agree" required> I understand what will be deleted and agree to delete my account.</label><p id="withdraw-account-error" class="error" role="alert"></p><div class="buttons">${action('Cancel','close','secondary')}<button type="submit" class="btn danger">Delete account</button></div></form>`);
+ modal(`<form id="withdraw-account-form"><h2>Delete account</h2><p>Deleting your account ends both traveler and mate activity.</p><ul><li>Your profile, saved places, trips, requests, proposals, chats and support history will be deleted.</li><li>Your mate application and permissions will also be deleted.</li><li>Deleted information cannot be recovered.</li></ul><label><input type="checkbox" name="agree" required> I understand what will be deleted and agree to delete my account.</label><p id="withdraw-account-error" class="error" role="alert"></p><div class="buttons">${action('Cancel','close','secondary')}<button type="submit" class="btn danger">Delete account</button></div></form>`);
 }
 function withdrawAccount(form){
  if(isGuest()||window.ReelAccess.isAdmin||!form.elements.agree.checked)return;
@@ -599,7 +958,7 @@ function withdrawAccount(form){
  }catch{error.textContent='Account deletion could not be completed. Please try again.';return;}
  clearTimeout(timer);previewMember=false;signupMarketing=false;state=initial();window.ReelAccess.reset();
  pendingRestaurant=null;pendingEstimate=false;pendingRequestRoute=null;pendingRecommendation=null;profileDraftPhoto='';checkedNickname='';
- $('#dialog').close();go('home');render();toast('Your account data in this browser has been deleted.');
+ $('#dialog').close();go('home');render();toast('Your account has been deleted.');
 }
 
 // Shared across website languages; browser-local until account APIs are connected.
@@ -611,26 +970,83 @@ function signupNotificationConsent(){return isSignIn()?'':`<div class="rt-consen
 function saveSignupNotificationConsent(marketingEmail=signupMarketing){if(isSignIn())return true;const saved=saveNotificationPreferences(notificationPreferences().serviceEmail,marketingEmail,'signup');if(saved)signupMarketing=false;return saved;}
 function notificationSettings(){const p=notificationPreferences();modal(`<form id="notification-settings-form" class="rt-preference-dialog"><header><h2>${signupText('notificationSettings')}</h2><p>${signupText('notificationIntro')}</p></header><div class="rt-preference-list"><label class="rt-preference-row"><input type="checkbox" name="serviceEmail" ${p.serviceEmail?'checked':''}><span><strong>${signupText('serviceEmailTitle')}</strong><small>${signupText('serviceEmailDetail')}</small></span></label><label class="rt-preference-row"><input type="checkbox" name="marketingEmail" ${p.marketingEmail?'checked':''}><span><strong>${signupText('marketingEmailTitle')}</strong><small>${signupText('marketingEmailDetail')}</small></span></label></div><div class="rt-preference-notes"><p>${signupText('notificationHint')}</p></div><p id="notification-settings-error" class="error" role="alert"></p><div class="buttons">${action(signupText('notificationCancel'),'close','secondary')}<button class="btn" type="submit">${signupText('notificationSave')}</button></div></form>`);}
 
-function settingsPage(){return `<section class="settings-page">${window.ReelAccess.settings().replace(/<div class="account-setting-row">[\s\S]*?<\/a><\/div>/,()=>signupLanguageLink(true))}<section class="settings-group"><h2>${signupText('notificationSettings')}</h2><a href="#settings" data-action="notification-settings">${signupText('notificationSettings')}<span>${icon('chevronRight')}</span></a></section><section class="settings-group"><h2>Customer support</h2><a href="#settings" data-action="blocked-users">Blocked users<span>${icon('chevronRight')}</span></a><a href="#support">Help and support<span>${icon('chevronRight')}</span></a><a href="#policies?section=terms">Terms of Service<span>${icon('chevronRight')}</span></a></section><section class="settings-group"><h2>Account</h2><a href="#settings" data-action="withdraw-account">Delete account<span>${icon('chevronRight')}</span></a></section></section>`;}
+function settingsPage(){return `<section class="settings-page">${window.ReelAccess.settings().replace(/<div class="account-setting-row">[\s\S]*?<\/a><\/div>/,()=>signupLanguageLink(true))}<section class="settings-group"><h2>${signupText('notificationSettings')}</h2><a href="#settings" data-action="notification-settings">${signupText('notificationSettings')}<span>${icon('chevronRight')}</span></a></section><section class="settings-group"><h2>Customer support</h2><a href="#settings" data-action="blocked-users">Blocked by<span>${icon('chevronRight')}</span></a><a href="#support">Help and support<span>${icon('chevronRight')}</span></a><a href="#policies?section=terms">Terms of Service<span>${icon('chevronRight')}</span></a></section><section class="settings-group"><h2>Account</h2><a href="#settings" data-action="withdraw-account">Delete account<span>${icon('chevronRight')}</span></a></section></section>`;}
 
 
 let supportFiles=[],supportLocation=null,supportFilesLoading=false,supportEvidenceVersion=0;
-function supportEvidenceFields(){return `<label>Reply email<input type="email" name="email" required maxlength="254" value="${esc(mateApplication().fields.email||state.accountEmail?.address||'')}"></label><label>Agreed meeting place and time (for no-shows)<input name="meeting" maxlength="200"></label><div id="support-no-show" hidden><label class="check"><input type="checkbox" name="waited">I waited 30 minutes with at least two chat attempts without a response, or 60 minutes after a delay notice, and we have not met.</label></div><label>Evidence (optional · JPG/PNG/WebP/PDF, up to 3 files, 1 MB each)<input type="file" id="support-files" multiple accept="image/jpeg,image/png,image/webp,application/pdf"></label><p id="support-files-status" role="status"></p><button type="button" class="btn secondary" data-action="support-location">Attach current location for a no-show report</button><p id="support-location-status" role="status"></p><p class="hint">For a no-show, include the meeting place, time and contact history.</p><p class="hint">Inquiries are saved only in this browser.</p>`;}
-async function readSupportFiles(input){const version=++supportEvidenceVersion;supportFiles=[];const files=Array.from(input.files||[]),status=$('#support-files-status');if(files.length>3||files.some(f=>!['image/jpeg','image/png','image/webp','application/pdf'].includes(f.type)||f.size>1048576)){status.textContent='Check file type, size and count.';input.value='';return;}supportFilesLoading=true;try{const loaded=await Promise.all(files.map(f=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:f.name,type:f.type,data:r.result});r.onerror=reject;r.readAsDataURL(f);})));if(version!==supportEvidenceVersion)return;supportFiles=loaded;status.textContent='Evidence ready.';}catch{supportFiles=[];status.textContent='Unable to read the file.';}finally{supportFilesLoading=false;}}
-function captureSupportLocation(){const output=$('#support-location-status');supportLocation=null;if(!window.navigator?.geolocation){output.textContent='Location unavailable. Please attach supporting evidence.';return;}output.textContent='Checking your location.';window.navigator.geolocation.getCurrentPosition(p=>{if(output!==$('#support-location-status'))return;supportLocation={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,at:Date.now()};output.textContent='Current location attached.';},()=>{output.textContent='Location unavailable. Please attach supporting evidence.';},{enableHighAccuracy:true,timeout:10000,maximumAge:0});}
-function storeSupport(d){const body=String(d.body||'').trim();if(supportFilesLoading||!validEmail(d.email)||body.length<10||body.length>1000)return false;if(['no_show','late_no_show'].includes(d.type)&&(!d.waited||!String(d.meeting||'').trim()||(!supportLocation&&!supportFiles.length))){toast('Provide the agreed place and time, confirm your wait, and attach location or evidence.');return false;}const ticket={id:'TK-'+Date.now(),type:d.type,body,email:String(d.email).trim(),meeting:String(d.meeting||'').trim(),waited:!!d.waited,attachments:supportFiles,location:supportLocation,actorRole:window.ReelAccess.mode(),createdAt:Date.now(),status:'open'};state.tickets.push(ticket);try{stashMatching();localStorage.setItem(key,JSON.stringify(state));}catch{state.tickets.pop();toast('Unable to save. Reduce attachment sizes and try again.');return false;}supportFiles=[];supportLocation=null;return true;}
-function supportTicketCard(t){const attachments=(t.attachments||[]).filter(f=>/^data:(image\/(jpeg|png|webp)|application\/pdf);base64,/.test(f.data||''));return `<form class="card pad" id="operations-ticket-form-${esc(t.id)}"><input type="hidden" name="ticketId" value="${esc(t.id)}"><h3>${esc(t.id)} · ${esc(({no_show:'Traveler no-show · No response for 30 minutes',late_no_show:'Over 60 minutes after reporting a delay'})[t.type]||t.type)}</h3><p>${esc(t.body)}</p><p>${esc(t.email||'')} · ${esc(t.meeting||'')}</p>${t.location?`<p>${esc(t.location.lat)}, ${esc(t.location.lng)} · ±${esc(t.location.accuracy)}m · ${esc(chatTime(t.location.at))}</p>`:''}${attachments.map(f=>`<a class="btn secondary small" href="${esc(f.data)}" download="${esc(f.name)}">${esc(f.name)}</a>`).join('')}<label>Processing status<select name="status">${['open','review','needs_info','resolved'].map(v=>`<option value="${v}" ${t.status===v?'selected':''}>${esc(({open:'Received',review:'Under review',needs_info:'More information needed',resolved:'Resolved'})[v])}</option>`).join('')}</select></label><label>Internal processing note<textarea name="note" maxlength="1000" required>${esc(t.note||'')}</textarea></label><p class="hint">Send your reply separately by email. This screen does not send emails.</p><button type="submit" class="btn">Save processing record</button></form>`;}
+function supportEvidenceFields(){return `
+  <fieldset id="support-no-show" hidden disabled>
+   <legend>Meeting details</legend>
+   <label>Agreed meeting place and time<input name="meeting" maxlength="200" required placeholder="e.g. Seongsu Station, exit 3 at 1 PM"></label>
+   <label class="check"><input type="checkbox" name="waited" required><span id="support-wait-label"></span></label>
+   <p class="hint">Attach your current location or at least one supporting file.</p>
+   <button type="button" class="btn secondary small" data-action="support-location">Attach current location</button>
+   <p id="support-location-status" role="status"></p>
+  </fieldset>
+  <details class="support-files"><summary>Attach files</summary>
+   <label>JPG, PNG, WebP or PDF · up to 3 files, 1 MB each<input type="file" id="support-files" multiple accept="image/jpeg,image/png,image/webp,application/pdf"></label>
+   <p id="support-files-status" role="status"></p>
+  </details>`;}
 
-function support(){const query=new URLSearchParams(location.hash.split('?')[1]||'').get('placeQuery')||'';return `<div class="centerbox">${title('Help','How can we help?','')}<div class="card pad"><h2 class="support-group-title">Common questions</h2><details><summary>Can I find a place without knowing its Korean name?</summary><p class="muted small">Find places from public video links. Check the address in the results.</p></details><details style="margin-top:16px"><summary>${guided?'Can my mate book a restaurant for me?':'Does saving a place reserve a table?'}</summary><p class="muted small">${guided?'Saving a place or requesting a mate does not reserve a table. Describe the help you need and check what is included in the final proposal.':'Saving places helps you plan visits. Restaurant bookings and ordering assistance are not included. Check reservation requirements with the venue.'}</p></details><details style="margin-top:16px"><summary>Why was a place not found?</summary><p class="muted small">Try a public link or add the place manually.</p></details></div><form id="support-form" class="card pad" style="margin-top:20px"><h2 class="support-group-title">Write a message</h2>${supportEvidenceFields()}<label>Topic<select name="type" id="support-type"><option>Place or video issue</option><option>Data or privacy request</option>${guided?'<option>Booking or refund</option><option>Mate lateness</option><option value="no_show">Traveler no-show · No response for 30 minutes</option><option value="late_no_show">Over 60 minutes after reporting a delay</option><option>Severe weather, accident or illness</option>':''}<option>Other feedback</option></select></label><label style="margin-top:17px">Inquiry content<textarea name="body" minlength="10" maxlength="1000" required placeholder="Which place or step do you need help with? Write in the language you are comfortable with. At least 10 characters.">${query?esc(`Place search inquiry: ${query}\nPlease add the area or address of the place you are looking for.`):''}</textarea></label><div class="rt-detail-actions"><button type="submit" class="btn">Save message</button></div></form></div>`;}
+async function readSupportFiles(input){const version=++supportEvidenceVersion;supportFiles=[];supportFilesLoading=false;const files=Array.from(input.files||[]),status=$('#support-files-status');if(files.length>3||files.some(f=>!['image/jpeg','image/png','image/webp','application/pdf'].includes(f.type)||f.size>1048576)){status.textContent='Check file type, size and count.';input.value='';return;}supportFilesLoading=true;try{const loaded=await Promise.all(files.map(f=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:f.name,type:f.type,data:r.result});r.onerror=reject;r.readAsDataURL(f);})));if(version!==supportEvidenceVersion)return;supportFiles=loaded;status.textContent='Evidence ready.';}catch{if(version===supportEvidenceVersion){supportFiles=[];status.textContent='Unable to read the file.';}}finally{if(version===supportEvidenceVersion)supportFilesLoading=false;}}
+function captureSupportLocation(){const output=$('#support-location-status');supportLocation=null;if(!window.navigator?.geolocation){output.textContent='Location unavailable. Please attach supporting evidence.';return;}output.textContent='Checking your location.';window.navigator.geolocation.getCurrentPosition(p=>{if(output!==$('#support-location-status')||$('#support-no-show').disabled)return;supportLocation={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,at:Date.now()};output.textContent='Current location attached.';},()=>{output.textContent='Location unavailable. Please attach supporting evidence.';},{enableHighAccuracy:true,timeout:10000,maximumAge:0});}
+function refundIncidentRange(){
+ const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+ return {first:dateAfter(today,-7),today};
+}
+function storeSupport(d){const refund=d.type==='fee_refund';if(refund&&!['no_show','late_no_show','disruption','other'].includes(d.refundReason))return false;if(refund){const {first,today}=refundIncidentRange();if(!/^\d{4}-\d{2}-\d{2}$/.test(d.incidentDate||'')||d.incidentDate<first||d.incidentDate>today||dateAfter(d.incidentDate,0)!==d.incidentDate){toast('Select an incident date within the past seven days.');return false;}}const evidenceType=refund?d.refundReason:d.type;const body=String(d.body||'').trim();if(supportFilesLoading||!validEmail(d.email)||body.length<10||body.length>1000)return false;if(['no_show','late_no_show'].includes(evidenceType)&&(!d.waited||!String(d.meeting||'').trim()||(!supportLocation&&!supportFiles.length))){toast('Provide the agreed place and time, confirm your wait, and attach location or evidence.');return false;}const ticket={id:'TK-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),type:d.type,...(refund?{refundReason:d.refundReason,incidentDate:d.incidentDate}:{}),body,email:String(d.email).trim(),meeting:String(d.meeting||'').trim(),waited:!!d.waited,attachments:supportFiles,location:['no_show','late_no_show'].includes(evidenceType)?supportLocation:null,actorRole:window.ReelAccess.mode(),createdAt:Date.now(),status:'open'};state.tickets.push(ticket);ensureTicketReferences();try{stashMatching();const raw=JSON.stringify(state);localStorage.setItem(key,raw);lastSavedState=raw;}catch{state.tickets.pop();toast('Unable to save. Reduce attachment sizes and try again.');return false;}supportFiles=[];supportLocation=null;return true;}
+function ticketStatusLabel(status){return ({open:'Received',review:'Received',needs_info:'Received',resolved:'Resolved'})[status]||status;}
+function inquiryDisputeField(t){
+ const linked=t.disputeBookingId?allBookings().find(row=>row.id===t.disputeBookingId):null;
+ const active=linked?.disputeStatus==='open'&&linked.disputeTicketId===t.id;
+ const reference=linked?bookingReferenceLabel(linked):'';
+ const link=linked?`<p class="hint">${active?'Operations review':'Operations review completed'} · <a class="textbtn" href="#admin-bookings?record=${encodeURIComponent(linked.id)}">${esc(reference)} · Booking details</a></p>`:'';
+ if(active)return link;
+ return `${link}<label class="check"><input type="checkbox" name="markDispute" aria-controls="ticket-dispute-booking"><span>Flag the related booking for operations review</span></label><div id="ticket-dispute-booking" hidden><label>Related booking number<input name="disputeReference" placeholder="RS-XXXXXX" value="${esc(reference)}" disabled required></label></div>`;
+}
+function supportTicketCard(t){
+ const attachments=(t.attachments||[]).filter(f=>/^data:(image\/(jpeg|png|webp)|application\/pdf);base64,/.test(f.data||''));
+ const reason=({no_show:'The traveler did not arrive',late_no_show:'We did not meet after a delay notice',disruption:'Weather or personal circumstances prevented the trip',other:'Another reason'})[t.refundReason]||t.refundReason;
+ const facts=[['Inquiry type',supportTypeLabel(t)],['Submitted',adminDate(t.createdAt)],['Contact email',t.email,true]];
+ if(reason)facts.push(['Refund reason',reason,true]);
+ if(t.incidentDate)facts.push(['Incident date',t.incidentDate]);
+ if(t.meeting)facts.push(['Agreed meeting place and time',t.meeting,true]);
+ if(t.waited)facts.push(['Wait confirmation',(t.refundReason||t.type)==='late_no_show'?'Confirmed a 60-minute wait after notice of delay':'Confirmed a 30-minute wait and at least two chat attempts',true]);
+ if(t.location)facts.push(['Location at submission',`${t.location.lat}, ${t.location.lng} · ±${t.location.accuracy}m · ${chatTime(t.location.at)}`,true]);
+ const linkedBooking=t.disputeBookingId?allBookings().find(row=>row.id===t.disputeBookingId):null;
+ const bookingLink=linkedBooking?`<a class="textbtn" href="#admin-bookings?record=${encodeURIComponent(linkedBooking.id)}">${esc(bookingReferenceLabel(linkedBooking))} · Booking details</a>`:'';
+ const refundBooking=t.refundBookingId?allBookings().find(row=>row.id===t.refundBookingId):null;
+ const refundLink=refundBooking?`<a class="textbtn" href="#admin-bookings?record=${encodeURIComponent(refundBooking.id)}">${esc(bookingReferenceLabel(refundBooking))} · Booking details</a>`:'<label>Booking number for this refund inquiry (optional)<input name="refundReference" placeholder="RS-XXXXXX"></label>';
+ const evidence=t.type==='fee_refund'?`<label>Date all evidence was received<input type="date" name="evidenceDate" ${t.createdAt?`min="${esc(new Date(t.createdAt).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}))}"`:''} max="${refundIncidentRange().today}" value="${esc(t.evidenceDate||'')}"></label><p class="hint">Record when all required evidence was received. Email the decision within three business days of that date.</p>${refundLink}`:'';
+ return `<section class="card pad rt-admin-panel"><header class="rt-admin-info-heading"><h2>${esc(ticketReferenceLabel(t))}</h2><span class="badge rt-status-badge" data-status="${esc(t.status)}">${esc(ticketStatusLabel(t.status))}</span></header>${adminFacts(facts)}${bookingLink}<div class="rt-admin-narrative"><h3>Inquiry content</h3><p>${esc(t.body)}</p>${attachments.length?`<div class="rt-admin-attachments">${attachments.map(f=>`<a class="btn secondary small" download="${esc(f.name)}" href="${esc(f.data)}">${esc(f.name)}</a>`).join('')}</div>`:''}</div></section>
+ <section class="card pad rt-admin-panel"><h2>Manage inquiry</h2><form class="rt-admin-action-form" id="operations-ticket-form-${esc(t.id)}"><input type="hidden" name="ticketId" value="${esc(t.id)}"><input type="hidden" name="expectedUpdate" value="${esc(t.updatedAt||0)}">${evidence}<label class="check"><input type="checkbox" name="replySent" required><span>I have emailed the requester.</span></label><label>Internal processing note<textarea name="note" maxlength="1000" rows="3" required></textarea></label><button type="submit" class="btn">Resolved</button></form></section>
+ ${caseHistory(t.history?.length?t.history:t.note?[{note:t.note,status:t.status,at:t.updatedAt}]:[],entry=>entry.disputeBookingNumber?`Operations review · ${entry.disputeBookingNumber}`:ticketStatusLabel(entry.status))}`;
+}
+
+function support(){
+ const query=new URLSearchParams(location.hash.split('?')[1]||'').get('placeQuery')||'';
+ return `<div class="centerbox rt-support-page">
+ <h1>Contact support</h1>
+ <form id="support-form">
+  <label>Inquiry type<select name="type" id="support-type"><option>Place or video issue</option><option>Data or privacy request</option>${guided?'<option>Booking inquiry</option><option>Mate lateness</option><option value="fee_refund">Matching fee refund inquiry</option>':''}<option>Other feedback</option></select></label>
+  <label id="support-refund-reason" hidden>What happened?<select name="refundReason" disabled required><option value="">Select a reason</option><option value="no_show">The traveler did not arrive</option><option value="late_no_show">We did not meet after a delay notice</option><option value="disruption">Weather or personal circumstances prevented the trip</option><option value="other">Another reason</option></select></label>
+  <fieldset id="support-refund-date" hidden disabled><label>Incident date<input type="date" name="incidentDate" required min="${refundIncidentRange().first}" max="${refundIncidentRange().today}"></label><p class="hint">Apply within seven days of the incident and attach supporting evidence. Attachments are optional for severe weather documented in official reports.</p><p class="hint">We will email the decision within three business days of receiving all required evidence.</p></fieldset>
+  <label>Inquiry content<textarea name="body" minlength="10" maxlength="1000" required placeholder="Enter at least 10 characters.">${query?esc(`Place search inquiry: ${query}\nPlease add the area or address of the place you are looking for.`):''}</textarea></label>
+  <label>Reply email<input type="email" name="email" required maxlength="254" value="${esc(mateApplication().fields.email||state.accountEmail?.address||'')}"></label>
+  ${supportEvidenceFields()}
+  <div class="support-submit"><button type="submit" class="btn">Save inquiry</button></div>
+ </form>
+ <details class="support-faq"><summary>Frequently asked questions</summary><details><summary>Can I find a place without knowing its Korean name?</summary><p class="muted small">Find places from public video links. Check the address in the results.</p></details><details style="margin-top:16px"><summary>${guided?'Can my mate book a restaurant for me?':'Does saving a place reserve a table?'}</summary><p class="muted small">${guided?'Saving a place or requesting a mate does not reserve a table. Describe the help you need and check what is included in the final proposal.':'Saving places helps you plan visits. Restaurant bookings and ordering assistance are not included. Check reservation requirements with the venue.'}</p></details><details style="margin-top:16px"><summary>Why was a place not found?</summary><p class="muted small">Try a public link or add the place manually.</p></details></details></div>`;}
+
 function policySection(){return new URLSearchParams(location.hash.split('?')[1]||'').get('section');}
-function policies(){const section=policySection();const heading=section==='privacy'?'Privacy Policy':section==='terms'?'Terms of Service':'Service information';return `<article class="legalcopy">${section==='privacy'||section==='terms'?title(heading,heading):''}${section==='privacy'?`<h2>Saving your trip</h2><p>Your trip is saved in this browser only. It does not sync automatically and may be lost if browser data is cleared.</p><h2>Privacy</h2><p>실제 결제정보Me 민감한 Privacy는 입력하지 마세요.</p>`:section==='terms'?`<h2>Places and maps</h2><p>Photos and maps help you explore. Check current hours, the correct branch and entrance before visiting. Map lines show visit order, not actual directions.</p><h2>Photos and content</h2><p>Open the original video using its link. Photos may not reflect how a place looks today.</p>`:`<h2>Places and maps</h2><p>Photos and maps help you explore. Check current hours, the correct branch and entrance before visiting. Map lines show visit order, not actual directions.</p><h2>Saving your trip</h2><p>Your trip is saved in this browser only. It does not sync automatically and may be lost if browser data is cleared.</p><h2>Privacy</h2><p>실제 결제정보Me 민감한 Privacy는 입력하지 마세요.</p><h2>Photos and content</h2><p>Open the original video using its link. Photos may not reflect how a place looks today.</p>`}${section!=='privacy'?'<h2>Bookings and cancellations</h2><p>Booking holders and mates must be at least 19. Minors must be accompanied by an adult guardian. To change confirmed dates or guest counts, cancel and submit a new request. After the first scheduled start time, contact support separately to cancel.</p><p>Traveler cancellations enter the full matching fee refund queue. Mate cancellations normally receive no fee refund; operations review accidents, illness and severe weather.</p><h2>Delays and no-shows</h2><p>If a traveler is late, the original end time and price stay the same. If a mate is late, agree in chat on a free extension or a proportional price reduction. Contact support for disputes.</p><p>If the traveler does not respond, wait 30 minutes from the agreed time and attempt contact in chat at least twice before reporting a no-show. Wait up to 60 minutes if they report a delay. You may leave after reporting; operations verify the case before refunding the fee.</p><h2>Released selections and new proposals</h2><p>If a mate declines before confirmation or misses the fee deadline, your trip automatically receives proposals again as long as it has not started. You can select another valid proposal immediately. If the trip start time has passed, change your dates and submit a new request. Withdrawing your request or cancelling a confirmed booking does not automatically reopen proposals.</p>':''}</article>`;}
+function policies(){const section=policySection();const heading=section==='privacy'?'Privacy Policy':section==='terms'?'Terms of Service':'Service information';return `<article class="legalcopy">${section==='privacy'||section==='terms'?title(heading,heading):''}${section==='privacy'?`<h2>Privacy</h2><p>Your mate email address and phone number are kept off your public profile.</p>`:section==='terms'?`<h2>Places and maps</h2><p>Photos and maps help you explore. Check current hours, the correct branch and entrance before visiting. Map lines show visit order, not actual directions.</p><h2>Photos and content</h2><p>Open the original video using its link. Photos may not reflect how a place looks today.</p>`:`<h2>Places and maps</h2><p>Photos and maps help you explore. Check current hours, the correct branch and entrance before visiting. Map lines show visit order, not actual directions.</p><h2>Privacy</h2><p>Your mate email address and phone number are kept off your public profile.</p><h2>Photos and content</h2><p>Open the original video using its link. Photos may not reflect how a place looks today.</p>`}${section!=='privacy'?'<h2>Bookings and cancellations</h2><p>Booking holders and mates must be at least 19. Minors must be accompanied by an adult guardian. To change confirmed dates or guest counts, cancel and submit a new request. After the first scheduled start time, contact support separately to cancel.</p><p>When a traveler cancels, the full matching fee is refunded to the mate’s original payment method. Mate at fault Cancel는 원칙적으로 반환하지 않으며 Accident, illness or severe weather는 Operations team이 Confirm합니다.</p><h2>Delays and no-shows</h2><p>If a traveler is late, the original end time and price stay the same. If a mate is late, agree in chat on a free extension or a proportional price reduction. Contact support for disputes.</p><p>If the traveler does not respond, wait 30 minutes from the agreed time and attempt contact in chat at least twice before reporting a no-show. Wait up to 60 minutes if they report a delay. You may leave after reporting; operations verify the case before refunding the fee.</p><h2>Released selections and new proposals</h2><p>If a mate declines before confirmation or misses the fee deadline, your trip automatically receives proposals again as long as it has not started. You can select another valid proposal immediately. If the trip start time has passed, change your dates and submit a new request. Withdrawing your request or cancelling a confirmed booking does not automatically reopen proposals.</p>':''}</article>`;}
 function guides(){return `${title('','Mates')}<div class="trip-mode-tabs" role="group" aria-label="Mate menu"><button type="button" data-action="guides-tab" data-id="requests" aria-pressed="${guidesTab==='requests'}">${icon('board')}<span>Received proposals</span>${proposals().length?`<span class="trip-request-count">${proposals().length}</span>`:''}</button><button type="button" data-action="guides-tab" data-id="discover" aria-pressed="${guidesTab==='discover'}">${icon('guides')}<span>Get proposals</span></button></div><section class="trip-tab-panel">${guidesTab==='requests'?guideRequests():guideDiscovery()}</section>`;}
 
 function guideDiscovery(){const next=null,hasTrips=Boolean(state.trips?.length);return `<div class="proposal-request-options"><section class="free-quote-intro"><header class="free-quote-heading"><h2>Find a mate for my trip</h2><p>Get proposals for your trip and choose a mate to join you.</p></header><div class="free-quote-action">${hasTrips?btn('Choose from My trips','request'):action('Create a trip itinerary','new-trip')}</div></section><section class="free-quote-intro"><header class="free-quote-heading"><h2>Plan a trip with a mate</h2><p>Request a quote without a fixed itinerary.<br>Choose your area and dates to receive an itinerary and full quote from a mate.</p></header><div class="free-quote-action">${next?`<p class="free-quote-status">Review your current request or booking first.</p>${btn(next.label,next.route,'secondary')}`:btn('Find a travel mate','request?mode=free','secondary')}</div></section></div>`;}
 
 
 
-function journeySummary(q,priceLabel='Total for your group'){return `<section class="journey-summary"><div class="journey-guide"><span class="portrait">${esc(q.guide[0])}</span><div><h2>${esc(q.guide)}${q.guide==='Not matched yet'?'':' Mates'}</h2><p>English Information · ${esc(q.region||'Destination')}</p></div></div><div class="journey-facts"><div><span>Travel date</span><strong>${requestPeriod(q)}</strong></div><div><span>Start time · KST</span><strong>${esc(q.time)}</strong></div><div><span>Your group</span><strong>${q.party} ${q.party===1?"guest":"guests"}</strong></div><div><span>Request type</span><strong>${q.requestType==='free'?'자유 견적':'My itinerary'}</strong></div></div>${q.amount!==undefined?`<div class="journey-price"><span>${priceLabel} · KRW</span><strong>${money(q.amount)}</strong><p>Food, transport, shopping and entry fees are extra.</p></div>`:`<div class="journey-price pending"><span>Mate fee</span><strong>Price on request</strong><p>No payment now. Review your proposal before booking.</p></div>`}</section>`;}
+function journeySummary(q,priceLabel='Total for your group'){return `<section class="journey-summary"><div class="journey-guide"><span class="portrait">${esc(q.guide[0])}</span><div><h2>${esc(q.guide)}${q.guide==='Not matched yet'?'':' Mates'}</h2><p>${esc(q.region||'Destination')}</p>${q.feeStatus?`<p>Booking reference · ${esc(bookingReferenceLabel(q))}</p>`:''}</div></div><div class="journey-facts"><div><span>Travel date</span><strong>${requestPeriod(q)}</strong></div><div><span>Start time · KST</span><strong>${esc(q.time)}</strong></div><div><span>Your group</span><strong>${q.party} ${q.party===1?"guest":"guests"}</strong></div><div><span>Request type</span><strong>${q.requestType==='free'?'자유 견적':'My itinerary'}</strong></div></div>${q.amount!==undefined?`<div class="journey-price"><span>${priceLabel} · KRW</span><strong>${money(q.amount)}</strong><p>Agree in chat before the trip on who will pay for meals, transport and admission.</p></div>`:`<div class="journey-price pending"><span>Mate fee</span><strong>Price on request</strong><p>No payment now. Review your proposal before booking.</p></div>`}</section>`;}
 function mateRequestSummary(q){return `<section class="mate-request-summary" aria-label="Trip request summary"><h2>${q.requestType==='free'?esc(q.region||'Destination')+' · 자유 견적':'Trip requests'}</h2><p>${requestPeriod(q)} · ${esc(q.time)} · ${q.party} ${q.party===1?"guest":"guests"}</p><span>Start time is in Korea Standard Time.</span>${q.amount!==undefined?`<div class="summaryrow"><span>${bookingClosed(q)?'Agreed trip price':'Cash to receive in person'}</span><b>${money(q.amount)}</b></div>`:''}</section>`;}
 function journeyPlan(plan){return `<ol class="journey-plan">${String(plan||'').split('\n').filter(line=>line.trim()).map((line,i)=>`<li><b>${i+1}</b><span>${esc(line.replace(/^\d+[.)]\s*/,''))}</span></li>`).join('')}</ol>`;}
 function guidePage(){
@@ -693,21 +1109,41 @@ function quoteValid(){const q=state.quote,r=state.request;return !!(q&&r&&Date.p
 function proposalMessage(q){return q.message?`<section class="card pad quote-section"><h2>Message from your mate</h2><p>${esc(q.message).replace(/\n/g,'<br>')}</p></section>`:'';}
 function quote(){const q=state.quote;if(!q)return empty('No proposal yet.','Your itinerary and proposal will appear here once your mate has reviewed your request.','requested','View request');const valid=quoteValid();return `${title('','Your mate proposal','')}${journeySummary(q,bookingClosed(state.booking)?'Agreed trip price':!valid&&!state.booking?'Proposed price':'Cash payable in person')}${proposalMessage(q)}<section class="card pad quote-section"><h2>Your proposed itinerary</h2>${journeyPlan(q.plan)}</section><div class="bottomaction journey-action"><p>${state.booking?'Reviewed proposal':valid?'Total for your group · '+money(q.amount):q.expires<=Date.now()?'This proposal has expired':'This proposal has ended'}</p>${state.booking?btn(bookingClosed(state.booking)?'View trip history':'View booked itinerary','booking'):valid?btn('Select mate & request booking','checkout'):btn(signupText('compareOffers'),'requested','secondary')}</div>`;}
 
-function requestBooking(name,email){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='customer'||state.booking||!quoteValid())return false;const q=state.quote;delete state.request.rematchReason;state.booking={...JSON.parse(JSON.stringify(q)),requestId:state.request.id,proposalId:q.id,id:'RT-DEMO-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),quoteVersion:q.version,status:'awaiting_mate_fee',customer:name,email,requestedAt:Date.now(),feeDeadline:Math.min(Date.now()+24*3600000,Date.parse(q.date+'T'+q.time+':00+09:00')),paymentMethod:'cash',feeRate:.1,feeAmount:Math.round(q.amount*.1),feeStatus:'pending',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1'};syncConversations();state.request.status='matching';state.request.guide=q.guide;state.request.guideId=q.guideId;save();return true;}
-function confirmMateFee(outcome){expireMateFee();const b=state.booking;if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||b.status!=='awaiting_mate_fee'||b.feeStatus==='paid'||mateApplication().activityRestricted||mateConflict(b,b.guideId,b.id))return false;if(outcome!=='success'){b.feeStatus='failed';save();return false;}b.feeStatus='paid';b.feePaidAt=Date.now();b.status='confirmed';b.confirmedAt=Date.now();for(const x of matchingContexts())for(const q of x.proposals||[])if(q.id!==b.proposalId&&q.guideId===b.guideId&&overlaps(q,b)){q.unavailableAt=Date.now();q.expires=Math.min(q.expires,Date.now());}state.request.status='booked';save();return true;}
+function requestBooking(name,email){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='customer'||state.booking||!quoteValid())return false;const q=state.quote;delete state.request.rematchReason;state.booking={...JSON.parse(JSON.stringify(q)),requestId:state.request.id,proposalId:q.id,id:'RT-DEMO-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),quoteVersion:q.version,status:'awaiting_mate_fee',customer:name,email,requestedAt:Date.now(),feeDeadline:Math.min(Date.now()+24*3600000,Date.parse(q.date+'T'+(q.time||'00:00')+':00+09:00')),paymentMethod:'cash',feeRate:.1,feeAmount:Math.round(q.amount*.1),feeStatus:'pending',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1'};syncConversations();state.request.status='matching';state.request.guide=q.guide;state.request.guideId=q.guideId;recordBookingNotice('selected',state.booking,['guide']);save();return true;}
+function confirmMateFee(outcome){expireMateFee();const b=state.booking;if((b?.guideId||'mina')!=='mina'||window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||b.status!=='awaiting_mate_fee'||b.feeStatus==='paid'||activitySuspended(mateApplication())||mateConflict(b,b.guideId,b.id))return false;if(outcome!=='success'){b.feeStatus='failed';save();return false;}b.feeStatus='paid';b.feePaidAt=Date.now();b.status='confirmed';b.confirmedAt=Date.now();for(const x of matchingContexts())for(const q of x.proposals||[])if(q.id!==b.proposalId&&q.guideId===b.guideId&&overlaps(q,b)){q.unavailableAt=Date.now();q.expires=Math.min(q.expires,Date.now());}state.request.status='booked';recordBookingNotice('confirmed',b,['customer','guide']);save();return true;}
 function cashNotice(amount){return `<section class="card pad cash-notice"><span class="badge">Cash payment in person</span><h2>Bring cash on your trip day</h2><strong>${money(amount)}</strong><p>Pay your mate directly in cash. Reeltrip connects you and does not collect the trip fee.</p></section>`;}
 // Demo grace period; production expiry and payment verification must run on the server.
 function feeDeadline(b){return b.feeDeadline||Math.min((b.requestedAt||Date.now())+24*3600000,Date.parse(b.date+'T'+(b.time||'00:00')+':00+09:00'));}
 function deadlineNotice(b){return `<div class="notice"><strong>Pay by · ${esc(new Date(feeDeadline(b)).toLocaleString(document.documentElement.lang==='en'?'en-GB':'ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}))}</strong><br>Korea Standard Time<br>Your selection is released after the deadline.</div>`;}
-function expireAllMateFees(){const original=state.request?.id;for(const x of matchingContexts()){if(x.booking?.status==='awaiting_mate_fee'&&feeDeadline(x.booking)<=Date.now()){activateMatching(x.request.id);expireMateFee();}}if(original&&state.request?.id!==original)activateMatching(original);}
+function closeStartedRequests(){
+ let changed=false;
+ for(const {request,booking} of matchingContexts()){
+  if(!booking&&['requested','quoted'].includes(request.status)&&bookingStarted(request)){request.status='withdrawn';changed=true;}
+ }
+ if(changed)save();
+}
+function expireAllMateFees(){
+ let updated=false;
+ for(const b of allBookings())if(b.status==='awaiting_mate_fee'&&!b.feeDeadline){const deadline=feeDeadline(b);if(Number.isFinite(deadline)){b.feeDeadline=deadline;updated=true;}}
+ if(updated)save();
+ const original=state.request?.id;for(const x of matchingContexts()){if(x.booking?.status==='awaiting_mate_fee'&&feeDeadline(x.booking)<=Date.now()){activateMatching(x.request.id);expireMateFee();}}if(original&&state.request?.id!==original)activateMatching(original);}
 function expireMateFee(){const b=state.booking;if(!b||b.status!=='awaiting_mate_fee')return false;if(!b.feeDeadline)b.feeDeadline=feeDeadline(b);if(Date.now()<b.feeDeadline)return false;releaseMateSelection('expired','Confirmation deadline expired');return true;}
-function releaseMateSelection(reason,detail){const b=state.booking;if(!b||b.status!=='awaiting_mate_fee')return false;b.status='cancelled';b.feeStatus='void';b.cancelReason=detail;if(state.request){state.request.status='withdrawn';state.request.rematchReason=reason;}syncConversations();if(!resumeMatching())save();return true;}
+function releaseMateSelection(reason,detail){const b=state.booking;if(!b||b.status!=='awaiting_mate_fee')return false;b.status='cancelled';b.feeStatus='void';b.cancelReason=detail;recordBookingNotice('released',b,reason==='expired'?['customer','guide']:['customer']);if(state.request){state.request.status='withdrawn';state.request.rematchReason=reason;}syncConversations();if(!resumeMatching())save();return true;}
 function resumeMatching(){const b=state.booking,r=state.request;if(!b||b.status!=='cancelled'||b.feeStatus!=='void'||!r||r.id!==b.requestId||!(Date.parse(r.date+'T'+(r.time||'00:00')+':00+09:00')>Date.now()))return false;syncConversations();state.bookingHistory=state.bookingHistory||[];state.bookingHistory.push(JSON.parse(JSON.stringify(b)));state.proposals=proposals().map(q=>q.id===b.proposalId||q.guideId===b.guideId?{...q,expires:Math.min(q.expires,Date.now())}:q);state.booking=null;state.quote=null;r.status=proposals().some(q=>q.expires>Date.now())?'quoted':'requested';delete r.guide;delete r.guideId;save();return true;}
 function reopenMatching(){if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='customer')return false;return resumeMatching();}
 function rematchNotice(){const r=state.request;if(!r?.rematchReason)return '';const message=r.rematchReason==='expired'?'The mate’s confirmation deadline has passed.':'The mate is unable to proceed.';return `<div class="notice" role="status">${message}<br>${['requested','quoted'].includes(r.status)?'You can select another mate’s proposal.':'Your trip start time has passed. Change your dates and submit a new request.'}</div>`;}
 function feeBreakdown(b){return `<div class="summaryrow"><span>Agreed trip price</span><b>${money(b.amount)}</b></div><div class="summaryrow"><span>10% matching fee</span><b>${money(b.feeAmount)}</b></div>`;}
-function refundNotice(b){return b&&['review','needs_info','approved','processing','completed','not_eligible'].includes(b.refundStatus)?`<p class="notice">Fee refund: ${refundLabel(b.refundStatus)}</p>`:'';}
-function guideFee(){const b=displayedBooking();if(!b)return empty('No booking has been selected.','You can pay the fee after a traveler selects you.','guide-activity','My activity');if(b!==state.booking)return `${title('','Booking details',statusLabel(b.status))}${journeySummary(b)}${refundNotice(b)}${journeyPlan(b.plan)}`;const pending=b.status==='awaiting_mate_fee',failed=pending&&b.feeStatus==='failed',room=syncConversations().find(room=>conversationBooking(room)?.id===b.id),chatOpen=room&&conversationOpen(room);return `${failed?'':title('',pending?'Matching fee':'Booking details',pending?'You’ve been selected!':statusLabel(b.status))}${failed?`<section class="card pad rt-feedback-card rt-feedback-card--error rt-feedback-card--compact" role="alert"><span class="rt-feedback-symbol" aria-hidden="true">${icon('warning',20)}</span><div class="rt-feedback-copy"><h2>Payment failed</h2><p>Your booking is not confirmed yet.<br>Please try again before the payment deadline.</p></div></section>`:''}<section class="card pad quote-section">${pending?`<div class="${failed?'summaryrow':'mate-fee-amount'}"><span>Matching fee payable to Reeltrip</span><strong>${money(b.feeAmount)}</strong></div>`:''}${pending?'':`<h2>Booking price</h2>${feeBreakdown(b)}`}${pending?(failed?`<p class="rt-payment-deadline">Pay by · ${esc(new Date(feeDeadline(b)).toLocaleString(document.documentElement.lang==='en'?'en-GB':'ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}))}<br><small>Korea Standard Time</small></p>`:deadlineNotice(b)):''}${pending?`<form id="mate-fee-form"><label class="check"><input type="checkbox" name="terms" required>I understand the 10% matching fee and direct cash payment.</label><label class="developer-only">Payment outcome<select name="outcome"><option value="success">Payment success</option><option value="failure">Payment failed</option></select></label><p id="mate-fee-error" class="error" role="alert"></p></form><details class="mate-fee-details"><summary>Booking price</summary>${feeBreakdown(b)}</details>`:''}${refundNotice(b)}</section>${mateRequestSummary(b)}<section class="card pad quote-section"><h2>Booked itinerary</h2>${journeyPlan(b.plan)}${chatOpen?`<p>Say hello to your traveler.<br>Agree on where and when to meet, and when to pay in cash.</p><div class="rt-detail-actions">${btn(`${icon('messages',20)}<span>Chat with traveler</span>`,conversationRoute(room))}</div>`:pending?'<p class="hint">You can chat with the traveler once the fee is paid and the booking is confirmed.</p>':''}</section>${mateTripActions(b)}${pending?`<div class="rt-floating-actions-space"><div class="bottomaction rt-floating-actions"><div class="rt-card-actions rt-card-actions-equal">${btn('Unable to proceed','guide-activity?decline=1','secondary')}<button type="submit" form="mate-fee-form" class="btn">${failed?'Retry payment':'Pay & confirm booking'}</button></div></div></div>`:''}`;}
+function refundNotice(b){
+ if(!b)return '';
+ const amount=b.refundAmount??b.feeAmount;
+ const states={
+  review:guaranteedFeeRefund(b)?'Full refund pending':'Under review · Refund not yet decided',
+  needs_info:awaitingGuaranteedRefund(b)?'Full refund pending':'More information requested · Refund on hold',approved:'Full refund pending',processing:'Refund in progress',
+  completed:amount==null?'Refunded in full':`Refunded in full · ${money(amount)}`,not_eligible:`No refund · ${money(0)}`,failed:'Refund failed · No refund issued'
+ };
+ return states[b.refundStatus]?`<p class="notice">Mate matching fee · ${states[b.refundStatus]}</p>`:'';
+}
+function guideFee(){const b=displayedBooking();if(!b||(b.guideId||'mina')!=='mina')return empty('No booking has been selected.','You can pay the fee after a traveler selects you.','guide-activity','My activity');if(b!==state.booking)return `${title('','Booking details',statusLabel(b.status))}${journeySummary(b)}${refundNotice(b)}${journeyPlan(b.plan)}`;const pending=b.status==='awaiting_mate_fee',failed=pending&&b.feeStatus==='failed',room=syncConversations().find(room=>conversationBooking(room)?.id===b.id),chatOpen=room&&conversationOpen(room);return `${failed?'':title('',pending?'Matching fee':'Booking details',pending?'You’ve been selected!':statusLabel(b.status))}${failed?`<section class="card pad rt-feedback-card rt-feedback-card--error rt-feedback-card--compact" role="alert"><span class="rt-feedback-symbol" aria-hidden="true">${icon('warning',20)}</span><div class="rt-feedback-copy"><h2>Payment failed</h2><p>Your booking is not confirmed yet.<br>Please try again before the payment deadline.</p></div></section>`:''}<section class="card pad quote-section">${pending?`<div class="${failed?'summaryrow':'mate-fee-amount'}"><span>Matching fee payable to Reeltrip</span><strong>${money(b.feeAmount)}</strong></div>`:''}${pending?'':`<h2>Booking price</h2>${feeBreakdown(b)}`}${pending?(failed?`<p class="rt-payment-deadline">Pay by · ${esc(new Date(feeDeadline(b)).toLocaleString(document.documentElement.lang==='en'?'en-GB':'ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}))}<br><small>Korea Standard Time</small></p>`:deadlineNotice(b)):''}${pending?`<form id="mate-fee-form"><label class="check"><input type="checkbox" name="terms" required>I understand the 10% matching fee and direct cash payment.</label><label class="developer-only">Payment outcome<select name="outcome"><option value="success">Payment success</option><option value="failure">Payment failed</option></select></label><p id="mate-fee-error" class="error" role="alert"></p></form><details class="mate-fee-details"><summary>Booking price</summary>${feeBreakdown(b)}</details>`:''}${b.cancelReason?`<p>Cancellation reason · ${esc(b.cancelReason)}</p>`:''}${refundNotice(b)}</section>${mateRequestSummary(b)}<section class="card pad quote-section"><h2>Booked itinerary</h2><p>Booking reference · ${esc(bookingReferenceLabel(b))}</p>${journeyPlan(b.plan)}${chatOpen?`<p>Say hello to your traveler.<br>Agree on where and when to meet, and when to pay in cash.</p><div class="rt-detail-actions">${btn(`${icon('messages',20)}<span>Chat with traveler</span>`,conversationRoute(room))}</div>`:pending?'<p class="hint">You can chat with the traveler once the fee is paid and the booking is confirmed.</p>':''}</section>${mateTripActions(b)}${pending?`<div class="rt-floating-actions-space"><div class="bottomaction rt-floating-actions"><div class="rt-card-actions rt-card-actions-equal">${btn('Unable to proceed','guide-activity?decline=1','secondary')}<button type="submit" form="mate-fee-form" class="btn">${failed?'Retry payment':'Pay & confirm booking'}</button></div></div></div>`:''}`;}
 function mateTripActions(b){
  if(b.status!=='confirmed')return '';
  const canComplete=Date.now()>=Date.parse((b.endDate||b.date)+'T'+(b.time||'00:00')+':00+09:00')+4*3600000;
@@ -716,7 +1152,7 @@ function mateTripActions(b){
  return `<div class="rt-detail-actions">${canComplete?action('Confirm trip completion','mate-complete'):''}${canCancel?'<a class="textbtn" href="#guide-activity?cancel=1">Cancel booking</a>':''}</div>`;
 }
 function mateStatusChip(status){const entry=({available:['available','Open for proposals'],waiting:['waiting','Awaiting traveler selection'],awaiting_mate_fee:['selected','Fee payment pending'],fee_failed:['expired','Fee payment failed'],confirmed:['confirmed','Confirmed'],completed:['completed','Trip completed'],expired:['expired','Expired'],not_selected:['expired','Not selected'],cancelled:['cancelled','Cancelled']})[status];return `<span class="badge${entry?' rt-status-'+entry[0]:''}">${esc(entry?entry[1]:statusLabel(status))}</span>`;}
-function mateFeeActions(b){if(b.status!=='awaiting_mate_fee')return '';const active=b===state.booking,context=matchingContexts().find(x=>x.booking?.id===b.id),enabled=active||!!context;const suffix=active?'':'&request='+encodeURIComponent(context?.request.id||'');return `<div class="rt-card-actions rt-card-actions-equal">${enabled?btn('Unable to proceed','guide-activity?decline=1'+suffix,'secondary'):'<button class="btn secondary" disabled>Unable to proceed</button>'}${enabled?btn(b.feeStatus==='failed'?'Retry payment':'Confirm booking',active?'guide-fee':'guide-fee?request='+encodeURIComponent(context.request.id)):'<button class="btn" disabled>Confirm booking</button>'}</div>${enabled?'':'<p class="hint">Sample bookings can only be viewed.</p>'}`;}
+function mateFeeActions(b){if(b.status!=='awaiting_mate_fee')return '';const active=b===state.booking,context=matchingContexts().find(x=>x.booking?.id===b.id),enabled=active||!!context;const suffix=active?'':'&request='+encodeURIComponent(context?.request.id||'');return `<div class="rt-card-actions rt-card-actions-equal">${enabled?btn('Unable to proceed','guide-activity?decline=1'+suffix,'secondary'):'<button class="btn secondary" disabled>Unable to proceed</button>'}${enabled?btn(b.feeStatus==='failed'?'Retry payment':'Confirm booking',active?'guide-fee':'guide-fee?request='+encodeURIComponent(context.request.id)):'<button class="btn" disabled>Confirm booking</button>'}</div>`;}
 
 function mateBookingCard(b){const pending=b.status==='awaiting_mate_fee';return `<section class="card pad quote-section rt-booking-card">${mateStatusChip(b.status==='awaiting_mate_fee'&&b.feeStatus==='failed'?'fee_failed':b.status)}<h2>${esc(b.tripTitle||b.region||'Travel with a mate')}</h2><p>${requestPeriod(b)} · ${esc(b.customer)}</p>${pending?`<div class="summaryrow"><span>Matching fee (10%)</span><strong>${money(b.feeAmount)}</strong></div>${deadlineNotice(b)}`:''}${pending?mateFeeActions(b):''}${!pending?`<div class="rt-booking-actions">${btn(bookingClosed(b)?'View trip history':'View booking',matchingContexts().some(x=>x.booking?.id===b.id)?'guide-fee?request='+encodeURIComponent(b.requestId):'guide-activity?record='+encodeURIComponent(b.id))}</div>`:''}</section>`;}
 function mateProposalStatus(q){return q.withdrawnAt?'cancelled':q.expires<=Date.now()?'expired':q.unavailableAt||mateConflict(q,q.guideId)&&!allBookings().some(b=>b.proposalId===q.id&&bookingHolds(b))?'not_selected':q.activityStatus||(state.booking?.requestId===q.requestId&&state.booking.guideId!==q.guideId?'not_selected':'waiting');}
@@ -743,7 +1179,7 @@ function checkout(){if(state.booking)return empty('This proposal already has a b
 
 function bookingClosed(b){return ['completed','cancelled'].includes(b?.status);}
 function displayedBooking(){const id=new URLSearchParams(location.hash.split('?')[1]||'').get('record');return id?allBookings().find(b=>b.id===id):state.booking;}
-function booking(){const b=displayedBooking();if(!b&&state.request?.rematchReason)return requested();if(!b)return empty('No bookings yet.','Mates의  days정과 가격을 Confirm한 뒤 Bookings을 요청하세요.','requested','View request');const pending=b.status==='awaiting_mate_fee',confirmed=b.status==='confirmed';return `${title('Your guided trip',pending?'Waiting for your mate to confirm':statusLabel(b.status),'')}${pending?'<div class="notice">Your booking is confirmed after the mate pays the matching fee.</div>':''}${journeySummary(b,bookingClosed(b)?'Agreed trip price':'Cash payable in person')}${confirmed?`<section class="meeting-card"><span class="badge">Where to meet</span><h2>Arrange your meeting point with your mate</h2><p>${requestPeriod(b)} · First day ${b.time} / Korea time (KST)</p><p class="hint">Arrange the meeting place and time in chat.</p></section>`:''}<section class="card pad quote-section"><h2>${pending?'Requested itinerary':'Booked itinerary'}</h2>${journeyPlan(b.plan)}</section>${b===state.booking&&canCancelBooking(b)?`<div class="rt-booking-actions">${btn(signupText('backTrips'),'trips')}${btn(pending?'Withdraw booking request':'Cancel booking','cancel','secondary')}</div>`:''}${confirmed?(syncConversations().some(room=>conversationBooking(room)?.id===b.id&&conversationOpen(room))?`<div class="bottomaction journey-action">${btn('Message your mate',conversationRoute(syncConversations().find(room=>conversationBooking(room)?.id===b.id)))}</div>`:''):''}${b.status==='cancelled'&&b.feeStatus==='void'?`<section class="card pad"><p>${esc(b.cancelReason||'')}</p>${b===state.booking&&b.requestId===state.request?.id&&state.request?.rematchReason?`${rematchNotice()}<div class="rt-detail-actions">${btn('Change dates and request again','request','secondary')}</div>`:''}</section>`:''}${b.refundStatus&&b.refundStatus!=='none'?refundNotice(b):''}`;}
+function booking(){const b=displayedBooking();if(!b&&state.request?.rematchReason)return requested();if(!b)return empty('No bookings yet.','Mates의  days정과 가격을 Confirm한 뒤 Bookings을 요청하세요.','requested','View request');const pending=b.status==='awaiting_mate_fee',confirmed=b.status==='confirmed';return `${title('Your guided trip',pending?'Waiting for your mate to confirm':statusLabel(b.status),'')}${pending?'<div class="notice">Your booking is confirmed after the mate pays the matching fee.</div>':''}${journeySummary(b,bookingClosed(b)?'Agreed trip price':'Cash payable in person')}${confirmed?`<section class="meeting-card"><span class="badge">Where to meet</span><h2>Arrange your meeting point with your mate</h2><p>${requestPeriod(b)} · First day ${b.time} / Korea time (KST)</p><p class="hint">Arrange the meeting place and time in chat.</p></section>`:''}<section class="card pad quote-section"><h2>${pending?'Requested itinerary':'Booked itinerary'}</h2>${journeyPlan(b.plan)}</section>${b===state.booking&&canCancelBooking(b)?`<div class="rt-booking-actions">${btn(signupText('backTrips'),'trips')}${btn(pending?'Withdraw booking request':'Cancel booking','cancel','secondary')}</div>`:''}${confirmed?(syncConversations().some(room=>conversationBooking(room)?.id===b.id&&conversationOpen(room))?`<div class="bottomaction journey-action">${btn('Message your mate',conversationRoute(syncConversations().find(room=>conversationBooking(room)?.id===b.id)))}</div>`:''):''}${b.status==='cancelled'?`<section class="card pad"><p>${esc(b.cancelReason||'')}</p>${b===state.booking&&b.requestId===state.request?.id&&state.request?.rematchReason?`${rematchNotice()}<div class="rt-detail-actions">${btn('Change dates and request again','request','secondary')}</div>`:''}</section>`:''}${b.refundStatus&&b.refundStatus!=='none'?refundNotice(b):''}`;}
 
 // Conversation IDs are stable across proposal revisions and booking confirmation.
 function conversationKey(requestId,guideId){return JSON.stringify([requestId,guideId]);}
@@ -801,7 +1237,7 @@ function safetyMenu(){const room=chatContext()?.room;if(!safetyAllowed(room))ret
 }
 function unblockNotice(){return 'After unblocking, you can exchange messages in eligible conversations. Messaging stays unavailable if the other person has blocked you or the conversation has ended. Reports are kept.';}
 function blockedUsers(){safetyRecords();const mode=window.ReelAccess.mode(),actors=new Set(syncConversations().map(safetyActor));const blocks=state.userBlocks.filter(b=>actors.has(b.actor)&&(mode==='guide'?b.actor.startsWith('guide:'):!b.actor.startsWith('guide:')));
- modal(`<h2>Blocked users${blocks.length?` <span class="badge">${blocks.length}</span>`:''}</h2>${blocks.length?`<p>Blocking stops messages with this person in every conversation. Existing conversations and bookings are kept. Bookings must be cancelled separately.</p><div class="rt-card-stack">${blocks.slice().sort((a,b)=>b.at-a.at).map(b=>`<section class="card pad"><div class="sectionhead"><h3>${esc(b.name)}</h3><span class="badge">Blocked</span></div><div class="rt-card-actions">${action('Unblock','user-unblock','secondary small',`data-id="${esc(b.target)}" data-actor="${esc(b.actor)}"`)}</div></section>`).join('')}</div>`:`<section class="card pad rt-empty-card"><span class="rt-empty-card-icon" aria-hidden="true">${icon('lock')}</span><h3>No blocked users.</h3><p>Block a user from the chat’s More menu.</p></section>`}<div class="buttons">${action('Close','close','secondary')}</div>`);
+ modal(`<h2>Blocked by${blocks.length?` <span class="badge">${blocks.length}</span>`:''}</h2>${blocks.length?`<p>Blocking stops messages with this person in every conversation. Existing conversations and bookings are kept. Bookings must be cancelled separately.</p><div class="rt-card-stack">${blocks.slice().sort((a,b)=>b.at-a.at).map(b=>`<section class="card pad"><div class="sectionhead"><h3>${esc(b.name)}</h3><span class="badge">Blocked</span></div><div class="rt-card-actions">${action('Unblock','user-unblock','secondary small',`data-id="${esc(b.target)}" data-actor="${esc(b.actor)}"`)}</div></section>`).join('')}</div>`:`<section class="card pad rt-empty-card"><span class="rt-empty-card-icon" aria-hidden="true">${icon('lock')}</span><h3>No blocked users.</h3><p>Block a user from the chat’s More menu.</p></section>`}<div class="buttons">${action('Close','close','secondary')}</div>`);
 }
 function conversationOpen(room){
  if(conversationBlocked(room))return false;
@@ -865,34 +1301,78 @@ function chat(){
 
 function refundEstimate(){return 0;}
 
-function cancel(){const b=state.booking;if(!canCancelBooking(b))return empty('No booking is available to cancel.','Contact support separately for interruptions or cancellations after the start time.','booking','View booking');return `${title('','Cancel booking')}<form id="cancel-form" class="card pad">${b.status==='awaiting_mate_fee'?'':'<p>Confirm any cash payments with your mate. Reeltrip does not collect or automatically refund trip payments.</p>'}<textarea name="reason" aria-label="Reason" placeholder="Please enter a reason." required minlength="2" maxlength="500"></textarea><label class="check"><input name="terms" type="checkbox" required>I understand that the booking will be cancelled immediately.</label><div class="rt-detail-actions"><button type="submit" class="btn danger">${b.status==='awaiting_mate_fee'?'Withdraw request':'Cancel booking'}</button></div></form>`;}
+function cancel(){const b=state.booking;if(!canCancelBooking(b))return empty('No booking is available to cancel.','Contact support separately for interruptions or cancellations after the start time.','booking','View booking');return `${title('','Cancel booking')}<form id="cancel-form" class="card pad">${b.status==='awaiting_mate_fee'?'':'<p>Confirm any cash payments with your mate. Reeltrip does not collect or automatically refund trip payments.</p>'}${hasPaidFee(b)?`<p>Mate matching fee · Full refund upon confirmation · ${money(b.feeAmount)}</p>`:''}<textarea name="reason" aria-label="Reason" placeholder="Please enter a reason." required minlength="2" maxlength="500"></textarea><label class="check"><input name="terms" type="checkbox" required>I understand that the booking will be cancelled immediately.</label><div class="rt-detail-actions"><button type="submit" class="btn danger">${b.status==='awaiting_mate_fee'?'Withdraw request':'Cancel booking'}</button></div></form>`;}
 
-function side(role,content){if(role==='guide')return content;const active=current()==='admin'?'admin-guides':current(),pending=adminPendingCounts(),items=[['admin-guides','guides','Mate management'],['admin-bookings','calendar','Matching & bookings'],['admin-support','messages','Support management']];return `<div class="adminlayout"><aside class="rt-admin-sidebar"><a class="rt-admin-account" href="#admin"><span class="rt-admin-avatar">R</span><span><strong>Administrator</strong><small>${(window.ReelStatePreview?.fixture?.adminSamples||state.adminSampleSeedVersion)?'Sample data':'Operations · admin'}</small></span></a><div class="rt-admin-group">Service management</div><details open class="rt-admin-menu"><summary>${icon('trips',18)}<strong>Reeltrip</strong>${icon('chevronDown',16)}</summary><nav class="sidenav" aria-label="Reeltrip operations menu">${items.map(([route,glyph,label])=>`<a class="${active===route?'active':''}" ${active===route?'aria-current="page"':''} href="#${route}">${icon(glyph,17)}<span>${label}</span>${pending[route]?`<b class="badge" title="Pending tasks">${pending[route]}</b>`:''}${active===route?icon('chevronRight',14):''}</a>`).join('')}</nav></details><div class="rt-admin-sidebar-foot">REELTRIP OPERATIONS<small>Operations web prototype</small></div></aside><section class="rt-admin-content"><div class="rt-admin-breadcrumb">Service management <span>/</span> Reeltrip <span>/</span> ${items.find(x=>x[0]===active)?.[2]||''}</div>${content}</section></div>`;}
+function side(role,content){if(role==='guide')return content;const active=current()==='admin'?'admin-guides':current()==='admin-support'&&adminQuery().get('view')==='reports'?reportsRoute:current(),pending=adminPendingCounts(),items=[['admin-guides','guides','Mate management'],['admin-bookings','calendar','Booking management'],['admin-support','messages','Support management'],[reportsRoute,'info','Report management']];return `<div class="adminlayout"><aside class="rt-admin-sidebar"><a class="rt-admin-account" href="#admin"><span class="rt-admin-avatar">R</span><span><strong>Operations team</strong></span></a><div class="rt-admin-group">Service management</div><details open class="rt-admin-menu"><summary>${icon('trips',18)}<strong>Reeltrip</strong>${icon('chevronDown',16)}</summary><nav class="sidenav" aria-label="Reeltrip operations menu">${items.map(([route,glyph,label])=>`<a class="${active===route?'active':''}" ${active===route?'aria-current="page"':''} href="#${route}">${icon(glyph,17)}<span>${label}</span>${pending[route]?`<b class="badge" title="Pending tasks">${pending[route]}</b>`:''}${active===route?icon('chevronRight',14):''}</a>`).join('')}</nav></details></aside><section class="rt-admin-content"><div class="rt-admin-breadcrumb">Service management <span>/</span> Reeltrip <span>/</span> ${items.find(x=>x[0]===active)?.[2]||''}</div>${content}</section></div>`;}
 function seedAdminSamples(){
+ if(!window.ReelAccess.isAdmin||state.adminSampleSeedVersion>=5)return;
+ if((state.adminSampleSeedVersion||0)<3){
+  seedInitialAdminSamples();
+  if(!state.tickets.some(t=>t.id==='TK-DEMO-LONG')){
+   state.tickets.push({id:'TK-DEMO-LONG',type:'Bookings & cancellation',body:'One more family member will join our trip to Seoul next week. Could we change our reservation from two people to three? We would like to keep the same meeting time and location. Please let me know whether the change is possible and whether the agreed price will change.',email:'family@example.com',status:'resolved'});
+  }
+ }
+ state.adminMateSamples=state.adminMateSamples||[];
+ for(const suffix of ['1','3']){
+  const r=state.userReports?.find(item=>item.id==='REPORT-DEMO-00'+suffix&&item.target==='guide:demo'+suffix);
+  if(!r||state.adminMateSamples.some(a=>a.guideId==='demo'+suffix))continue;
+  state.adminMateSamples.push({id:'reported-demo-'+suffix,guideId:'demo'+suffix,status:'approved',fields:{name:r.targetName}});
+ }
+ updateAdminSampleLabels();state.adminSampleSeedVersion=5;save();
+}
+function updateAdminSampleLabels(){
+ const names={'Sample traveler A':'Sua','Sample mate A':'Haram','Sample traveler B':'Jiho','Sample mate B':'Seojin','Sample traveler C':'Yujin','Sample mate C':'Garam','Haneul · Sample':'Haneul','Daon · Sample':'Daon','Eden · Sample':'Eden'};
+ const oldBio='A sample mate introducing local food and walking routes in Seoul.';
+ const updateProfile=fields=>{
+  if(!fields)return false;
+  let changed=false;
+  if(Object.hasOwn(names,fields.name)){fields.name=names[fields.name];changed=true;}
+  if(fields.bio===oldBio){fields.bio='I share local restaurants and walking routes in Seoul.';changed=true;}
+  return changed;
+ };
+ for(const a of state.adminMateSamples||[])if(/^(MATE-DEMO-|reported-demo-)/.test(a.id))updateProfile(a.fields);
+ const main=mateApplication();
+ if(main.fields?.email==='mate@example.com'&&updateProfile(main.fields))saveMate(main);
+ for(const r of state.userReports||[])if(/^REPORT-DEMO-00[123]$/.test(r.id)){
+  if(Object.hasOwn(names,r.actorName))r.actorName=names[r.actorName];
+  if(Object.hasOwn(names,r.targetName))r.targetName=names[r.targetName];
+ }
+ for(const block of state.userBlocks||[])if(/^(guide|customer):demo[123]$/.test(block.actor)){
+  if(Object.hasOwn(names,block.actorName))block.actorName=names[block.actorName];
+  if(Object.hasOwn(names,block.name))block.name=names[block.name];
+ }
+ for(const b of state.bookingHistory||[]){
+  if(!/^RT-DEMO-[123]$/.test(b.id))continue;
+  const i=Number(b.id.slice(-1))-1;
+  if(b.customer==='Sample traveler '+(i+1))b.customer=['Sua','Jiho','Yujin'][i];
+  if(b.tripTitle==='Seoul trip · Sample '+(i+1))b.tripTitle=['Seongsu walk','Seoul Forest outing','Namsan evening walk'][i];
+ }
+}
+function seedInitialAdminSamples(){
  if(!window.ReelAccess.isAdmin||state.adminSampleSeedVersion>=2)return;
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});
  if(!allBookings().length){
   state.bookingHistory=['confirmed','awaiting_mate_fee','cancelled'].map((status,i)=>{
    const date=dateAfter(today,status==='completed'?-(i+1):i+2),amount=180000+i*20000;
-   return {id:'RT-DEMO-'+(i+1),requestId:'RQ-DEMO-'+(i+1),guide:i%2?'Jun':'Mina',guideId:i%2?'jun':'mina',customer:'Sample traveler '+(i+1),email:'traveler'+(i+1)+'@example.com',tripTitle:'Seoul trip · Sample '+(i+1),date,endDate:date,dayCount:1,party:2,time:'13:00',status,amount,feeAmount:amount*.1,feeRate:.1,feeStatus:status==='awaiting_mate_fee'?'pending':'paid',feeDeadline:Date.now()+86400000,paymentMethod:'cash',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1',refundStatus:'none'};
+   return {id:'RT-DEMO-'+(i+1),requestId:'RQ-DEMO-'+(i+1),guide:i%2?'Jun':'Mina',guideId:i%2?'jun':'mina',customer:['Sua','Jiho','Yujin'][i],email:'traveler'+(i+1)+'@example.com',tripTitle:['Seongsu walk','Seoul Forest outing','Namsan evening walk'][i],date,endDate:date,dayCount:1,party:2,time:'13:00',status,amount,feeAmount:amount*.1,feeRate:.1,feeStatus:status==='awaiting_mate_fee'?'pending':'paid',feeDeadline:Date.now()+86400000,paymentMethod:'cash',cashStatus:'uncollected',policyVersion:'CASH-MATCH-10-V1',refundStatus:'none'};
   });
  }
  const application=mateApplication();
  if(application.status==='draft'&&!localStorage.getItem(mateKey)){
-  saveMate({status:'pending',step:4,submittedAt:Date.now(),fields:{name:'Haneul · Sample',email:'mate@example.com',contact:'010-0000-0000',regions:[{city:0,district:3},{city:0,district:0}],languages:['ko','en'],specialty:1,bio:'A sample mate introducing local food and walking routes in Seoul.'}});
+  saveMate({status:'pending',step:4,submittedAt:Date.now(),fields:{name:'Haneul',email:'mate@example.com',contact:'010-0000-0000',regions:[{city:0,district:3},{city:0,district:0}],languages:['ko','en'],specialty:1,bio:'I share local restaurants and walking routes in Seoul.'}});
  }
   const now=Date.now();
   if(!state.tickets.length)state.tickets=[
    {id:'TK-DEMO-001',type:'Bookings & cancellation',body:'My travel plans changed. How can I cancel my booking?',email:'traveler1@example.com',status:'open'},
-   {id:'TK-DEMO-002',type:'Matching fee 반환',body:'I would like to check the matching fee refund for my cancelled booking.',email:'mate@example.com',status:'review',note:'Reviewing cancellation and payment records'},
+   {id:'TK-DEMO-002',type:'Fee refund',body:'I would like to check the matching fee refund for my cancelled booking.',email:'mate@example.com',status:'review',note:'Reviewing cancellation and payment records'},
    {id:'TK-DEMO-003',type:'no_show',body:'I waited at the meeting point but could not meet the traveler.',email:'traveler2@example.com',status:'needs_info',meeting:'Seongsu Station Exit 3 · 1 PM',note:'Requested waiting time and contact records'},
    {id:'TK-DEMO-004',type:'Account & profile',body:'How can I update my mate profile?',email:'mate2@example.com',status:'resolved',note:'Explained profile updates and re-review'}
   ];
   const cancelled=allBookings().find(b=>b.status==='cancelled'&&b.id.startsWith('RT-DEMO-'));
   if(cancelled&&(!cancelled.refundStatus||cancelled.refundStatus==='none')){cancelled.refundStatus='review';cancelled.refundRequestedAmount=cancelled.feeAmount;}
   if(!state.userReports?.length)state.userReports=[
-   {id:'REPORT-DEMO-001',actor:'customer:demo1',target:'guide:demo1',actorName:'Sample traveler A',targetName:'Sample mate A',actorRole:'customer',threadId:'CHAT-DEMO-001',reason:'spam',details:'I repeatedly received unrelated advertising messages.',at:now-3600000,status:'local'},
-   {id:'REPORT-DEMO-002',actor:'guide:demo2',target:'customer:demo2',actorName:'Sample mate B',targetName:'Sample traveler B',actorRole:'guide',threadId:'CHAT-DEMO-002',reason:'abuse',details:'Please review offensive language in the chat.',at:now-86400000,status:'local'}
+   {id:'REPORT-DEMO-001',actor:'customer:demo1',target:'guide:demo1',actorName:'Sua',targetName:'Haram',actorRole:'customer',threadId:'CHAT-DEMO-001',reason:'spam',details:'I repeatedly received unrelated advertising messages.',at:now-3600000,status:'local'},
+   {id:'REPORT-DEMO-002',actor:'guide:demo2',target:'customer:demo2',actorName:'Seojin',targetName:'Jiho',actorRole:'guide',threadId:'CHAT-DEMO-002',reason:'abuse',details:'Please review offensive language in the chat.',at:now-86400000,status:'local'}
   ];
   if(!state.userBlocks?.length)state.userBlocks=state.userReports.filter(r=>r.id.startsWith('REPORT-DEMO-')).map(r=>({actor:r.actor,target:r.target,actorName:r.actorName,name:r.targetName,actorRole:r.actorRole,at:r.at}));
 
@@ -900,20 +1380,26 @@ function seedAdminSamples(){
  let bookingCount=0;state.bookingHistory=(state.bookingHistory||[]).filter(b=>!isSample(b.id)||++bookingCount<=3);
  let ticketCount=0;state.tickets=state.tickets.filter(t=>!/^TK-DEMO-/.test(t.id)||++ticketCount<=3);
  const base=mateApplication();
- if(!state.adminMateSamples)state.adminMateSamples=['Daon · Sample','Eden · Sample'].map((name,i)=>({id:'MATE-DEMO-'+(i+2),status:'pending',step:4,submittedAt:Date.now()-(i+1)*86400000,fields:{...base.fields,name,email:'mate'+(i+2)+'@example.com',bio:'A sample mate introducing local food and walking routes in Seoul.'}}));
- if(!state.userReports.some(r=>r.id==='REPORT-DEMO-003'))state.userReports.push({id:'REPORT-DEMO-003',actor:'customer:demo3',target:'guide:demo3',actorName:'Sample traveler C',targetName:'Sample mate C',actorRole:'customer',threadId:'CHAT-DEMO-003',reason:'other',details:'The guidance differed from what was agreed. Please review.',at:Date.now()-7200000,status:'local'});
+ if(!state.adminMateSamples)state.adminMateSamples=['Daon','Eden'].map((name,i)=>({id:'MATE-DEMO-'+(i+2),status:'pending',step:4,submittedAt:Date.now()-(i+1)*86400000,fields:{...base.fields,name,email:'mate'+(i+2)+'@example.com',bio:'I share local restaurants and walking routes in Seoul.'}}));
+ if(!state.userReports.some(r=>r.id==='REPORT-DEMO-003'))state.userReports.push({id:'REPORT-DEMO-003',actor:'customer:demo3',target:'guide:demo3',actorName:'Yujin',targetName:'Garam',actorRole:'customer',threadId:'CHAT-DEMO-003',reason:'other',details:'The guidance differed from what was agreed. Please review.',at:Date.now()-7200000,status:'local'});
  const third=state.userReports.find(r=>r.id==='REPORT-DEMO-003');if(!state.userBlocks.some(b=>b.actor===third.actor&&b.target===third.target))state.userBlocks.push({actor:third.actor,target:third.target,actorName:third.actorName,name:third.targetName,actorRole:third.actorRole,at:third.at});
  state.adminSampleSeedVersion=2;save();
 }
-function adminPendingCounts(){return {'admin-guides':adminApplications().filter(({application:a})=>(a.revision?.status||a.status)==='pending').length,'admin-bookings':allBookings().filter(b=>['review','needs_info','approved','processing'].includes(b.refundStatus)).length,'admin-support':state.tickets.filter(t=>['open','review'].includes(t.status)).length};}
+function adminPendingCounts(){return {[reportsRoute]:adminSafetyRecords().reports.filter(r=>!reportResolution(r)).length,'admin-guides':adminApplications().filter(({application:a})=>(a.revision?.status||a.status)==='pending').length,'admin-bookings':allBookings().filter(b=>['review','needs_info','approved','processing','failed'].includes(b.refundStatus)).length,'admin-support':state.tickets.filter(t=>['open','review'].includes(t.status)).length};}
 function adminQuery(){return new URLSearchParams(location.hash.split('?')[1]||'');}
 function adminDate(value){if(!value)return '—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString(document.documentElement.lang==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul'});}
-function adminRecordLink(route,record){const q=adminQuery();q.set('record',record);return '#'+route+'?'+esc(q.toString());}
+function adminDetailCell(route,record,recordName){
+ const query=adminQuery();
+ query.set('record',record);
+ const label=esc(recordName?`${recordName} · View details`:'View details');
+ return `<td class="rt-admin-manage"><a class="rt-admin-detail-link" href="#${route}?${esc(query.toString())}" aria-label="${label}" title="${label}">${icon('eye',12)}</a></td>`;
+}
 function adminBack(route){const q=adminQuery();q.delete('record');return `<a class="btn secondary" href="#${route}${q.size?'?'+esc(q.toString()):''}">${icon('chevronLeft',16)} Back to list</a>`;}
-function adminFilter(route,placeholder,options=[]){const q=adminQuery();return `<form id="admin-filter-form" class="card pad rt-admin-filter"><input type="hidden" name="route" value="${route}"><label>Search<input type="search" name="query" value="${esc(q.get('query')||'')}" placeholder="${placeholder}"></label>${options.length?`<label>Status<select name="status"><option value="">All</option>${options.map(([value,label])=>`<option value="${value}" ${q.get('status')===value?'selected':''}>${label}</option>`).join('')}</select></label>`:''}<button class="btn" type="submit">검색</button><a class="btn secondary" href="#${route}">Reset</a></form>`;}
+function supportTypeLabel(t){return ({fee_refund:'Matching fee refund inquiry',no_show:'Traveler no-show',late_no_show:'Late arrival no-show'})[t.type]||t.type||'—';}
+function adminFilter(route,placeholder,options=[]){const q=adminQuery();return `<form id="admin-filter-form" class="card pad rt-admin-filter"><input type="hidden" name="route" value="${route}"><label>Search<input type="search" name="query" value="${esc(q.get('query')||'')}" placeholder="${placeholder}"></label>${route==='admin-support'?`<label>Inquiry type<select name="type"><option value="">All types</option>${[...new Set(state.tickets.map(t=>t.type).filter(Boolean))].map(type=>`<option value="${esc(type)}" ${q.get('type')===type?'selected':''}>${esc(supportTypeLabel({type}))}</option>`).join('')}</select></label>`: ''}${options.length?`<label>Status<select name="status"><option value="">All</option>${options.map(([value,label])=>`<option value="${value}" ${q.get('status')===value?'selected':''}>${label}</option>`).join('')}</select></label>`:''}<button class="btn" type="submit">검색</button><a class="btn secondary" href="#${route}">Reset</a></form>`;}
 function adminBookingStatus(status){return ({matching:'awaiting_mate_fee',booked:'confirmed'})[status]||status;}
-function adminBookingRows(bookings){return bookings.map(b=>`<tr><td><strong>${esc(bookingReferenceLabel(b))}</strong></td><td>${esc(b.guide)}</td><td>${requestPeriod(b)}</td><td><span class="badge rt-status-${({awaiting_mate_fee:'selected',confirmed:'confirmed',completed:'completed',cancelled:'cancelled'})[adminBookingStatus(b.status)]||'expired'}">${esc(statusLabel(b.status))}</span></td><td>${money(b.feeAmount||0)}</td><td><a class="textbtn" href="${adminRecordLink('admin-bookings',b.id)}">View details</a></td></tr>`).join('')||'<tr><td colspan="6" class="rt-admin-empty">No bookings to display.</td></tr>';}
-function adminBookingTable(bookings){return `<div class="tablewrap"><table><thead><tr><th>Booking reference</th><th>Mates</th><th>Travel dates</th><th>Status</th><th>Matching fee</th><th>Manage</th></tr></thead><tbody>${adminBookingRows(bookings)}</tbody></table></div>`;}
+function adminBookingRows(bookings){return bookings.map(b=>`<tr><td><strong>${esc(bookingReferenceLabel(b))}</strong></td><td>${esc(b.guide)}</td><td>${requestPeriod(b)}</td><td><span class="badge rt-status-${({awaiting_mate_fee:'selected',confirmed:'confirmed',completed:'completed',cancelled:'cancelled'})[adminBookingStatus(b.status)]||'expired'}">${esc(statusLabel(b.status))}</span></td><td>${money(b.feeAmount||0)}</td><td>${esc(awaitingGuaranteedRefund(b)?'Full refund pending':refundLabel(b.refundStatus))}</td>${adminDetailCell('admin-bookings',b.id,bookingReferenceLabel(b))}</tr>`).join('')||'<tr><td colspan="7" class="rt-admin-empty">No bookings to display.</td></tr>';}
+function adminBookingTable(bookings){return `<div class="tablewrap"><table><thead><tr><th scope="col">Booking reference</th><th scope="col">Mates</th><th scope="col">Travel dates</th><th scope="col">Status</th><th scope="col">Matching fee</th><th scope="col">Fee refund status</th><th scope="col" class="rt-admin-manage">Manage</th></tr></thead><tbody>${adminBookingRows(bookings)}</tbody></table></div>`;}
 
 function publicRequestMatch(r){
  const regions=mateApplication().fields?.regions||[];
@@ -923,14 +1409,14 @@ function publicRequestMatch(r){
  return {region,available:requestAvailable(r)};
 }
 function publicTravelRequests(requests=matchingContexts().map(x=>x.request)){
- return requests.filter(r=>r&&['requested','quoted'].includes(r.status)&&(!r.visibility||r.visibility==='approved_mates')&&state.booking?.requestId!==r.id&&requestAvailable(r))
+ return requests.filter(r=>r&&!bookingStarted(r)&&['requested','quoted'].includes(r.status)&&(!r.visibility||r.visibility==='approved_mates')&&state.booking?.requestId!==r.id&&requestAvailable(r))
  .sort((a,b)=>{const x=publicRequestMatch(a),y=publicRequestMatch(b);return Number(y.region&&y.available)-Number(x.region&&x.available)||Number(y.available)-Number(x.available)||Number(y.region)-Number(x.region)||(b.createdAt||0)-(a.createdAt||0)||String(a.id).localeCompare(String(b.id));});
 }
 function guideDesk(){const rows=publicTravelRequests(),b=state.booking,activeBooking=b?.guideId==='mina'&&['awaiting_mate_fee','confirmed'].includes(b.status)?b:null;return `<div class="pagehead"><div><p class="muted">Requests matching your area and availability appear first.</p></div></div>${activeBooking?mateBookingCard(activeBooking):''}${rows.length?rows.map(r=>{
  const match=publicRequestMatch(r);
  const sent=proposals().some(q=>q.guideId==='mina'&&q.expires>Date.now()&&(!q.requestId||q.requestId===r.id));
  const region=String(r.region||'').trim()||[...new Set((r.stops||[]).map(p=>String(p.area||'').trim()).filter(Boolean))].join(', ');
- return `<section class="card pad rt-request-card"><div class="rt-request-badges">${mateStatusChip(sent?'waiting':'available')}${match.region&&match.available?'<span class="badge">Area and dates match</span>':''}</div><h2>${requestPeriod(r)}</h2>${region?`<p class="rt-request-region">${icon('location',18)}<span>${esc(region)}</span></p>`:''}<dl class="rt-request-facts"><div><dt>Start time</dt><dd>${esc(r.time||'—')}</dd></div><div><dt>Travelers</dt><dd>${esc(r.party)} guests</dd></div><div><dt>Language</dt><dd>${esc(r.language||'English')}</dd></div></dl>${!match.available?'<p class="hint">These dates overlap with a confirmed booking. Please check other requests.</p>':''}<div class="rt-card-actions">${btn(sent?'View sent proposal':'View trip & propose','guide-quote?request='+encodeURIComponent(r.id))}</div></section>`;
+ return `<section class="card pad rt-request-card"><div class="rt-request-badges">${mateStatusChip(sent?'waiting':'available')}${match.region&&match.available?'<span class="badge">Area and dates match</span>':''}</div><h2>${requestPeriod(r)}</h2>${region?`<p class="rt-request-region">${icon('location',18)}<span>${esc(region)}</span></p>`:''}<dl class="rt-request-facts"><div><dt>Start time</dt><dd>${esc(r.time||'—')}</dd></div><div><dt>Party size</dt><dd>${esc(r.party)} guests</dd></div><div><dt>Language</dt><dd>${esc(r.language||'English')}</dd></div></dl>${!match.available?'<p class="hint">These dates overlap with a confirmed booking. Please check other requests.</p>':''}<div class="rt-card-actions">${btn(sent?'View sent proposal':'View trip & propose','guide-quote?request='+encodeURIComponent(r.id))}</div></section>`;
  }).join(''):empty('No new requests.','Trips appear here when travelers request proposals.','guide-activity','My activity')}`;}
 
 
@@ -952,9 +1438,9 @@ function requestItineraryMap(r){
  const map=stops.length?mapPanel([],stops).replaceAll('data-action="focus-place"','type="button" data-action="quote-map-focus"'):'';
  return `${tabs}${map}<div class="sectionhead"><h3>${quoteMapDay+1} day · ${esc(day.date||'')}</h3></div>${stops.length?`<ol class="trip-timeline">${stops.map((p,i)=>`<li class="trip-timeline-stop"><span class="trip-stop-number">${i+1}</span><div class="trip-stop-content"><span><strong>${esc(p.name)}</strong><small>${esc(p.address||p.area||'')}</small></span><span class="trip-stop-photo">${placeArt(p)}</span></div>${i<stops.length-1?travelLeg(p,stops[i+1]):''}</li>`).join('')}</ol>`:'<p class="hint">No places are listed for this day.</p>'}`;
 }
-function guideQuote(){if(new URLSearchParams(location.hash.split('?')[1]||'').has('proposal'))return guideActivity();const r=state.request;if(state.booking){const b=state.booking;if(b.guideId!=='mina')return side('guide',empty('The traveler selected another mate’s proposal.','Find another trip and send a proposal.','guide-desk','Find trips'));const pending=b.status==='awaiting_mate_fee';if(pending)return side('guide',`${title('','The traveler selected your proposal!')}${mateBookingCard(b)}`);return side('guide',empty(pending?'The traveler selected your proposal!':'View your selected booking.',pending?'Pay the 10% matching fee to confirm the booking.':'View your booking status and trip details directly.','guide-fee',pending?'Confirmed':'View booking'));}if(!r||!['requested','quoted'].includes(r.status))return side('guide',empty('No request available to proposal.','Check its status in your inbox.','guide-desk','Requests'));const sent=proposals().find(q=>q.guideId==='mina'&&q.expires>Date.now());if(sent)return side('guide',`${title('','Sent proposal','Sent proposals cannot be edited. Please wait for the traveler to choose.')}${mateRequestSummary(sent)}${proposalMessage(sent)}<section class="card pad quote-section"><h2>Trip itinerary</h2>${requestItineraryMap(sent)}</section>${proposalWithdrawAction(sent)}`);return side('guide',`${title('','Send a trip proposal','Review the request and enter the total price for the group.')}${mateRequestSummary(r)}<form id="quote-form" class="card pad quote-section">${r.requestType==='free'?`<label>Itinerary for each day<textarea name="plan" required minlength="10" maxlength="2000" placeholder="Enter the places to visit each day."></textarea></label>`:`<h2>Trip itinerary</h2>${requestItineraryMap(r)}`}<label>Total trip price for the group (KRW)<input type="number" name="amount" min="0" step="1" required placeholder="e.g. 240000"></label><label>Write a message for the traveler!<textarea name="message" maxlength="1000" rows="4" placeholder="Write a message for the traveler!"></textarea></label><p class="hint">Meals, shopping, transport and admission are extra. Sent proposals are valid for 24 hours and cannot be edited.</p><label class="check"><input name="ack" type="checkbox" required>I have checked the requested itinerary and total price.</label><p id="quote-error" class="error" role="alert"></p><div class="rt-detail-actions"><button class="btn" type="submit">Send a trip proposal</button></div></form>`);}
+function guideQuote(){if(new URLSearchParams(location.hash.split('?')[1]||'').has('proposal'))return guideActivity();const r=state.request;if(state.booking){const b=state.booking;if(b.guideId!=='mina')return side('guide',empty('The traveler selected another mate’s proposal.','Find another trip and send a proposal.','guide-desk','Find trips'));const pending=b.status==='awaiting_mate_fee';if(pending)return side('guide',`${title('','The traveler selected your proposal!')}${mateBookingCard(b)}`);return side('guide',empty(pending?'The traveler selected your proposal!':'View your selected booking.',pending?'Pay the 10% matching fee to confirm the booking.':'View your booking status and trip details directly.','guide-fee',pending?'Confirmed':'View booking'));}if(!r||!['requested','quoted'].includes(r.status))return side('guide',empty('No request available to proposal.','Check its status in your inbox.','guide-desk','Requests'));const sent=proposals().find(q=>q.guideId==='mina'&&q.expires>Date.now());if(sent)return side('guide',`${title('','Sent proposal','Sent proposals cannot be edited. Please wait for the traveler to choose.')}${mateRequestSummary(sent)}${proposalMessage(sent)}<section class="card pad quote-section"><h2>Trip itinerary</h2>${requestItineraryMap(sent)}</section>${proposalWithdrawAction(sent)}`);return side('guide',`${title('','Send a trip proposal','Review the request and enter the total price for the group.')}${mateRequestSummary(r)}<form id="quote-form" class="card pad quote-section">${r.requestType==='free'?`<label>Itinerary for each day<textarea name="plan" required minlength="10" maxlength="2000" placeholder="Enter the places to visit each day."></textarea></label>`:`<h2>Trip itinerary</h2>${requestItineraryMap(r)}`}<label>Total trip price for the group (KRW)<input type="number" name="amount" min="0" step="1" required placeholder="e.g. 240000"></label><label>Write a message for the traveler!<textarea name="message" maxlength="1000" rows="4" placeholder="Write a message for the traveler!"></textarea></label><p class="hint">Proposals are valid for 24 hours and cannot be edited. Once the booking is confirmed, agree in chat on whether meals, transport and admission are included.</p><label class="check"><input name="ack" type="checkbox" required>I have checked the requested itinerary and total price.</label><p id="quote-error" class="error" role="alert"></p><div class="rt-detail-actions"><button class="btn" type="submit">Send a trip proposal</button></div></form>`);}
 
-function requestAvailable(r=state.request){return !!r&&!mateApplication().activityRestricted&&!mateConflict(r,'mina');}
+function requestAvailable(r=state.request){return !!r&&!activitySuspended(mateApplication())&&!mateConflict(r,'mina');}
 function admin(){return mateAdmin();}
 // Operations reads both language stores afresh so another app tab is visible without overwriting its data.
 function adminSafetyRecords(){
@@ -965,16 +1451,93 @@ function adminSafetyRecords(){
  }catch{}}
  return result;
 }
-function adminSafetyPanel(){
- const {reports,blocks}=adminSafetyRecords();
- const person=(name,id)=>`${esc(name||id||'—')} <small>${esc(id||'')}</small>`;
- const role=r=>(r.actorRole==='guide'||String(r.actor).startsWith('guide:'))?'Mates':'Traveler';
- const meta=r=>`${r.language==='ko'?'KO':'EN'} · ${esc(chatTime(r.at))}`;
- return `<section class="stack"><div class="sectionhead"><h2>User reports · ${reports.length}</h2>${action('Refresh list','refresh-safety','secondary small')}</div>${reports.length?reports.slice().sort((a,b)=>b.at-a.at).map(r=>`<article class="card pad"><span class="badge">${meta(r)}</span><h3>${esc(reportReasons[r.reason]||r.reason)}</h3><p>Reported by (${role(r)}): ${person(r.actorName,r.actor)}</p><p>Reported user: ${person(r.targetName,r.target)}</p><p>${esc(r.details||'No details')}</p><p class="hint">Conversation: ${esc(r.threadId)}</p><p>Block status: ${blocks.some(b=>b.language===r.language&&b.actor===r.actor&&b.target===r.target)?'Blocked':'Not blocked'}</p></article>`).join(''):'<div class="card pad"><p>No user reports.</p></div>'}<h2>Active blocks · ${blocks.length}</h2>${blocks.length?blocks.slice().sort((a,b)=>b.at-a.at).map(b=>`<article class="card pad"><span class="badge">${meta(b)}</span><p>Blocked by (${role(b)}): ${person(b.actorName,b.actor)}</p><p>Blocked user: ${person(b.name,b.target)}</p></article>`).join(''):'<div class="card pad"><p>No active blocks.</p></div>'}</section>`;
+const reportOutcomes={closed:'No further action',warned:'Warning delivered',restricted:'Mate activity restricted'};
+const reportsRoute='admin-support?view=reports';
+function reportRecord(r){return r.language+':'+r.id;}
+function reportedMate(r){
+ if(!String(r.target).startsWith('guide:'))return null;
+ const guideId=r.target.slice(6);
+ if(guideId==='mina'){
+  const application=mateApplication();
+  return application.status==='approved'?{id:'application',application}:null;
+ }
+ const storeKey=`reeltrip-demo-${r.language}-map-v2-option-2`;
+ const stored=JSON.parse(localStorage.getItem(storeKey)||'null');
+ const application=stored?.adminMateSamples?.find(a=>a.guideId===guideId&&a.status==='approved');
+ return application?{id:application.id,application,storeKey,stored}:null;
 }
-function adminSupport(){const q=adminQuery();if(q.has('record')){const ticket=state.tickets.find(t=>t.id===q.get('record'));return side('admin',`${title('Support tickets:',ticket?'Inquiry details':'Inquiry not found.','',adminBack('admin-support'))}${ticket?supportTicketCard(ticket):''}`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=state.tickets.filter(t=>(!status||t.status===status)&&[t.id,t.type,t.body,t.email].join(' ').toLowerCase().includes(query));return side('admin',`${title('','Support management','Open an inquiry to review its details and supporting materials.')}${adminFilter('admin-support','Enter an inquiry ID, content or email',[['open','Received'],['review','Under review'],['needs_info','More information needed'],['resolved','Resolved']])}<section class="card rt-admin-panel"><div class="rt-admin-panel-head"><h2>Inquiry list <span>${rows.length}</span></h2></div><div class="tablewrap"><table><thead><tr><th>Inquiry ID</th><th>유형</th><th>Inquiry content</th><th>Email</th><th>Status</th><th>Manage</th></tr></thead><tbody>${rows.map(t=>`<tr><td>${esc(t.id)}</td><td>${esc(({no_show:'Traveler no-show',late_no_show:'Late arrival no-show'})[t.type]||t.type||'—')}</td><td>${esc(String(t.body||'').slice(0,60))}${String(t.body||'').length>60?'…':''}</td><td>${esc(t.email||'—')}</td><td><span class="badge">${esc(({open:'Received',review:'Under review',needs_info:'More information needed',resolved:'Resolved'})[t.status]||t.status)}</span></td><td><a class="textbtn" href="${adminRecordLink('admin-support',t.id)}">Review details</a></td></tr>`).join('')||'<tr><td colspan="6" class="rt-admin-empty">No inquiries match your filters.</td></tr>'}</tbody></table></div></section><details class="card pad rt-admin-panel"><summary>User reports and blocks</summary>${adminSafetyPanel()}</details>`);}
+function reportResolution(r){
+ const raw=localStorage.getItem('reeltrip-admin-report:'+reportRecord(r));
+ if(raw){try{return JSON.parse(raw);}catch{}}
+ const prior=reportedMate(r)?.application.restrictionHistory?.find(event=>event.report===reportRecord(r));
+ return prior?{outcome:'restricted',note:prior.reason,endDate:prior.endDate}:null;
+}
+function reportStatusBadge(done){
+ return `<span class="badge rt-status-badge" data-status="${done?'resolved':'open'}">${done?'Resolved':'Open'}</span>`;
+}
+function reportClosureForm(record,inDialog=false){
+ return `<form id="resolve-chat-report">${inDialog?'<h2>No further action</h2>':''}<input type="hidden" name="record" value="${esc(record)}"><label>Review record<textarea name="note" required maxlength="1000" rows="2" placeholder="Record what you verified and why no further action is needed."></textarea></label><div class="buttons">${inDialog?'<button type="button" class="btn secondary" data-action="close">Cancel</button>':''}<button type="submit" class="btn">Complete review</button></div></form>`;
+}
+function reportDecisionForm(){
+ return `<form id="report-decision-form"><fieldset class="rt-report-choices"><legend>Choose a report outcome</legend><label><input type="radio" name="decision" value="closed" required>No further action</label><label><input type="radio" name="decision" value="suspend" required>Suspend mate activity</label></fieldset><div class="buttons"><button type="submit" class="btn" disabled>Next</button></div></form>`;
+}
+function selectReportDecision(form){
+ if(!window.ReelAccess.isAdmin||current()!=='admin-support'||adminQuery().get('view')!=='reports')return;
+ const r=adminSafetyRecords().reports.find(item=>reportRecord(item)===adminQuery().get('record'));
+ if(!r||reportResolution(r)){render();return;}
+ const decision=new FormData(form).get('decision');
+ if(decision==='closed')modal(reportClosureForm(reportRecord(r),true));
+ if(decision==='suspend')openSuspensionDialog(true);
+}
+function adminSafetyPanel(){
+ const {reports}=adminSafetyRecords();
+ const record=adminQuery().get('record');
+ if(record){
+  const r=reports.find(item=>reportRecord(item)===record);
+  const back=adminBack('admin-support');
+  if(!r)return title('','Report not found.','',back);
+  const resolution=reportResolution(r);
+  const profile=reportedMate(r);
+  const canRestrict=!resolution&&profile&&!activitySuspended(profile.application);
+  const outcome=resolution&&(reportOutcomes[resolution.outcome]||'Review completed');
+  const review=resolution?`<h2>${esc(outcome)}</h2><p>${esc(resolution.note)}</p>${resolution.endDate?`<p>Suspension end date · ${esc(resolution.endDate)}</p>`:''}`:
+   (canRestrict?reportDecisionForm():reportClosureForm(record));
+  return `<div class="rt-admin-detail">${suspensionHeader('Report details',back,'')}<section class="card pad rt-admin-panel"><header class="rt-admin-info-heading"><h2>${esc(reportReasons[r.reason]||r.reason)}</h2>${reportStatusBadge(!!resolution)}</header><dl class="rt-admin-info-grid"><div class="rt-admin-info-row"><dt>Reporter</dt><dd>${esc(r.actorName||r.actor)}</dd></div><div class="rt-admin-info-row"><dt>Reported user</dt><dd>${esc(r.targetName||r.target)} ${activitySuspended(profile?.application)?'<span class="badge">Restricted</span>':''}</dd></div><div class="rt-admin-info-row rt-admin-info-row--wide"><dt>Received</dt><dd>${esc(chatTime(r.at))}</dd></div></dl>${r.details?`<div class="rt-admin-narrative"><h3>Report details</h3><p>${esc(r.details)}</p></div>`:''}</section><section class="card pad rt-admin-panel">${resolution?'':'<h2>Review report</h2>'}<div class="rt-admin-review-form">${review}</div></section></div>`;
 
-function adminBookings(){const q=adminQuery();if(q.has('record')){const selected=allBookings().find(b=>b.id===q.get('record'));return side('admin',`<div class="rt-admin-detail">${title('',selected?'Booking details':'Booking not found.',selected?statusLabel(selected.status):'',adminBack('admin-bookings'))}${selected?operationsBookingForm(selected):''}</div>`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',bookings=allBookings().filter(b=>(!status||adminBookingStatus(b.status)===status)&&(bookingReferenceLabel(b)+' '+b.guide).toLowerCase().includes(query));return side('admin',`${title('','Matching & bookings','Review matching fees and booking processing history.')}${adminFilter('admin-bookings','Enter a booking reference or mate name',['awaiting_mate_fee','confirmed','completed','cancelled'].map(status=>[status,statusLabel(status)]))}<section class="card rt-admin-panel"><div class="rt-admin-panel-head"><h2>Booking list <span>${bookings.length}</span></h2></div>${adminBookingTable(bookings)}</section>`);}
+ }
+ const query=adminQuery();
+ const search=(query.get('query')||'').trim().toLowerCase(),status=query.get('status')||'';
+ const items=reports.map(r=>({r,done:!!reportResolution(r)})).filter(({r,done})=>{
+  if(status&&status!==(done?'resolved':'open'))return false;
+  return !search||[r.actorName,r.targetName,r.actor,r.target,reportReasons[r.reason],r.details].some(value=>String(value||'').toLowerCase().includes(search));
+ }).sort((a,b)=>Number(a.done)-Number(b.done)||b.r.at-a.r.at);
+ const rows=items.map(({r,done})=>`<tr><td>${esc(chatTime(r.at))}</td><td>${esc(r.actorName||r.actor)}</td><td>${esc(r.targetName||r.target)}</td><td class="rt-ticket-preview"><span>${esc(reportReasons[r.reason]||r.reason)}${r.details?` · ${esc(r.details)}`:''}</span></td><td>${reportStatusBadge(done)}</td>${adminDetailCell('admin-support',reportRecord(r),r.targetName||r.target)}</tr>`).join('');
+ return `${title('','Report management','Review chat reports and restrict mate activity when necessary.')}${adminFilter(reportsRoute,'Search reporter, reported user or report details',[['open','Open'],['resolved','Resolved']])}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>Reports</h2></div><div class="tablewrap"><table><thead><tr><th scope="col">Received</th><th scope="col">Reporter</th><th scope="col">Reported user</th><th scope="col">Report details</th><th scope="col">Status</th><th scope="col" class="rt-admin-manage">Manage</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="rt-admin-empty">${search||status?'No reports match your filters.':'No user reports.'}</td></tr>`}</tbody></table></div></section>`;
+}
+function resolveChatReport(form,decision='closed'){
+ if(!window.ReelAccess.isAdmin||current()!=='admin-support'||adminQuery().get('view')!=='reports')return;
+ const r=adminSafetyRecords().reports.find(item=>reportRecord(item)===adminQuery().get('record'));
+ const data=new FormData(form);
+ if(!r||reportResolution(r)||data.get('record')!==reportRecord(r)){
+  if($('#dialog')?.open)$('#dialog').close();
+  render();return;
+ }
+ const note=String(data.get('note')||'').trim();
+ if(!note||note.length>1000){toast('Enter a reason for your decision.');return;}
+ if(decision!=='confirm'&&decision!=='closed')return;
+ if(decision==='confirm'){
+  const profile=reportedMate(r);
+  if(!profile||!changeActivityRestriction(profile.id,'restrict',note,{profile,report:reportRecord(r),endDate:data.get('endDate')})){$('#dialog')?.close();render();toast('Check the current status and reason.');return;}
+ }
+ const result={outcome:decision==='confirm'?'restricted':'closed',note,...(decision==='confirm'?{endDate:data.get('endDate')}:{})};
+ try{localStorage.setItem('reeltrip-admin-report:'+reportRecord(r),JSON.stringify(result));}
+ catch{if(decision!=='confirm'){toast('Could not save. Please try again.');return;}}
+ if($('#dialog')?.open)$('#dialog').close();
+ const filters=adminQuery();filters.delete('record');go('admin-support?'+filters.toString());
+}
+function adminSupport(){const q=adminQuery();if(q.get('view')==='reports')return side('admin',adminSafetyPanel());if(q.has('record')){const ticket=state.tickets.find(t=>t.id===q.get('record'));return side('admin',`<div class="rt-admin-detail">${suspensionHeader(ticket?'Inquiry details':'Inquiry not found.',adminBack('admin-support'),'')}${ticket?supportTicketCard(ticket):''}</div>`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',rows=state.tickets.filter(t=>(!q.get('type')||t.type===q.get('type'))&&(!status||(status==='open'?t.status!=='resolved':t.status===status))&&[ticketReferenceLabel(t),t.id,supportTypeLabel(t),t.body,t.email].join(' ').toLowerCase().includes(query)).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));return side('admin',`${title('','Support management','Review inquiries and reply by email.')}${adminFilter('admin-support','Enter an inquiry number, content or email',[['open','Received'],['resolved','Resolved']])}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>Inquiry list</h2></div><div class="tablewrap"><table><thead><tr><th scope="col">Inquiry number</th><th scope="col">Submitted</th><th scope="col">유형</th><th scope="col">Inquiry content</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col" class="rt-admin-manage">Manage</th></tr></thead><tbody>${rows.map(t=>`<tr><td><strong>${esc(ticketReferenceLabel(t))}</strong></td><td>${adminDate(t.createdAt)}</td><td>${esc(supportTypeLabel(t))}</td><td class="rt-ticket-preview"><span>${esc(t.body||'')}</span></td><td>${esc(t.email||'—')}</td><td><span class="badge rt-status-${({open:'available',review:'waiting',needs_info:'selected',resolved:'confirmed'})[t.status]||'expired'}">${esc(({open:'Received',review:'Under review',needs_info:'More information needed',resolved:'Resolved'})[t.status]||t.status)}</span></td>${adminDetailCell('admin-support',t.id,ticketReferenceLabel(t))}</tr>`).join('')||'<tr><td colspan="7" class="rt-admin-empty">No inquiries match your filters.</td></tr>'}</tbody></table></div></section>`);}
+
+function adminBookings(){const q=adminQuery();if(q.has('record')){const selected=allBookings().find(b=>b.id===q.get('record'));return side('admin',`<div class="rt-admin-detail">${suspensionHeader(selected?'Booking details':'Booking not found.',adminBack('admin-bookings'),'')}${selected?operationsBookingForm(selected):''}</div>`);}const query=(q.get('query')||'').toLowerCase(),status=q.get('status')||'',bookings=allBookings().filter(b=>(!status||adminBookingStatus(b.status)===status||(status==='refund_pending'&&pendingRefund(b))||(status==='dispute_open'&&b.disputeStatus==='open'))&&(bookingReferenceLabel(b)+' '+b.guide).toLowerCase().includes(query));return side('admin',`${title('','Booking management','Check bookings and matching fees, and manage cancellations and refunds.')}${adminFilter('admin-bookings','Enter a booking reference or mate name',['awaiting_mate_fee','confirmed','completed','cancelled'].map(status=>[status,statusLabel(status)]).concat([['refund_pending','Refund processing'],['dispute_open','Operations review']]))}<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>Booking list</h2></div>${adminBookingTable(bookings)}</section>`);}
 
 
 const demoSignupCode='482916';
@@ -1132,7 +1695,6 @@ function signupEmail(){
  let content;
  if(signupEmailStep==='code'){
   content=`${heading(signupText('verify'),signupText('codeIntro'))}
-   <p class="signup-demo-code developer-only">${signupText('demo')} <strong>${demoSignupCode}</strong></p>
 
    <form id="signup-code-form">
     <label for="signup-code">${signupText('code')}</label>
@@ -1162,10 +1724,10 @@ function showSignupEmailStep(step){
 }
 
 const views={'guide-activity':guideActivity,'mate-register':mateRegistration,signup,'signup-email':signupEmail,'guide-fee':guideFee,settings:settingsPage,notifications,home,processing,results,manual,board,planner,trips,account,support,policies,guides,guide:guidePage,request,requested,quote,checkout,booking,messages,chat,cancel,'guide-desk':guideDesk,'guide-quote':guideQuote,admin,'admin-support':adminSupport,'admin-guides':mateAdmin,'admin-bookings':adminBookings};
-function render(){if(ensureBookingReferences())save();expireAllMateFees();const routeParams=new URLSearchParams(location.hash.split('?')[1]||'');const matchingId=routeParams.get('request')||matchingContexts().find(x=>x.booking?.id===routeParams.get('record'))?.request.id;if(matchingId&&state.request?.id!==matchingId)activateMatching(matchingId);
+function render(){scheduleSuspensionRefresh();if(ensureBookingReferences()||ensureTicketReferences())save();expireAllMateFees();closeStartedRequests();const routeParams=new URLSearchParams(location.hash.split('?')[1]||'');const matchingId=routeParams.get('request')||matchingContexts().find(x=>x.booking?.id===routeParams.get('record'))?.request.id;if(!window.ReelAccess.isAdmin&&matchingId&&state.request?.id!==matchingId)activateMatching(matchingId,false);
  expireMateFee();
  clearTimeout(feeExpiryTimer);
- if(!isGuest()&&allBookings().some(b=>b.status==='awaiting_mate_fee')){const remaining=Math.min(...allBookings().filter(b=>b.status==='awaiting_mate_fee').map(feeDeadline))-Date.now();if(remaining>0&&remaining<2147483647)feeExpiryTimer=setTimeout(()=>render(),remaining);}
+ if(!isGuest()){const remaining=Math.min(scheduleTravelNotices(),...allBookings().filter(b=>b.status==='awaiting_mate_fee').map(feeDeadline))-Date.now();if(remaining>0&&remaining<2147483647)feeExpiryTimer=setTimeout(()=>render(),remaining);}
  markChatRead();
  if(!['member-required','signup','signup-email'].includes(current())){pendingRestaurant=null;pendingEstimate=false;}
  const route=current();
@@ -1192,7 +1754,7 @@ function modal(html,kind=''){html=interfaceMarkup(html);const d=$('#dialog');del
  if(d.querySelector?.('.btn.danger'))d.querySelector('.buttons .secondary')?.focus();
 }
 function snapshot(){return state.board.map(place).filter(Boolean).map(p=>({...p}));}
-function makeQuote(amount,plan,reason,pricing,sender='mina',message=''){const r=state.request;if(!r||!['requested','quoted'].includes(r.status)||state.booking)return false;if(mateApplication().activityRestricted||mateConflict(r,sender)){toast('Your mate is unavailable on this date. Choose another date.');return false;}if(amount===undefined)amount=240000*(r.dayCount||1);if(!Number.isSafeInteger(amount)||amount<0||!['mina','jun'].includes(sender))return false;const existing=proposals().find(q=>q.guideId===sender);if(existing?.expires>Date.now())return false;plan=r.requestType==='free'?String(plan||'').trim():requestPlan(r);if(r.requestType==='free'&&(plan.length<10||plan.length>2000))return false;message=String(message||'').trim();if(message.length>1000)return false;state.quote={message,requestId:r.id,guideId:sender,pricingPolicyVersion:"2026-11-23-mvp",feeRate:.1,feeVatIncluded:null,pricing:{hours:4*(r.dayCount||1)},id:'QT-'+r.id+'-'+sender,version:(existing?.version||0)+1,guide:sender==='jun'?'Jun':'Mina',requestType:r.requestType||'itinerary',tripTitle:r.tripTitle,region:r.region,endDate:r.endDate||r.date,dayCount:r.dayCount||1,days:JSON.parse(JSON.stringify(r.days||[])),date:r.date,time:r.time,party:r.party,amount,plan:plan||requestPlan(r),reason:r.requestType==='free'?'An itinerary for your requested dates and group.':'Join the trip with your requested itinerary unchanged.',expires:Date.now()+86400000};state.proposals=[...proposals().filter(q=>q.guideId!==sender),state.quote];state.request.status='quoted';save();return true;}
+function makeQuote(amount,plan,reason,pricing,sender='mina',message=''){const r=state.request;if(!r||bookingStarted(r)||!['requested','quoted'].includes(r.status)||state.booking)return false;if((sender==='mina'&&activitySuspended(mateApplication()))||mateConflict(r,sender)){toast('Your mate is unavailable on this date. Choose another date.');return false;}if(amount===undefined)amount=240000*(r.dayCount||1);if(!Number.isSafeInteger(amount)||amount<0||!['mina','jun'].includes(sender))return false;const existing=proposals().find(q=>q.guideId===sender);if(existing?.expires>Date.now())return false;plan=r.requestType==='free'?String(plan||'').trim():requestPlan(r);if(r.requestType==='free'&&(plan.length<10||plan.length>2000))return false;message=String(message||'').trim();if(message.length>1000)return false;state.quote={message,requestId:r.id,guideId:sender,pricingPolicyVersion:"2026-11-23-mvp",feeRate:.1,feeVatIncluded:null,pricing:{hours:4*(r.dayCount||1)},id:'QT-'+r.id+'-'+sender,version:(existing?.version||0)+1,guide:sender==='jun'?'Jun':'Mina',requestType:r.requestType||'itinerary',tripTitle:r.tripTitle,region:r.region,endDate:r.endDate||r.date,dayCount:r.dayCount||1,days:JSON.parse(JSON.stringify(r.days||[])),date:r.date,time:r.time,party:r.party,amount,plan:plan||requestPlan(r),reason:r.requestType==='free'?'An itinerary for your requested dates and group.':'Join the trip with your requested itinerary unchanged.',expires:Date.now()+86400000};state.proposals=[...proposals().filter(q=>q.guideId!==sender),state.quote];state.request.status='quoted';recordBookingNotice('proposal',state.quote,['customer']);save();return true;}
 function download(name,data){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function sample(){previewExtractionStarted=true;state.source='Coffee and walks in Seongsu';state.filter='All';state.selected=['forest','cafe','shop'];state.extraction='processing';save();go('processing');}
 function loadScenario(kind){
@@ -1214,7 +1776,19 @@ document.addEventListener('pointercancel',()=>{dialogBackdropPressed=false;});
 document.addEventListener('click',e=>{const dismiss=dialogBackdropPressed&&isDialogBackdrop(e);dialogBackdropPressed=false;if(!dismiss)return;const d=$('#dialog');if(d.dispatchEvent(new Event('cancel',{cancelable:true})))d.close();});
 document.addEventListener('error',e=>{if(e.target.matches?.('.provider-photo img')){e.target.parentElement.innerHTML=art();}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.place-menu[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus();});}});
-document.addEventListener('change',e=>{if(e.target.id==='support-files')readSupportFiles(e.target);if(e.target.id==='support-type'){$('#support-no-show').hidden=!['no_show','late_no_show'].includes(e.target.value);}});
+document.addEventListener('change',e=>{const control=e.target;
+ if(control.name==='markDispute'&&control.form?.id.startsWith('operations-ticket-form-')){
+  control.form.querySelector('#ticket-dispute-booking').hidden=!control.checked;
+  control.form.elements.disputeReference.disabled=!control.checked;
+  if(control.checked)control.form.elements.disputeReference.focus();
+  return;
+ }
+ if(control.name==='reasonCode'&&control.form?.id.startsWith('operations-booking-form-')){
+  updateCancellationRefund(control);return;
+ }
+ if(control.form?.id==='report-decision-form'&&control.name==='decision'){control.form.querySelector('button[type="submit"]').disabled=false;return;}
+ if(control.form?.id==='admin-filter-form'&&control.name==='status'&&control.form.elements.route.value===reportsRoute){control.form.requestSubmit();return;}
+ if(e.target.id==='support-files')readSupportFiles(e.target);if(e.target.id==='support-type'||e.target.name==='refundReason'){const group=$('#support-refund-reason'),select=group.querySelector('select'),refund=$('#support-type').value==='fee_refund';group.hidden=!refund;select.disabled=!refund;const incident=$('#support-refund-date');incident.hidden=!refund;incident.disabled=!refund;if(!refund)select.value='';const fields=$('#support-no-show'),active=['no_show','late_no_show'].includes(select.value);fields.hidden=!active;fields.disabled=!active;fields.querySelector('[name=waited]').checked=false;$('#support-wait-label').textContent=select.value==='late_no_show'?'I waited 60 minutes after the delay notice and we still have not met.':'I waited 30 minutes and sent at least two chat messages without a reply.';if(!active){supportLocation=null;$('#support-location-status').textContent='';}}});
 document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[open]').forEach(menu=>{if(!menu.contains(e.target)||e.target.closest('[data-action]'))menu.open=false;});if(e.target.closest('.skip')){e.preventDefault();$('#main')?.focus();return;}const b=e.target.closest('[data-action]');if(!b)return;e.preventDefault();const a=b.dataset.action,id=b.dataset.id;
  if(a==='open-matching'){if(activateMatching(id))go(window.ReelAccess.mode()==='guide'?'guide-quote':'requested');return;}
  if(a==='withdraw-proposal'){const context=matchingContexts().find(x=>x.proposals?.some(q=>q.id===id)),q=context?.proposals.find(q=>q.id===id);if(!canWithdrawProposal(q))return;modal(`<h2>Withdraw this proposal?</h2><p>The traveler will no longer be able to select this proposal.</p><div class="buttons">${action('Cancel','close','secondary')}${action('Withdraw proposal','confirm-withdraw-proposal','danger',`data-id="${esc(id)}"`)}</div>`);return;}
@@ -1277,7 +1851,7 @@ document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[ope
  if(a==='guides-tab'){if(['discover','requests'].includes(id)){guidesTab=id;render();}return;}
  if(a==='notification-filter'){if(['all','trip','guide'].includes(id)){notificationFilter=id;render();}return;}
  if(a==='notifications-read-all'){markNotificationsRead(notificationItems().map(n=>n.id));render();return;}
- if(a==='notification-open'){const item=notificationItems().find(n=>n.id===id);if(item){markNotificationsRead([id]);go(item.route);}return;}
+ if(a==='notification-open'){const item=notificationItems().find(n=>n.id===id);if(item){markNotificationsRead([id]);if(item.requestId&&!matchingContexts().some(x=>x.request.id===item.requestId)&&!allBookings().some(b=>b.id===item.bookingId)){render();toast('The linked record is unavailable.');return;}if(item.role&&window.ReelAccess.mode()!==item.role&&!window.ReelAccess.switchMode(item.role)){render();toast('This record is currently unavailable.');return;}go(item.route);}return;}
 
  if(a==='trip-stop-menu'){tripStopMenu(id);return;}
  if(a==='trip-day-settings'){tripDaySettings();return;}
@@ -1312,10 +1886,10 @@ document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[ope
  else if(a==='save-places'){if(!saveSelectedPlaces(state.selected))return;go('board');toast('Selected places saved.');}
  else if(a==='add-board'){const unresolved=state.selected.find(id=>!pinEligible(place(id)));if(unresolved){resolvePlace(unresolved,true);return;}if(state.selected.some(id=>!place(id)?.verified)){toast('Check the address of any unverified place first, so you do not visit the wrong branch.');return;}const ids=[...new Set([...state.board,...state.selected])];if(ids.length>20){toast('Day에 20 places까지 담을 수 있어요.');return;}state.library=[...new Set([...libraryIds(),...state.selected])];state.board=ids;state.saved=false;save();go(tripDetailRoute());}
  else if(a==='correct'){resolvePlace(id,isTripDetail()||current()==='planner');}
- else if(a==='refresh-safety'){if(window.ReelAccess.isAdmin)render();}
+ else if(a==='mate-suspension'){openSuspensionDialog(false);}
  else if(a==='user-safety'){safetyMenu();}
  else if(a==='blocked-users'){blockedUsers();}
- else if(a==='user-report'){const room=chatContext()?.room;if(!safetyAllowed(room))return;if(state.userReports?.some(r=>r.actor===safetyActor(room)&&r.threadId===room.id)){modal(`<h2>Report already saved.</h2>${action('Close','close','secondary')}`);return;}modal(`<form id="user-report-form"><input type="hidden" name="thread" value="${esc(room.id)}"><h2>User reports</h2><p>${esc(safetyName(room))}</p><label>Report reason<select name="reason" required><option value="">Please select</option>${Object.entries(reportReasons).map(([value,label])=>`<option value="${value}">${label}</option>`).join('')}</select></label><label>Details (required for Other)<textarea name="details" maxlength="1000"></textarea></label><p id="report-error" role="alert" class="error"></p><div class="buttons">${action('Cancel','close','secondary')}<button type="submit" class="btn">Save report</button></div></form>`);}
+ else if(a==='user-report'){const room=chatContext()?.room;if(!safetyAllowed(room))return;if(state.userReports?.some(r=>r.actor===safetyActor(room)&&r.threadId===room.id)){modal(`<h2>Report already saved.</h2>${action('Close','close','secondary')}`);return;}modal(`<form id="user-report-form"><input type="hidden" name="thread" value="${esc(room.id)}"><h2>User reports</h2><p>${esc(safetyName(room))}</p><p class="hint">Your booking and chat history stay available after a report. Check your booking details for cancellation options, or use the chat menu to block this person.</p><label>Report reason<select name="reason" required><option value="">Select a reason</option>${Object.entries(reportReasons).map(([value,label])=>`<option value="${value}">${label}</option>`).join('')}</select></label><label>Details (required for Other)<textarea name="details" maxlength="1000"></textarea></label><p id="report-error" role="alert" class="error"></p><div class="buttons">${action('Cancel','close','secondary')}<button type="submit" class="btn">Save report</button></div></form>`);}
  else if(a==='user-block'){const room=chatContext()?.room;if(!safetyAllowed(room))return;const blocked=!!ownBlock(room);modal(`<h2>${blocked?'Unblock this user?':'Block this user?'}</h2><p>${blocked?unblockNotice():'Blocking prevents messages with this person. Existing conversations and bookings are kept.'}</p><div class="buttons">${action('Cancel','close','secondary')}${action(blocked?'Unblock':'Block','user-block-confirm','danger',`data-id="${esc(room.id)}" data-block="${!blocked}"`)}</div>`);}
  else if(a==='user-block-confirm'){const room=chatContext()?.room;if(room?.id!==id||!setUserBlock(room,b.dataset.block==='true'))return;$('#dialog').close();render();toast(b.dataset.block==='true'?'User blocked.':'User unblocked.');}
  else if(a==='user-unblock'){const room=syncConversations().find(r=>safetyActor(r)===b.dataset.actor&&safetyTarget(r)===id);if(!safetyAllowed(room)||!ownBlock(room))return;modal(`<h2>Unblock this user?</h2><p>${esc(safetyName(room))}</p><p>${unblockNotice()}</p><div class="buttons">${action('Cancel','blocked-users','secondary')}${action('Unblock','user-unblock-confirm','',`data-id="${esc(id)}" data-actor="${esc(b.dataset.actor)}"`)}</div>`);}
@@ -1340,22 +1914,78 @@ document.addEventListener('click',e=>{document.querySelectorAll('.place-menu[ope
  else if(a==='expire-quote'){if(state.quote){state.quote.expires=Date.now()-1;save();render();}}
 
  else if(a==='decline'){if(state.request&&['requested','quoted'].includes(state.request.status)&&!state.booking)modal(`<h2>Decline request</h2><form id="decline-form"><label>Reason<textarea name="reason" required minlength="5" maxlength="500"></textarea></label><div class="buttons"><button class="btn danger" type="submit">Decline request</button>${action('Go back','close','secondary')}</div></form>`);}
- else if(a==='resolve-ticket'){const t=state.tickets.find(x=>x.id===id);if(t){t.status='resolved';save();render();}}
- else if(a==='refund-fail')toast('Simulated payment provider error: refund review and payout hold remain in place.');
+ else if(a==='refund-fail')toast('The refund result could not be verified. Check the payment provider’s records.');
 });
 document.addEventListener('input',e=>{if(e.target.id==='mate-phone-code')e.target.value=e.target.value.replace(/[^0-9]/g,'').slice(0,6);if(e.target.name==='contact'&&e.target.closest?.('#mate-form')){matePhoneDemo.verified=false;const status=$('#mate-phone-status');if(status)status.textContent='';const send=$('[data-action="mate-phone-send"]');if(send)send.disabled=false;}if(e.target.matches?.('input[name="party"]'))e.target.value=e.target.value.replace(/[^0-9]/g,'').slice(0,2);if(e.target.closest?.('#mate-form')&&!isGuest()){const a=mateApplication();if(!['pending','approved'].includes(a.status))saveMate(captureMate(e.target.closest('#mate-form'),a));}if(e.target.id==='mate-name'){const message=$('#mate-name-status');if(message)message.textContent='';e.target.setAttribute('aria-invalid','false');}if(e.target.id==='profile-nickname'){checkedNickname='';setNicknameStatus();}});
 document.addEventListener('change',e=>{const t=e.target;if(t.id==='signup-marketing'){signupMarketing=t.checked;return;}if(t.dataset.tripDayField){if(!updateTripDay(t.dataset.tripDayField,t.value)){t.value=state[t.dataset.tripDayField];return;}render();return;}if(t.id==='mate-edit-photo'){readMateEditPhoto(t);return;}if(t.id==='mate-photo'){readMatePhoto(t);return;}if(t.id==='mate-city'){mateRegionCity=Number(t.value);mateRegionSheet(false);return;}if(t.id==='profile-photo'){const file=t.files?.[0];if(!file)return;const error=$('#profile-error');if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>1048576){error.textContent='Choose a JPG, PNG or WebP photo up to 1MB.';t.value='';return;}error.textContent='';const reader=new FileReader();$('#profile-save').disabled=true;reader.onload=()=>{profileDraftPhoto=reader.result;$('#profile-photo-preview').innerHTML=profileAvatar(profileDraftPhoto);$('#profile-photo-clear').hidden=false;$('#profile-camera-button').hidden=true;$('#profile-save').disabled=false;};reader.onerror=()=>{error.textContent='Could not load this photo. Please try again.';$('#profile-save').disabled=false;};reader.readAsDataURL(file);return;}if(t.id==='screen-jump')go(t.value);else if(t.dataset.select){const id=t.dataset.select;state.selected=t.checked?[...new Set([...state.selected,id])]:state.selected.filter(x=>x!==id);save();render();}else if(['trip-title','trip-date','trip-time'].includes(t.id)){if(!t.value)return;state[t.id==='trip-title'?'title':t.id==='trip-date'?'date':'time']=t.value;state.saved=false;save();if(t.id==='trip-time')render();}});
-document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFormElement))return;e.preventDefault();if(f.id==='admin-filter-form' &&window.ReelAccess.isAdmin){const data=new FormData(f),params=new URLSearchParams();for(const key of ['query','status']){const value=String(data.get(key)||'').trim();if(value)params.set(key,value);}go(String(data.get('route'))+(params.size?'?'+params.toString():''));return;}if(f.id==='discover-search-form'){startDiscovery(f.elements.query.value);return;}if(isGuest() && !['signup-code-form','signup-email-form'].includes(f.id)){go('member-required');return;}
+document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFormElement))return;e.preventDefault();if(window.ReelAccess.isAdmin&&f.id.startsWith('operations-'))restoreSharedState(localStorage.getItem(key));if(f.id==='report-decision-form'){selectReportDecision(f);return;}if(f.id==='resolve-chat-report'){resolveChatReport(f);return;}if(f.id==='confirm-report-restriction'){resolveChatReport(f,'confirm');return;}if(f.id==='admin-filter-form' &&window.ReelAccess.isAdmin){const data=new FormData(f),params=new URLSearchParams();for(const key of ['query','type','status']){const value=String(data.get(key)||'').trim();if(value)params.set(key,value);}go(String(data.get('route'))+(params.size?(data.get('route')===reportsRoute?'&':'?')+params.toString():''));return;}if(f.id==='discover-search-form'){startDiscovery(f.elements.query.value);return;}if(isGuest() && !['signup-code-form','signup-email-form'].includes(f.id)){go('member-required');return;}
  if(f.id==='mate-edit-form'){saveMateEdit(f);return;}
  if(f.id==='mate-form'){submitMate(f);return;}
  if(f.id==='mate-review-form'){confirmMateReview('approved');return;}
- if(f.id==='mate-review-confirm-form'){const values=new FormData(f),reason=String(values.get('reason')||'').trim();if(!f.checkValidity())return;if(reviewMate(String(values.get('decision')),reason,String(values.get('record')))){$('#dialog').close();render();}else $('#mate-review-confirm-error').textContent='Unable to process. Check the application status and reason.';return;}
+ if(f.id==='mate-review-confirm-form'){const values=new FormData(f),reason=String(values.get('reason')||'').trim();if(!f.checkValidity())return;if(reviewMate(String(values.get('decision')),reason,String(values.get('record')))){$('#dialog').close();const q=adminQuery();q.delete('record');go('admin-guides'+(q.size?'?'+q.toString():''));}else $('#mate-review-confirm-error').textContent='Unable to process. Check the application status and reason.';return;}
  if(f.id==='withdraw-account-form'){withdrawAccount(f);return;}
  const d=Object.fromEntries(new FormData(f));
- if(f.id==='activity-restriction-form'){if(!window.ReelAccess.isAdmin||!String(d.reason||'').trim())return;const record=adminQuery().get('record')||'application',a=adminReviewApplication(record);if(!a)return;a.activityRestricted=!!d.restricted;a.restrictionReason=String(d.reason).trim();a.restrictionUpdatedAt=Date.now();if(saveAdminApplication(a,record))render();return;}
- if(f.id.startsWith('operations-ticket-form-')){if(!window.ReelAccess.isAdmin)return;const t=state.tickets.find(x=>x.id===d.ticketId);if(t&&['open','review','needs_info','resolved'].includes(d.status)&&String(d.note||'').trim()){t.status=d.status;t.note=String(d.note).trim();t.updatedAt=Date.now();t.history=t.history||[];t.history.push({at:t.updatedAt,status:t.status,note:t.note});save();render();}return;}
- if(f.id.startsWith('operations-booking-form-')){if(f.checkValidity())confirmOperationsBooking(d);return;}
- if(f.id==='operations-booking-confirm-form'){if(saveOperationsBooking(d)){$('#dialog').close();render();toast('Processing record saved.');}else $('#operations-booking-error').textContent='Check the booking status, reason and payment provider full refund confirmation.';return;}
+ if(f.id==='activity-restriction-form'){const record=adminQuery().get('record')||'application';if(d.record===record&&changeActivityRestriction(record,d.transition,d.note,{endDate:d.endDate})){$('#dialog').close();render();}else toast('Check the current status and reason.');return;}
+ if(f.id.startsWith('operations-ticket-form-')){if(!window.ReelAccess.isAdmin)return;const t=state.tickets.find(x=>x.id===d.ticketId);if(d.expectedUpdate!==undefined&&String(t?.updatedAt||0)!==String(d.expectedUpdate)){render();toast('This case was updated. Review the latest details.');return;}const note=String(d.note||'').trim(),replySent=d.replySent==='on',evidenceDate=t?.type==='fee_refund'?String(d.evidenceDate??t.evidenceDate??''):'';
+  if(evidenceDate&&(!/^\d{4}-\d{2}-\d{2}$/.test(evidenceDate)||dateAfter(evidenceDate,0)!==evidenceDate||evidenceDate>refundIncidentRange().today||t.createdAt&&evidenceDate<new Date(t.createdAt).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}))){toast('Check the date the evidence was received.');return;}
+  if(!t||!note||note.length>1000)return;
+  d.status='resolved';
+  if(!replySent){toast('Confirm that you have emailed the requester.');return;}
+  let booking;
+  if(d.markDispute){
+   if(allBookings().some(row=>row.disputeStatus==='open'&&row.disputeTicketId===t.id)){toast('This booking is already under operations review.');return;}
+   const reference=String(d.disputeReference||'').trim().toUpperCase().replace(/^RS-/,'');
+   booking=allBookings().find(row=>bookingReference(row)===reference);
+   if(!booking){toast('No booking matches this number.');return;}
+   if(booking.disputeStatus==='open'){toast('This booking is already under operations review.');return;}
+  }
+  let refundBooking;
+  if(t.type==='fee_refund'&&!t.refundBookingId&&String(d.refundReference||'').trim()){
+   const reference=d.refundReference.trim().toUpperCase().replace(/^RS-/,'');
+   refundBooking=allBookings().find(row=>bookingReference(row)===reference);
+   if(!refundBooking){toast('No booking matches this number.');return;}
+   if(!hasPaidFee(refundBooking)||!['cancelled','completed'].includes(refundBooking.status)){toast('Choose a cancelled or completed booking with a paid matching fee.');return;}
+  }
+  if(!booking&&!refundBooking&&t.status===d.status&&t.note===note&&!!t.replySent===replySent&&(t.evidenceDate||'')===evidenceDate)return;
+  const at=Math.max(Date.now(),(Number(t.updatedAt)||0)+1);
+  const entry={at,status:d.status,note,replySent,replyEmail:t.email};
+  if(booking){
+   booking.disputeStatus='open';booking.disputeOpenedAt=at;booking.disputeTicketId=t.id;
+   t.disputeBookingId=booking.id;entry.disputeBookingNumber=bookingReferenceLabel(booking);
+   (booking.operationsLog||=[]).push({at,operation:'open_dispute',ticketId:t.id,note,bookingStatus:booking.status});
+  }
+  if(refundBooking){
+   t.refundBookingId=refundBooking.id;
+   const status=refundBooking.refundStatus;
+   const unreviewedDenial=status==='not_eligible'&&!refundBooking.refundReviewedAt;
+   if(!status||['none','None'].includes(status)||unreviewedDenial){
+    refundBooking.refundStatus='review';refundBooking.refundRequestedAt=at;
+    refundBooking.refundRequestedAmount=refundBooking.feeAmount;
+   }
+  }
+  if(t.type==='fee_refund'){t.evidenceDate=evidenceDate;if(evidenceDate)entry.evidenceDate=evidenceDate;}
+  if(!t.history?.length)t.history=t.note?[{at:t.updatedAt,status:t.status,note:t.note}]:[];
+  t.status=entry.status;t.note=note;t.replySent=replySent;t.updatedAt=at;t.history.push(entry);
+  if(saveOperationsRecord()){render();toast('Processing record saved.');}
+  return;
+ }
+ if(f.id.startsWith('operations-booking-form-')){
+  if(d.operation==='refund_review')d.decision=e.submitter?.value;
+  if(f.checkValidity())confirmOperationsBooking(d);
+  return;
+ }
+ if(f.id==='operations-booking-confirm-form'){
+  if(!saveOperationsBooking(d)){$('#operations-booking-error').textContent='The booking has changed or could not be saved. Check the booking details again.';return;}
+  $('#dialog').close();render();
+  const b=allBookings().find(row=>row.id===d.bookingId);
+  const requestedRefund=['cancel','refund'].includes(d.operation)||(d.operation==='refund_review'&&d.decision==='approved');
+  if(requestedRefund&&b?.refundStatus==='failed')toast('The fee refund failed. Retry from the booking details.');
+  else if(requestedRefund&&b?.refundStatus==='completed')toast('The matching fee was refunded in full.');
+  else if(d.operation==='cancel'&&b?.refundStatus==='review')toast('Booking cancelled and fee refund submitted for review.');
+  else if(d.operation==='cancel'&&b?.status==='cancelled')toast('Booking cancelled without a refund.');
+  else toast('Processing record saved.');
+  return;
+ }
 
  if(f.id==='place-search-form'){searchPlaces(f,d);return;}
  if(f.id==='notification-settings-form'){if(saveNotificationPreferences(!!d.serviceEmail,!!d.marketingEmail,'settings')){$('#dialog').close();toast(signupText('notificationSaved'));}else $('#notification-settings-error').textContent=signupText('notificationError');return;}
@@ -1379,13 +2009,13 @@ document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFo
  }
  else if(f.id==='edit-trip-form'){if(!updateTripInfo(d)){$('#edit-trip-error').textContent='Check the trip name and dates.';return;}$('#dialog').close();render();}
  else if(f.id==='new-trip-form'){const dayCount=tripRangeDays(tripDraft?.start,tripDraft?.end);if(!dayCount||tripDraft.start<tripToday()||!createTrip({...d,date:tripDraft.start,dayCount})){$('#new-trip-error').textContent='Check the trip name and dates.';return;}$('#dialog').close();go(tripDetailRoute());}
- else if(f.id==='support-form'){if(storeSupport(d)){render();toast('Inquiry saved.');}}
+ else if(f.id==='support-form'){if(storeSupport(d)){const reference=ticketReferenceLabel(state.tickets.at(-1));render();toast('Inquiry saved. '+reference);}}
  else if(f.id==='request-form'){const params=new URLSearchParams(location.hash.split('?')[1]||'');const result=submitTravelRequest(d,{free:params.get('mode')==='free',example:params.get('sample')==='1'});if(result.error){$('#request-error').textContent=result.error;return;}go(result.route);}
  else if(f.id==='quote-form'){if(!requestAvailable()){ $('#quote-error').textContent='This date is unavailable. Update availability first.';return;}if(!d.ack){$('#quote-error').textContent='Please confirm the requested itinerary and total price.';return;}if(makeQuote(Number(d.amount),d.plan,undefined,undefined,'mina',d.message)){go('guide-activity');toast('Proposal sent.');}else $('#quote-error').textContent='Check the price and itinerary. You cannot send another active proposal or respond to a closed request.';}
 
  else if(f.id==='checkout-form'){if(!d.terms||!d.pendingAck||!d.adult)return;if(requestBooking(d.name.trim(),d.email)){go('booking');}else{go(state.booking?'booking':'quote');}}
  else if(f.id==='mate-cancel-form'){if(cancelBooking('guide',d.reason))go('guide-activity?tab=bookings');else toast('Contact support separately for interruptions or cancellations after the start time.');}
- else if(f.id==='mate-progress-form'){const b=state.booking;if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||!d.ack)return;if(d.kind==='mate-complete'&&b.status==='confirmed'&&Date.now()>=Date.parse((b.endDate||b.date)+'T'+(b.time||'00:00')+':00+09:00')+4*3600000){b.status='completed';b.completedAt=Date.now();state.request.status='completed';}else return;save();$('#dialog').close();go('guide-fee');}
+ else if(f.id==='mate-progress-form'){const b=state.booking;if(window.ReelAccess.isAdmin||window.ReelAccess.mode()!=='guide'||!b||!d.ack)return;if(d.kind==='mate-complete'&&(b.guideId||'mina')==='mina'&&b.status==='confirmed'&&Date.now()>=Date.parse((b.endDate||b.date)+'T'+(b.time||'00:00')+':00+09:00')+4*3600000){b.status='completed';b.completedAt=Date.now();state.request.status='completed';}else return;save();$('#dialog').close();go('guide-fee');}
  else if(f.id==='mate-fee-form'){if(!d.terms)return;if(confirmMateFee(d.outcome||'success')){go('guide-fee');toast('The booking is confirmed after matching fee payment.');}else{if(!state.booking||state.booking.status==='cancelled'){render();return;}const error=$('#mate-fee-error');if(error)error.textContent='Payment was not completed. The booking is still unconfirmed.';}}
  else if(f.id==='user-report-form'){const room=chatContext()?.room;if(room?.id!==d.thread||!reportUser(room,d.reason,d.details)){$('#report-error').textContent='Select a reason and add details for Other. Duplicate reports cannot be saved.';return;}$('#dialog').close();toast('Report saved.');}
  else if(f.id==='chat-form'){if(sendChatMessage(d.text)){render();$('#chat-form textarea')?.focus();}else{render();}}
@@ -1394,7 +2024,13 @@ document.addEventListener('submit',e=>{const f=e.target;if(!(f instanceof HTMLFo
 
 });
 window.addEventListener('reeltrip-access-change',()=>render());
-window.addEventListener('storage',e=>{if(e.key===mateKey){window.ReelAccess.syncMate?.();render();}});
+window.addEventListener('storage',e=>{
+ if(e.key===mateKey){window.ReelAccess.syncMate?.();render();return;}
+ if(e.key===key&&restoreSharedState(localStorage.getItem(key))){
+  const editing=document.activeElement?.closest?.('form');
+  if(!editing&&!$('#dialog')?.open)render();
+ }
+});
 window.addEventListener('hashchange',()=>{if(current()!=='manual'){placeSearchVersion++;placeSelectionVersion++;placeSearchResults=[];placePickerTab='search';placePickerQuery='';placePickerStatus='';placePickerSelected='';pendingAPIPlace=null;}if(current()!=='signup-email')signupEmailStep='address';if(current()!=='support'){supportEvidenceVersion++;supportFiles=[];supportLocation=null;supportFilesLoading=false;}render();window.scrollTo(0,0);$('#main')?.focus({preventScroll:true});});
 if(comparison){
  state.saved=true;ensureDays();
@@ -1471,12 +2107,12 @@ if(window.ReelStatePreview){
  if(fixture.notificationHistory){
   const now=Date.now(),day=86400000;
   const samples=[
-   ['Your mate’s proposal is here','Jun','quote',2*3600000],
+   ['You received a mate proposal','Jun','quote',2*3600000],
    ['Check your trip request','Mina','guides',day],
-   ['Your mate’s proposal is here','Mina','quote',2*day],
+   ['You received a mate proposal','Mina','quote',2*day],
    ['Your booking is confirmed','Jun','trips',3*day],
    ['Your trip is complete','Mina','trips',5*day],
-   ['Your booking was cancelled','Jun','trips',7*day],
+   ['The booking was cancelled','Jun','trips',7*day],
    ['Your trip is complete','Mina','trips',10*day]
   ];
   state.previewNotifications=samples.map(([title,name,route,age],i)=>({id:`preview:notification:${i}`,category:'guide',title,body:`${name} · ${state.title}`,route,time:now-age}));
@@ -1510,6 +2146,7 @@ window.addEventListener('storage',event=>{
  pendingRestaurant=null;pendingEstimate=false;pendingRequestRoute=null;pendingRecommendation=null;profileDraftPhoto='';checkedNickname='';
  $('#dialog')?.close();go('home');render();
 });
+migrateBookingNotices();
 if(window.ReelAccess.isAdmin&&!window.ReelStatePreview)seedAdminSamples();
 if(!location.hash)location.hash=window.ReelAccess.home();
 render();

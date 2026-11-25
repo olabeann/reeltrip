@@ -72,23 +72,31 @@ for(const lang of ['ko','en']){
  assert(c.nav.nicknameProblem('릴트립 운영팀',{}));
  assert(c.nav.nicknameProblem('a',{}));
 
+ {
+ const c=setup(lang);
  c.window.ReelBookingTools={saved(){return '<div data-saved-bookings></div>'}};
  assert.equal(c.nav.notificationItems().length,0);
  assert(c.nav.notifications().includes('notification-empty'));
  assert(!c.nav.notificationBell().includes('notification-dot'));
  c.nav.state.request={id:'RQ-1',status:'requested',guide:'Mina',date:'2026-12-01',createdAt:1794900000000};
+ assert.equal(c.nav.notificationItems().length,0,'Publishing a request does not send the author a notice');
+ c.nav.state.request.date=new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+ Object.assign(c.nav.state.request,{time:'12:00',party:2,stops:[]});
+ assert(c.nav.makeQuote(120000,'Trip itinerary',undefined,undefined,'mina'));
  assert(c.nav.notificationBell().includes('notification-dot'));
  assert(!/class="[^"]*\bnotification-read-all\b[^"]*"/.test(c.nav.notifications()));
  assert(!c.nav.notifications().includes('class="btn textbtn"'));
- assert.equal(c.nav.notificationItems()[0].route,'requested');
- c.nav.markNotificationsRead(c.nav.notificationItems().map(n=>n.id));
- assert(!c.nav.notificationBell().includes('notification-dot'));
- c.nav.state.request.status='quoted';
- assert(c.nav.notificationBell().includes('notification-dot'));
- assert.equal(c.nav.notificationItems()[0].route,'quote');
- c.nav.state.booking={id:'BK-1',status:'confirmed',guide:'Mina',date:'2026-12-01'};
- assert.equal(c.nav.notificationItems()[0].route,'booking');
+ const notice=c.nav.notificationItems()[0];assert.equal(notice.route,'requested?request=RQ-1');
+ c.nav.markNotificationsRead([notice.id]);assert(!c.nav.notificationBell().includes('notification-dot'));
+ assert(c.nav.requestBooking('Traveler','t@example.com'));
+ assert(!c.nav.notificationItems().some(n=>n.kind==='confirmed'));
+ c.window.ReelAccess.mode=()=> 'guide';assert(c.nav.confirmMateFee('success'));
+ assert(c.nav.notificationItems().some(n=>n.kind==='confirmed'&&n.route==='guide-fee?record='+c.nav.state.booking.id));
+ c.window.ReelAccess.mode=()=> 'customer';
+ assert(c.nav.notificationItems().some(n=>n.kind==='confirmed'&&n.route==='booking?record='+c.nav.state.booking.id));
+ assert(c.nav.notificationItems().some(n=>n.id===notice.id&&n.read&&n.body===notice.body));
  c.nav.state.booking=null;c.nav.state.request=null;
+ }
  const market=setup(lang);
  market.nav.state.board=['forest'];assert(market.nav.libraryIds().includes('forest'));
  market.nav.state.board=[];assert(market.nav.libraryIds().includes('forest'),'Removing an itinerary stop must preserve the library');
@@ -175,7 +183,7 @@ for(const lang of ['ko','en']){
  const g=setup(lang,'guide');
  assert(g.window.ReelAccess.allowed('customer','notifications'));
  g.nav.state.request={id:'RQ-G',status:'requested',date:'2026-12-01'};
- assert.equal(g.nav.notificationItems()[0].route,'guide-desk');
+ assert.equal(g.nav.notificationItems().length,0,'No broadcast for a new public request');
  g.location.hash='#notifications';assert(g.nav.layout(g.nav.notifications()).includes('class="app-back" href="#guide-desk"'));
 
  for(const route of ['messages','chat','account','support','policies','settings'])assert(g.window.ReelAccess.allowed('customer',route));

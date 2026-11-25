@@ -22,16 +22,17 @@ for(const lang of ['ko','en'])for(const mode of ['customer','guide']){
   if(status==='confirmed')assert(a.conversationOpen(room));
   submit();assert.equal(a.state.booking.status,'cancelled');assert.equal(a.state.request.status,status==='confirmed'?'cancelled':'withdrawn');
   assert.equal(a.state.booking.feeStatus,status==='confirmed'?'paid':'void');
-  if(status==='confirmed')assert.equal(a.state.booking.refundStatus,mode==='guide'?'not_eligible':'review');
+  if(status==='confirmed')assert.equal(a.state.booking.refundStatus,mode==='guide'?'not_eligible':'completed');
   assert(!a.conversationOpen(room),'Cancellation closes chat immediately');
   const snapshot=JSON.stringify(a.state.booking);submit();assert.equal(JSON.stringify(a.state.booking),snapshot);
   assert.equal(setup(lang,c.storage).api.state.booking.status,'cancelled');
  }
  // Existing browser data and history migrate, while paid fees remain separate.
  a.state.booking.status='cancellation_requested';a.state.booking.feeStatus='paid';a.state.request.status='booked';
- a.state.bookingHistory=[{...a.state.booking,id:'old-cancel'}];a.save();
+ const previousRefund=a.state.booking.refundStatus;
+ a.state.bookingHistory=[{...a.state.booking,id:'old-cancel',refundStatus:'none'}];a.save();
  const migrated=setup(lang,c.storage).api;
  assert.equal(migrated.state.booking.status,'cancelled');assert.equal(migrated.state.request.status,'cancelled');
- assert.equal(migrated.state.bookingHistory[0].status,'cancelled');assert.equal(migrated.state.booking.refundStatus,'review');assert.equal(migrated.state.booking.feeStatus,'paid');
+ assert.equal(migrated.state.bookingHistory[0].status,'cancelled');assert.equal(migrated.state.booking.refundStatus,(!previousRefund||previousRefund==='none')?'review':previousRefund);assert.equal(migrated.state.bookingHistory[0].refundStatus,'review');assert.equal(migrated.state.booking.feeStatus,'paid');
  console.log(`PASS: ${lang} ${mode} immediate cancellation, chat closure, fee separation, repeat submission and legacy migration.`);
 }

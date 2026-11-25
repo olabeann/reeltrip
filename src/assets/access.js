@@ -26,5 +26,6 @@ function tools(){if(admin)return '';return '<label>'+t('계정 권한','Account 
 function blocked(){return '<section class="card pad"><h1>'+t('이 모드에서는 열 수 없는 화면입니다.','This screen is unavailable in this mode.')+'</h1><p>'+t('계정 권한과 현재 모드를 확인해 주세요. 운영 화면은 별도 운영 웹에서 사용합니다.','Check your account permissions and active mode. Operations screens use a separate web app.')+'</p><a class="btn" href="#'+home()+'">'+t('현재 모드 홈으로','Back to mode home')+'</a></section>';}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-access-mode]');if(!b)return;const mode=b.dataset.accessMode;if(!profiles[session.profile].includes(mode))return;session.mode=mode;persist();location.hash=home();window.dispatchEvent(new Event('reeltrip-access-change'));});
 document.addEventListener('change',e=>{if(e.target.id!=='demo-access-profile'||!profiles[e.target.value])return;session.profile=e.target.value;if(!profiles[session.profile].includes(session.mode))session.mode='customer';persist();location.hash=home();window.dispatchEvent(new Event('reeltrip-access-change'));});
-window.ReelAccess={reset(){session={profile:'customer',mode:'customer'};},syncMate,allowed,home,controls,settings,tools,blocked,isAdmin:admin,mode:()=>session.mode};
+function switchMode(mode){syncMate();if(!profiles[session.profile].includes(mode))return false;session.mode=mode;persist();return true;}
+window.ReelAccess={switchMode,reset(){session={profile:'customer',mode:'customer'};},syncMate,allowed,home,controls,settings,tools,blocked,isAdmin:admin,mode:()=>session.mode};
 })();

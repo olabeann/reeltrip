@@ -15,7 +15,7 @@
     "target": "requested",
     "state": "proposals",
     "kind": "화면 내 변경",
-    "effect": "시연: 미나·준 제안 생성; request.status=quoted; 같은 메이트의 제안만 갱신"
+    "effect": "미나·준 제안 생성; request.status=quoted; 같은 메이트의 제안만 갱신"
   },
   "action:select-proposal": {
     "target": "quote",
@@ -202,7 +202,7 @@
     "target": null,
     "state": null,
     "kind": "외부",
-    "effect": "현재 시연 데이터를 JSON 파일로 다운로드; 저장 데이터 유지"
+    "effect": "현재 작업 데이터를 JSON 파일로 다운로드; 저장 데이터 유지"
   },
   "action:reset": {
     "target": null,
@@ -214,7 +214,7 @@
     "target": "home",
     "state": "guest",
     "kind": "조건 분기",
-    "effect": "시연 회원 세션 설정 → 보류한 저장/견적 작업이 있으면 재개; 없으면 현재 모드 홈. 실제 소셜 인증 없음"
+    "effect": "회원 세션 설정 → 보류한 저장/견적 작업이 있으면 재개; 없으면 현재 모드 홈. 실제 소셜 인증 없음"
   },
   "action:browse-guest": {
     "target": "home",
@@ -238,7 +238,7 @@
     "target": "processing",
     "state": "loading",
     "kind": "제출",
-    "effect": "유효한 Shorts/Reels HTTPS 링크면 extraction=processing → processing; 시연 약 1.4초 뒤 partial → results. 잘못된 URL은 이동 없이 오류"
+    "effect": "유효한 Shorts/Reels HTTPS 링크면 extraction=processing → processing; 분석 결과 수신 후 partial → results. 잘못된 URL은 이동 없이 오류"
   },
   "form:discover-search-form": {
     "target": "home",
@@ -280,7 +280,7 @@
     "target": "booking",
     "state": "cancelled",
     "kind": "제출",
-    "effect": "확정 전: booking=cancelled, feeStatus=void, request=withdrawn. 확정 후: booking·request=cancelled, refundStatus=review. 예약은 즉시 취소 완료; 수수료 반환은 별도 검토."
+    "effect": "여행자 취소 즉시 예약·채팅을 종료. 선결제한 메이트 수수료는 전액 환불을 요청하고, 미결제 수수료는 무효 처리."
   },
   "form:review-form": {
     "target": "booking",
@@ -298,7 +298,7 @@
     "target": "guide-fee",
     "state": "confirmed",
     "kind": "제출",
-    "effect": "시연 성공: feeStatus=paid, booking=confirmed, request=booked → guide-earnings. 실패: feeStatus=failed, 미확정 유지, 현재 화면 오류·재시도"
+    "effect": "결제 성공: feeStatus=paid, booking=confirmed, request=booked → guide-earnings. 실패: feeStatus=failed, 미확정 유지, 현재 화면 오류·재시도"
   },
   "form:signup-email-form": {
     "target": "signup-email",
@@ -310,7 +310,7 @@
     "target": "home",
     "state": "guest",
     "kind": "제출",
-    "effect": "시연 코드 일치 → 회원 세션·보류 작업 재개 또는 모드 홈. 불일치 → 현재 화면 오류·코드 입력 포커스"
+    "effect": "인증 코드 일치 → 회원 세션·보류 작업 재개 또는 모드 홈. 불일치 → 현재 화면 오류·코드 입력 포커스"
   },
   "action:chat-policy": {
     "target": null,
@@ -430,7 +430,7 @@
     "kind": "상태 변경",
     "target": null,
     "state": "cancelled",
-    "effect": "확정 전: booking=cancelled, feeStatus=void, request=withdrawn. 확정 후: booking·request=cancelled, refundStatus=review. 예약은 즉시 취소 완료; 수수료 반환은 별도 검토."
+    "effect": "결제 전에는 메이트 선택을 해제하고 재모집한다. 결제 후 메이트 귀책 취소는 예약·채팅을 종료하고 수수료를 미반환 처리한다. 예외 사유는 별도 환급 문의로 검토한다."
   },
   "form:mate-progress-form": {
     "kind": "상태 변경",
@@ -454,7 +454,7 @@
     "kind": "상태 변경",
     "target": null,
     "state": null,
-    "effect": "직접 입력한 활동 이름을 사용자 닉네임·메이트 활동 이름 통합 목록에서 검사하고 결과를 표시한다. 현재 동일 브라우저 시연 데이터 기준."
+    "effect": "직접 입력한 활동 이름을 사용자 닉네임·메이트 활동 이름 통합 목록에서 검사하고 결과를 표시한다."
   },
   "action:user-safety": {
     "kind": "모달",
@@ -473,12 +473,6 @@
     "target": "support",
     "state": null,
     "effect": "작성 중인 메이트 신청서를 저장하고 문의 작성 화면으로 이동"
-  },
-  "action:refresh-safety": {
-    "kind": "상태 변경",
-    "target": null,
-    "state": null,
-    "effect": "한국어·영어 로컬 저장소의 신고 및 현재 차단 목록을 다시 읽어 표시"
   },
   "action:trip-day-settings": {
     "kind": "모달",
@@ -509,13 +503,13 @@
     "kind": "상태 변경",
     "target": null,
     "state": null,
-    "effect": "6자리 인증 UI 시연. 실제 문자 발송 없음. 시연번호 123456, 3분 만료, 30초 재전송 제한."
+    "effect": "6자리 문자 인증 코드 요청. 유효시간 3분, 재전송 간격 30초."
   },
   "action:mate-phone-verify": {
     "kind": "상태 변경",
     "target": null,
     "state": null,
-    "effect": "시연번호 확인. 최대 5회 실패 제한. 번호 변경 시 인증 해제. 실제 서버 인증 아님."
+    "effect": "6자리 인증 코드 확인. 최대 5회 실패 제한. 번호 변경 시 인증 해제."
   },
   "action:withdraw-account": {
     "kind": "모달",
@@ -557,13 +551,13 @@
     "target": "mate-register",
     "state": null,
     "kind": "상태 변경",
-    "effect": "이메일 인증 시연 코드 요청, 실제 발송 없음."
+    "effect": "이메일 인증 코드 요청."
   },
   "action:mate-email-verify": {
     "target": "mate-register",
     "state": null,
     "kind": "상태 변경",
-    "effect": "3분·5회 제한 안에서 이메일 시연 인증."
+    "effect": "3분·5회 제한 안에서 이메일 인증."
   },
   "action:support-location": {
     "target": "support",
@@ -575,19 +569,19 @@
     "target": "admin-bookings",
     "state": null,
     "kind": "제출",
-    "effect": "반환·분쟁 운영 기록. PG 성공 확인 및 금액 검증 후 완료 기록. 실제 PG 취소는 하지 않음."
+    "effect": "예외 건에서 전액 환불 확인 시 승인과 환불 요청을 함께 실행. 환불 불가는 0원으로 종결. PG 성공 시에만 환불 완료와 확인 번호를 기록."
   },
   "form:operations-ticket-form": {
     "target": "admin-support",
     "state": null,
     "kind": "제출",
-    "effect": "문의 처리 상태·내부 메모 저장. 메일은 별도 발송."
+    "effect": "이메일 안내 완료 체크와 내부 처리 메모를 확인한 후 문의를 처리 완료로 저장. 안내 여부·수신 이메일·메모·시각을 이력에 보존"
   },
   "form:activity-restriction-form": {
     "target": "admin-guides",
     "state": null,
     "kind": "제출",
-    "effect": "운영팀 사유와 신규 제안·확정 제한 상태 기록. 기존 예약은 별도 판단."
+    "effect": "정지 사유와 한국시간 기준 종료일을 기록한다. 종료일 다음 날 0시 자동 해제, 조기 해제 사유 필수."
   },
   "form:mate-edit-form": {
     "target": "account",
@@ -624,5 +618,17 @@
     "target": null,
     "state": null,
     "effect": "선택한 신청의 현재 심사 상태와 사유를 확인한 후 승인·거절·보완 처리. 취소 시 유지"
+  },
+  "action:mate-suspension": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "메이트 활동 정지 또는 조기 해제 창 열기. 제출 전까지 활동 상태 유지."
+  },
+  "form:report-decision-form": {
+    "kind": "모달",
+    "target": null,
+    "state": null,
+    "effect": "선택한 결과의 입력 창을 연다. 최종 제출 전까지 신고·활동 상태 유지."
   }
 }

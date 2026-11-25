@@ -9,6 +9,6 @@
 - 고객/메이트 통합 앱, admin 별도 웹. 공개 여행→복수 제안→여행자 선택→메이트 수수료 10% 결제→확정. 여행비는 현장 현금 직접 지급.
 - archives/ 동결 복원 백업은 작업본과 별개로 수정하지 않는다.
 - 검사: python3 tools/tests/static_checks.py; node tools/tests/startup_checks.cjs; node tools/tests/navigation_checks.cjs; node tools/tests/access_checks.cjs; node tools/tests/google_map_checks.js. 프로젝트 루트에서 node tools/tests/tower_seed_checks.cjs.
-- 시제품을 실제 인증·결제·서버 연결 완료본으로 표시하지 않는다.
+- 기획자가 개발자에게 전달하는 클릭 가능한 프로토타입으로 작업한다. 외부 인증·결제·서버 연결은 별도 요청이 있을 때 진행한다. 앱·운영 웹에는 실제 서비스에서 사용할 문구만 표시한다. 시제품·시연 안내, 검토용 코드와 연동 상태는 개발 인계 문서에서 설명한다.
 - 디자인 시스템: docs/design-guide.html을 기준으로 src/assets/design-system.css의 --rt-* 토큰과 공통 컴포넌트를 사용한다. 새 버튼·카드·팝업 변형은 화면별 임의 스타일 대신 공통 CSS와 tools/scripts/build_design_system.py에 함께 등록한다. 기능 아이콘은 app.js의 icon()을 사용한다. 2버튼 팝업은 취소→실행 순서를 유지한다.
 - 디자인 시스템 변경 후 node tools/tests/design_system_checks.cjs도 실행한다. 화면 전용 카드도 공통 카드 변형을 사용하며, 기능 SVG를 화면에 직접 작성하지 않는다. 지도 경로와 장식 일러스트만 예외로 유지한다.

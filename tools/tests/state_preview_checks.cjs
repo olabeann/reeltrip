@@ -42,6 +42,21 @@ for(const lang of ['ko','en'])for(const [route,variants] of Object.entries(regis
  assert(app.innerHTML.includes('<main'),`${lang}/${route}/${variant.id} blank`);
  assert.equal(ctx.ReelStatePreview.state,variant.id);
  assert.equal(ctx.ReelAccess.isAdmin,admin,description+' surface');
+ if(admin&&app.innerHTML.includes('<tbody>')){
+  assert.match(app.innerHTML,/<section class="card rt-admin-panel rt-admin-list"><div class="rt-admin-panel-head"><h2>[^<>]+<\/h2><\/div>/,description+' shared list title');
+  const headings=app.innerHTML.match(/<thead><tr>([\s\S]*?)<\/tr><\/thead>/)[1];
+  assert.equal(headings.replace(/<th scope="col"[^>]*>[^<]+<\/th>/g,''),'',description+' all headings identify columns');
+  assert.match(app.innerHTML,/<th scope="col" class="rt-admin-manage">/,description+' management column');
+  const rows=app.innerHTML.match(/<tbody>([\s\S]*?)<\/tbody>/)[1].match(/<tr>[\s\S]*?<\/tr>/g)||[];
+  for(const row of rows.filter(row=>!row.includes('rt-admin-empty'))){
+   const cell=row.match(/<td class="rt-admin-manage">(<a [^>]+>)([\s\S]*?)<\/a><\/td><\/tr>$/);
+   assert(cell,description+' record detail link in the last column');
+   assert.match(cell[1],/href="#admin-[^"]*record=[^"&]+/,description+' specific record');
+   assert.match(cell[1],/aria-label="[^"]+"/,description+' accessible link name');
+   assert.match(cell[2],/^<svg [^>]*aria-hidden="true">.*<circle cx="12" cy="12" r="3"\/><\/svg>$/,description+' eye icon');
+   assert.equal(cell[2].replace(/<[^>]+>/g,''),'',description+' icon only');
+  }
+ }
  assert(ctx.ReelAccess.allowed(screens.find(s=>s.route===route).role,route),description+' permission');
  if(lang==='ko'&&variant.expect)assert(app.innerHTML.includes(variant.expect),description+' missing '+variant.expect);
  if(lang==='ko'&&variant.absent)assert(!app.innerHTML.includes(variant.absent),description+' unexpected '+variant.absent);

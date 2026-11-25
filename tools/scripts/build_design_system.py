@@ -68,7 +68,7 @@ def build_design_system():
  # Operations web: subtle gray sidebar and white content surface with shared tokens.
  # Register the compact panel, filter and navigation variants.
  # rt-admin-filter shares a 44px control height and 80px action width via tokens.
- components = sorted(set(components) | {'rt-admin-panel', 'rt-admin-filter', 'rt-admin-sidebar', 'rt-admin-content', 'rt-admin-detail', 'rt-admin-info', 'rt-admin-review-form', 'rt-status-badge', 'rt-admin-dialog', 'rt-admin-row-actions'})
+ components = sorted(set(components) | {'rt-admin-panel', 'rt-admin-filter', 'rt-admin-sidebar', 'rt-admin-content', 'rt-admin-detail', 'rt-admin-info', 'rt-admin-review-form', 'rt-status-badge', 'rt-admin-dialog', 'rt-admin-row-actions', 'rt-danger-outline', 'rt-admin-detail-toolbar', 'rt-report-choices', 'rt-admin-disclosure', 'rt-admin-action-form', 'rt-admin-history', 'rt-admin-narrative', 'rt-admin-attachments', 'rt-admin-amount', 'rt-admin-manage', 'rt-admin-detail-link', 'rt-admin-list'})
  html = html.replace('COMPONENT_LIST', ''.join(f'<li><code>{name}</code></li>' for name in components))
  html = html.replace('ICON_SAMPLES', ''.join(f'<div class="icon-sample">{icon(name)}<code>{name}</code></div>' for name in shapes))
  # Native form fields reuse the icon registry, without changing form semantics.

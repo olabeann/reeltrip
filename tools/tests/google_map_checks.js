@@ -8,7 +8,7 @@ const element=()=>({children:[],isConnected:true,append(x){this.children.push(x)
  const context={window:{REEL_MAPS_CONFIG:{apiKey:''}},document,location:{protocol:'http:'},URLSearchParams,setTimeout,clearTimeout};
  vm.createContext(context);vm.runInContext(code,context);
  const host=element();await context.window.ReelGoogleMap.mount(host,[],null,()=>{});
- assert.equal(loads,0);assert.match(host.children[0].textContent,/설정/);
+ assert.equal(loads,0);assert.match(host.children[0].textContent,/아래 장소 목록/);
  context.window.REEL_MAPS_CONFIG.apiKey='unit-test-placeholder';
  const google={maps:{importLibrary:async type=>type==='maps'?{Map:class{fitBounds(){}}}:{AdvancedMarkerElement:class{constructor(options){created.push(options)}}},LatLngBounds:class{extend(){}},event:{clearInstanceListeners(){}}}};
  context.google=google;context.window.google=google;
